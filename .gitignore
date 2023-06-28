@@ -6,4 +6,5 @@ node_modules
 
 /cypress/screenshots
 /cypress/videos
-/postgres-data
+/prisma/data.db
+/prisma/data.db-journal
