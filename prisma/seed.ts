@@ -24,19 +24,24 @@ async function seed() {
     },
   });
 
-  await prisma.note.create({
+  // Create a sample community
+  const community = await prisma.community.create({
     data: {
-      title: "My first note",
-      body: "Hello, world!",
-      userId: user.id,
+      name: "Sample Community",
+      description: "A sample community for testing",
+      rules: "Be kind and respectful to all members",
+      ownerId: user.id,
     },
   });
 
-  await prisma.note.create({
+  // Create a sample item
+  await prisma.item.create({
     data: {
-      title: "My second note",
-      body: "Hello, world!",
-      userId: user.id,
+      name: "Sample Book",
+      description: "A great book to share",
+      category: "book",
+      condition: "excellent",
+      ownerId: user.id,
     },
   });
 

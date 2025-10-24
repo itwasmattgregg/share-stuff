@@ -1,9 +1,11 @@
-import type { V2_MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/node";
 import { Link } from "@remix-run/react";
 
 import { useOptionalUser } from "~/utils";
 
-export const meta: V2_MetaFunction = () => [{ title: "Remix Notes" }];
+export const meta: MetaFunction = () => [
+  { title: "Share Stuff - Community Sharing Platform" },
+];
 
 export default function Index() {
   const user = useOptionalUser();
@@ -23,20 +25,20 @@ export default function Index() {
             <div className="relative px-4 pb-8 pt-16 sm:px-6 sm:pb-14 sm:pt-24 lg:px-8 lg:pb-20 lg:pt-32">
               <h1 className="text-center text-6xl font-extrabold tracking-tight sm:text-8xl lg:text-9xl">
                 <span className="block uppercase text-yellow-500 drop-shadow-md">
-                  Indie Stack
+                  Share Stuff
                 </span>
               </h1>
               <p className="mx-auto mt-6 max-w-lg text-center text-xl text-white sm:max-w-3xl">
-                Check the README.md file for instructions on how to get this
-                project deployed.
+                Create and join communities to share your things with others.
+                Borrow tools, books, DVDs, and more from your neighbors.
               </p>
               <div className="mx-auto mt-10 max-w-sm sm:flex sm:max-w-none sm:justify-center">
                 {user ? (
                   <Link
-                    to="/notes"
+                    to="/items"
                     className="flex items-center justify-center rounded-md border border-transparent bg-white px-4 py-3 text-base font-medium text-yellow-700 shadow-sm hover:bg-yellow-50 sm:px-8"
                   >
-                    View Notes for {user.email}
+                    View My Items
                   </Link>
                 ) : (
                   <div className="space-y-4 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5 sm:space-y-0">
@@ -54,6 +56,15 @@ export default function Index() {
                     </Link>
                   </div>
                 )}
+              </div>
+
+              <div className="mt-6 text-center">
+                <Link
+                  to="/guidelines"
+                  className="text-white underline hover:text-yellow-200"
+                >
+                  Read our Community Guidelines
+                </Link>
               </div>
               <a href="https://remix.run">
                 <img

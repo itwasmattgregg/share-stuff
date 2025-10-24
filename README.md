@@ -1,30 +1,46 @@
-# Remix Indie Stack
+# Share Stuff - Community Sharing Platform
 
-![The Remix Indie Stack](https://repository-images.githubusercontent.com/465928257/a241fa49-bd4d-485a-a2a5-5cb8e4ee0abf)
+A community-driven platform for sharing items within closed groups. Built with Remix v2, Prisma, and SQLite.
 
-Learn more about [Remix Stacks](https://remix.run/stacks).
+## 🎯 What It Does
 
-```sh
-npx create-remix@latest --template remix-run/indie-stack
-```
+Share Stuff allows people to create and join communities where they can share their belongings with others. Think of it as a neighborhood library for tools, books, DVDs, and more.
 
-## What's in the stack
+## ✨ Key Features
 
-- [Fly app deployment](https://fly.io) with [Docker](https://www.docker.com/)
-- Production-ready [SQLite Database](https://sqlite.org)
-- Healthcheck endpoint for [Fly backups region fallbacks](https://fly.io/docs/reference/configuration/#services-http_checks)
-- [GitHub Actions](https://github.com/features/actions) for deploy on merge to production and staging environments
-- Email/Password Authentication with [cookie-based sessions](https://remix.run/utils/sessions#md-createcookiesessionstorage)
-- Database ORM with [Prisma](https://prisma.io)
-- Styling with [Tailwind](https://tailwindcss.com/)
-- End-to-end testing with [Cypress](https://cypress.io)
-- Local third party request mocking with [MSW](https://mswjs.io)
-- Unit testing with [Vitest](https://vitest.dev) and [Testing Library](https://testing-library.com)
-- Code formatting with [Prettier](https://prettier.io)
-- Linting with [ESLint](https://eslint.org)
-- Static Types with [TypeScript](https://typescriptlang.org)
+### Community Management
+- **Create Communities**: Start your own sharing community with custom rules
+- **Join Communities**: Browse and request to join existing communities  
+- **Approval System**: Community owners approve new members
+- **Privacy Controls**: Only approved members can see community content
 
-Not a fan of bits of the stack? Fork it, change it, and use `npx create-remix --template your/repo`! Make it your own.
+### Item Sharing
+- **Add Items**: Share your belongings with the community
+- **Browse Items**: See what's available to borrow
+- **Categories**: Organize items by type (books, tools, DVDs, etc.)
+- **Condition Tracking**: Note the condition of your items
+
+### Lending System
+- **Request to Borrow**: Request items with optional messages
+- **Queue System**: Multiple people can request the same item
+- **Status Tracking**: Track items through PENDING → APPROVED → BORROWED → RETURNED
+- **Owner Controls**: Approve/reject requests and track returns
+
+### Privacy Features
+- **Item Owner Visibility**: Only you can see who has your items
+- **Community Privacy**: Others see items are borrowed but not by whom
+- **Access Control**: Only community members can see items
+
+## 🏗️ Built With
+
+- [Remix v2](https://remix.run) - Full-stack React framework
+- [Prisma](https://prisma.io) - Database ORM with SQLite
+- [Tailwind CSS](https://tailwindcss.com) - Utility-first styling
+- [TypeScript](https://typescriptlang.org) - Type safety
+- [Fly.io](https://fly.io) - App deployment with Docker
+- [GitHub Actions](https://github.com/features/actions) - CI/CD
+- [Cypress](https://cypress.io) - E2E testing
+- [Vitest](https://vitest.dev) - Unit testing
 
 ## Quickstart
 
