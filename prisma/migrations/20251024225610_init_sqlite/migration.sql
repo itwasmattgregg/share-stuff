@@ -1,5 +1,6 @@
 -- CreateTable
-CREATE TABLE "User" (
+-- Use IF NOT EXISTS since update_schema_strings may have already created some tables
+CREATE TABLE IF NOT EXISTS "User" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "email" TEXT NOT NULL,
     "name" TEXT,
@@ -9,14 +10,14 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "Password" (
+CREATE TABLE IF NOT EXISTS "Password" (
     "hash" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     CONSTRAINT "Password_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
-CREATE TABLE "Community" (
+CREATE TABLE IF NOT EXISTS "Community" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -28,7 +29,7 @@ CREATE TABLE "Community" (
 );
 
 -- CreateTable
-CREATE TABLE "CommunityMembership" (
+CREATE TABLE IF NOT EXISTS "CommunityMembership" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -40,7 +41,7 @@ CREATE TABLE "CommunityMembership" (
 );
 
 -- CreateTable
-CREATE TABLE "Item" (
+CREATE TABLE IF NOT EXISTS "Item" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -54,7 +55,7 @@ CREATE TABLE "Item" (
 );
 
 -- CreateTable
-CREATE TABLE "LendingRequest" (
+CREATE TABLE IF NOT EXISTS "LendingRequest" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "requestNote" TEXT,
@@ -70,7 +71,7 @@ CREATE TABLE "LendingRequest" (
 );
 
 -- CreateTable
-CREATE TABLE "Report" (
+CREATE TABLE IF NOT EXISTS "Report" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "reportType" TEXT NOT NULL,
     "targetId" TEXT NOT NULL,
@@ -85,10 +86,10 @@ CREATE TABLE "Report" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Password_userId_key" ON "Password"("userId");
+CREATE UNIQUE INDEX IF NOT EXISTS "Password_userId_key" ON "Password"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CommunityMembership_userId_communityId_key" ON "CommunityMembership"("userId", "communityId");
+CREATE UNIQUE INDEX IF NOT EXISTS "CommunityMembership_userId_communityId_key" ON "CommunityMembership"("userId", "communityId");

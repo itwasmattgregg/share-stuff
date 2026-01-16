@@ -12,5 +12,11 @@ echo 10 > /proc/sys/vm/swappiness
 swapon /swapfile
 echo 1 > /proc/sys/vm/overcommit_memory
 
-# Start the Remix server
-npx remix-serve build/index.js
+# If arguments are passed, execute them (for release commands)
+# Otherwise, start the Remix server
+if [ $# -gt 0 ]; then
+  exec "$@"
+else
+  # Start the Remix server
+  npx remix-serve build/index.js
+fi

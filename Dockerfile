@@ -58,4 +58,8 @@ COPY --from=build /myapp/package.json /myapp/package.json
 COPY --from=build /myapp/start.sh /myapp/start.sh
 COPY --from=build /myapp/prisma /myapp/prisma
 
+# Install Prisma CLI globally for release commands (needed for migrations)
+# This ensures Prisma CLI is available even though it's in devDependencies
+RUN npm install -g prisma@4.15.0
+
 ENTRYPOINT [ "./start.sh" ]

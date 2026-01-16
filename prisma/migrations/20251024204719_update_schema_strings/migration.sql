@@ -5,12 +5,14 @@
 
 */
 -- DropTable
+-- For fresh databases, Note table may not exist, so we use IF EXISTS
 PRAGMA foreign_keys=off;
-DROP TABLE "Note";
+DROP TABLE IF EXISTS "Note";
 PRAGMA foreign_keys=on;
 
 -- CreateTable
-CREATE TABLE "Community" (
+-- Use IF NOT EXISTS for fresh databases where tables may not exist yet
+CREATE TABLE IF NOT EXISTS "Community" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -22,7 +24,7 @@ CREATE TABLE "Community" (
 );
 
 -- CreateTable
-CREATE TABLE "CommunityMembership" (
+CREATE TABLE IF NOT EXISTS "CommunityMembership" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -34,7 +36,7 @@ CREATE TABLE "CommunityMembership" (
 );
 
 -- CreateTable
-CREATE TABLE "Item" (
+CREATE TABLE IF NOT EXISTS "Item" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -50,7 +52,7 @@ CREATE TABLE "Item" (
 );
 
 -- CreateTable
-CREATE TABLE "LendingRequest" (
+CREATE TABLE IF NOT EXISTS "LendingRequest" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "requestNote" TEXT,
@@ -66,7 +68,7 @@ CREATE TABLE "LendingRequest" (
 );
 
 -- CreateTable
-CREATE TABLE "Report" (
+CREATE TABLE IF NOT EXISTS "Report" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "reportType" TEXT NOT NULL,
     "targetId" TEXT NOT NULL,
@@ -81,7 +83,21 @@ CREATE TABLE "Report" (
 );
 
 -- RedefineTables
+-- Modify User table if it exists, otherwise create it with correct schema
+-- For fresh databases, this ensures User has the correct schema
 PRAGMA foreign_keys=OFF;
+
+-- Create User table if it doesn't exist (for fresh databases)
+-- This ensures the SELECT below won't fail
+CREATE TABLE IF NOT EXISTS "User" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "email" TEXT NOT NULL,
+    "name" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- Create new User table with correct schema (includes role column)
 CREATE TABLE "new_User" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "email" TEXT NOT NULL,
@@ -90,10 +106,23 @@ CREATE TABLE "new_User" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
-INSERT INTO "new_User" ("createdAt", "email", "id", "updatedAt") SELECT "createdAt", "email", "id", "updatedAt" FROM "User";
+
+-- Copy data from existing User table (now it exists, so this won't fail)
+-- If User was just created empty, this will insert 0 rows, which is fine
+INSERT INTO "new_User" ("createdAt", "email", "id", "updatedAt", "name", "role")
+SELECT 
+    "createdAt", 
+    "email", 
+    "id", 
+    "updatedAt",
+    "name",
+    COALESCE("role", 'USER') as "role"
+FROM "User";
+
+-- Replace User table
 DROP TABLE "User";
 ALTER TABLE "new_User" RENAME TO "User";
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
 PRAGMA foreign_key_check;
 PRAGMA foreign_keys=ON;
 
