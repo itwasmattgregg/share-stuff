@@ -19,6 +19,9 @@ node_modules/
 *.db
 *.db-journal
 
+# Compiled seed script
+prisma/seed.js
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

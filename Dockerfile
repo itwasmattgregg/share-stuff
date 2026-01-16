@@ -37,6 +37,10 @@ RUN npx prisma generate
 ADD . .
 RUN npm run build
 
+# Compile seed script to JavaScript for production use
+# Override noEmit from tsconfig.json and compile seed.ts
+RUN npx tsc prisma/seed.ts --outDir prisma --target ES2020 --module commonjs --esModuleInterop --skipLibCheck --resolveJsonModule --moduleResolution node --noEmit false
+
 # Finally, build the production image with minimal footprint
 FROM base
 
@@ -57,6 +61,9 @@ COPY --from=build /myapp/public /myapp/public
 COPY --from=build /myapp/package.json /myapp/package.json
 COPY --from=build /myapp/start.sh /myapp/start.sh
 COPY --from=build /myapp/prisma /myapp/prisma
+# Copy compiled seed script and seed runner
+COPY --from=build /myapp/prisma/seed.js /myapp/prisma/seed.js
+COPY --from=build /myapp/scripts /myapp/scripts
 
 # Install Prisma CLI globally for release commands (needed for migrations)
 # This ensures Prisma CLI is available even though it's in devDependencies
