@@ -27,30 +27,6 @@ export default function Index() {
               ShareStuff
             </span>
           </div>
-          
-          {user ? (
-            <Link
-              to="/items"
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Dashboard
-            </Link>
-          ) : (
-            <div className="flex space-x-4">
-              <Link
-                to="/login"
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/join"
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                Get Started
-              </Link>
-            </div>
-          )}
         </div>
       </nav>
 
@@ -72,18 +48,11 @@ export default function Index() {
 
           {!user && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link
-                to="/join"
-                className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-700 transition-all transform hover:scale-105 shadow-lg"
+              <span
+                className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg cursor-not-allowed opacity-75"
               >
-                Start Sharing Today
-              </Link>
-              <Link
-                to="/communities"
-                className="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-50 transition-all"
-              >
-                Browse Communities
-              </Link>
+                Coming Soon
+              </span>
             </div>
           )}
         </div>
@@ -257,12 +226,11 @@ export default function Index() {
           
           {!user && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/join"
-                className="bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-lg"
+              <span
+                className="bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold shadow-lg cursor-not-allowed opacity-75"
               >
-                Get Started Free
-              </Link>
+                Coming Soon
+              </span>
               <Link
                 to="/guidelines"
                 className="border-2 border-white text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all"
@@ -291,7 +259,6 @@ export default function Index() {
             </p>
             <div className="flex justify-center space-x-6 text-sm text-gray-400">
               <Link to="/guidelines" className="hover:text-white transition-colors">Guidelines</Link>
-              <Link to="/communities" className="hover:text-white transition-colors">Communities</Link>
               <Link to="/login" className="hover:text-white transition-colors">Sign In</Link>
             </div>
           </div>
