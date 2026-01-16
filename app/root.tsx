@@ -1,5 +1,5 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction, LoaderArgs } from "@remix-run/node";
+import type { LinksFunction, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
   Links,
@@ -19,7 +19,46 @@ export const links: LinksFunction = () => [
 ];
 
 export const loader = async ({ request }: LoaderArgs) => {
-  return json({ user: await getUser(request) });
+  const requestUrl = new URL(request.url);
+  return json({
+    user: await getUser(request),
+    requestUrl: requestUrl.toString(),
+    socialImageUrl: new URL("/social-card.svg", requestUrl).toString(),
+  });
+};
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  const requestUrl = data?.requestUrl ?? "https://example.com";
+  const socialImageUrl = data?.socialImageUrl ?? `${requestUrl}/social-card.svg`;
+
+  return [
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: requestUrl },
+    {
+      property: "og:title",
+      content: "ShareStuff - Build Stronger Communities Through Sharing",
+    },
+    {
+      property: "og:description",
+      content:
+        "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community.",
+    },
+    { property: "og:image", content: socialImageUrl },
+    { property: "og:image:width", content: "1200" },
+    { property: "og:image:height", content: "630" },
+
+    { name: "twitter:card", content: "summary_large_image" },
+    {
+      name: "twitter:title",
+      content: "ShareStuff - Build Stronger Communities Through Sharing",
+    },
+    {
+      name: "twitter:description",
+      content:
+        "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community.",
+    },
+    { name: "twitter:image", content: socialImageUrl },
+  ];
 };
 
 export default function App() {

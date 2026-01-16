@@ -13,17 +13,11 @@ This project is configured for deployment on Fly.io with the following setup:
 
 ### Database Setup
 
-Since we're using PostgreSQL, you'll need to create a managed PostgreSQL database on Fly.io:
+This app is configured to use **SQLite** on Fly.io, backed by a **persistent volume** mounted at `/data`.
 
 ```bash
-# Create a managed PostgreSQL database
-fly postgres create --name share-stuff-db --region sjc
-
-# Attach the database to your app (this automatically sets DATABASE_URL)
-fly postgres attach share-stuff-db --app share-stuff
-
-# Verify the database is attached
-fly secrets list
+# Create a persistent volume for SQLite
+fly volumes create data --size 1 --region sjc --app share-stuff
 ```
 
 ### Environment Variables
@@ -31,11 +25,14 @@ fly secrets list
 Set the required environment variables:
 
 ```bash
-# Set a secure session secret (DATABASE_URL is automatically set by fly postgres attach)
+# Set a secure session secret
 fly secrets set SESSION_SECRET="your-super-secret-session-key-here"
 
 # Generate a secure session secret (optional - you can use this command)
 openssl rand -base64 32
+
+# Set DATABASE_URL to the mounted SQLite file
+fly secrets set DATABASE_URL="file:/data/sqlite.db"
 ```
 
 ### Deployment
@@ -51,9 +48,8 @@ openssl rand -base64 32
    ```bash
    # Migrations run automatically via the release_command in fly.toml
    # If you need to run them manually:
-   fly ssh console
-   npx prisma migrate deploy
-   npx prisma db seed
+   fly ssh console -C "npx prisma migrate deploy"
+   fly ssh console -C "npx prisma db seed"
    ```
 
 3. **Open your app:**
