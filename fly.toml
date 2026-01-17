@@ -30,6 +30,10 @@ primary_region = "sjc"  # San Jose, California
   cpus = 1
   memory_mb = 1024
 
+[[mounts]]
+  source = "data"
+  destination = "/data"
+
 [deploy]
   # Prisma CLI is installed globally in the Dockerfile
   # This runs migrations before the app starts
