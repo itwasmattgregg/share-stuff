@@ -1,12 +1,41 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { Link } from "@remix-run/react";
 
 import { useOptionalUser } from "~/utils";
 
-export const meta: MetaFunction = () => [
-  { title: "ShareStuff - Build Stronger Communities Through Sharing" },
-  { name: "description", content: "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community." },
-];
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const requestUrl = new URL(request.url);
+  return json({
+    requestUrl: requestUrl.toString(),
+    socialImageUrl: new URL("/og-image.png", requestUrl).toString(),
+  });
+};
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  const requestUrl = data?.requestUrl ?? "https://example.com";
+  const socialImageUrl = data?.socialImageUrl ?? `${requestUrl}/og-image.png`;
+
+  return [
+    { title: "ShareStuff - Build Stronger Communities Through Sharing" },
+    { name: "description", content: "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community." },
+    
+    // Open Graph tags
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: requestUrl },
+    { property: "og:title", content: "ShareStuff - Build Stronger Communities Through Sharing" },
+    { property: "og:description", content: "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community." },
+    { property: "og:image", content: socialImageUrl },
+    { property: "og:image:width", content: "1200" },
+    { property: "og:image:height", content: "630" },
+    
+    // Twitter Card tags
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "ShareStuff - Build Stronger Communities Through Sharing" },
+    { name: "twitter:description", content: "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community." },
+    { name: "twitter:image", content: socialImageUrl },
+  ];
+};
 
 export default function Index() {
   const user = useOptionalUser();
