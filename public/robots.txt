@@ -3,6 +3,9 @@
 
 User-agent: *
 Disallow: /
+# Allow access to OG images for social sharing
+Allow: /og-image.png
+Allow: /social-card.svg
 
 # Block common search engines
 User-agent: Googlebot

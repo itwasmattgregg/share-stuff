@@ -17,6 +17,12 @@ echo 1 > /proc/sys/vm/overcommit_memory
 if [ $# -gt 0 ]; then
   exec "$@"
 else
+  # Ensure migrations are up to date before starting (safety check)
+  echo "Checking database migrations before starting server..."
+  npx prisma migrate deploy || {
+    echo "Warning: Migration check failed. Continuing anyway..."
+  }
+  
   # Start the Remix server
   npx remix-serve build/index.js
 fi

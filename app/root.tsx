@@ -33,7 +33,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json({
     user,
     requestUrl: requestUrl.toString(),
-    socialImageUrl: new URL("/social-card.svg", requestUrl).toString(),
+    socialImageUrl: new URL("/og-image.png", requestUrl).toString(),
     notificationCount,
     messageCount,
   });
@@ -41,7 +41,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const requestUrl = data?.requestUrl ?? "https://example.com";
-  const socialImageUrl = data?.socialImageUrl ?? `${requestUrl}/social-card.svg`;
+  const socialImageUrl = data?.socialImageUrl ?? `${requestUrl}/og-image.png`;
 
   return [
     { property: "og:type", content: "website" },

@@ -37,7 +37,8 @@ primary_region = "sjc"  # San Jose, California
 [deploy]
   # Prisma CLI is installed globally in the Dockerfile
   # This runs migrations before the app starts
-  release_command = "prisma migrate deploy"
+  # Using npx to ensure Prisma is found, and adding error handling
+  release_command = "npx prisma migrate deploy || (echo 'Migration failed, check logs' && exit 1)"
 
 # SQLite database configuration
 # This app uses SQLite for cost-effective development and testing
