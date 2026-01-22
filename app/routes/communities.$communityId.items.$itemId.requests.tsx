@@ -3,7 +3,9 @@ import { json, redirect } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 
 import { getItem, updateLendingRequestStatus } from "~/models/item.server";
+import { createNotification } from "~/models/notification.server";
 import { requireUserId } from "~/session.server";
+import { prisma } from "~/db.server";
 
 export const loader = async ({ params, request }: LoaderArgs) => {
   const userId = await requireUserId(request);
@@ -50,6 +52,75 @@ export const action = async ({ params, request }: ActionArgs) => {
     responseNote: typeof responseNote === "string" ? responseNote : undefined,
   });
 
+  // Get request details for notification
+  const lendingRequest = await prisma.lendingRequest.findUnique({
+    where: { id: requestId },
+    include: {
+      item: {
+        select: { id: true, name: true },
+      },
+      requester: {
+        select: { id: true },
+      },
+      itemOwner: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (lendingRequest) {
+    const statusValue = status as string;
+    const communityId = params.communityId;
+
+    if (statusValue === "APPROVED") {
+      await createNotification({
+        userId: lendingRequest.requesterId,
+        type: "LENDING_APPROVED",
+        title: "Lending Request Approved",
+        message: `Your request to borrow "${lendingRequest.item.name}" has been approved!`,
+        link: `/communities/${communityId}/items/${itemId}`,
+      });
+    } else if (statusValue === "REJECTED") {
+      await createNotification({
+        userId: lendingRequest.requesterId,
+        type: "LENDING_REJECTED",
+        title: "Lending Request Rejected",
+        message: `Your request to borrow "${lendingRequest.item.name}" has been rejected.`,
+        link: `/communities/${communityId}/items/${itemId}`,
+      });
+    } else if (statusValue === "BORROWED") {
+      await createNotification({
+        userId: lendingRequest.requesterId,
+        type: "ITEM_BORROWED",
+        title: "Item Marked as Borrowed",
+        message: `"${lendingRequest.item.name}" has been marked as borrowed.`,
+        link: `/communities/${communityId}/items/${itemId}`,
+      });
+      await createNotification({
+        userId: lendingRequest.itemOwnerId,
+        type: "ITEM_BORROWED",
+        title: "Item Borrowed",
+        message: `Someone has borrowed "${lendingRequest.item.name}".`,
+        link: `/communities/${communityId}/items/${itemId}/requests`,
+      });
+    } else if (statusValue === "RETURNED") {
+      await createNotification({
+        userId: lendingRequest.requesterId,
+        type: "ITEM_RETURNED",
+        title: "Item Returned",
+        message: `"${lendingRequest.item.name}" has been marked as returned.`,
+        link: `/communities/${communityId}/items/${itemId}`,
+      });
+      await createNotification({
+        userId: lendingRequest.itemOwnerId,
+        type: "ITEM_RETURNED",
+        title: "Item Returned",
+        message: `"${lendingRequest.item.name}" has been returned.`,
+        link: `/communities/${communityId}/items/${itemId}/requests`,
+      });
+    }
+  }
+
   return redirect(
     `/communities/${params.communityId}/items/${itemId}/requests`
   );
@@ -74,7 +145,7 @@ export default function ItemRequestsPage() {
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">Lending Requests</h2>
+        <h2 className="text-xl sm:text-2xl font-bold">Lending Requests</h2>
         <p className="mt-2 text-gray-600">
           Manage requests for "{data.item.name}"
         </p>

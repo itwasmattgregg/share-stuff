@@ -4,6 +4,7 @@ import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
 import { getItem, requestToBorrowItem } from "~/models/item.server";
+import { createNotification } from "~/models/notification.server";
 import { requireUserId } from "~/session.server";
 
 export const loader = async ({ params, request }: LoaderArgs) => {
@@ -45,11 +46,23 @@ export const action = async ({ params, request }: ActionArgs) => {
   const formData = await request.formData();
   const requestNote = formData.get("requestNote");
 
-  await requestToBorrowItem({
+  const lendingRequest = await requestToBorrowItem({
     requesterId: userId,
     itemId,
     requestNote: typeof requestNote === "string" ? requestNote : undefined,
   });
+
+  // Get item to notify owner
+  const item = await getItem({ id: itemId });
+  if (item) {
+    await createNotification({
+      userId: item.ownerId,
+      type: "LENDING_REQUEST",
+      title: "New Lending Request",
+      message: `Someone has requested to borrow "${item.name}".`,
+      link: `/communities/${params.communityId}/items/${itemId}/requests`,
+    });
+  }
 
   return redirect(`/communities/${params.communityId}/items/${itemId}`);
 };
@@ -68,7 +81,7 @@ export default function RequestBorrowPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">Request to Borrow</h2>
+        <h2 className="text-xl sm:text-2xl font-bold">Request to Borrow</h2>
         <p className="mt-2 text-gray-600">
           You're requesting to borrow "{data.item.name}" from{" "}
           {data.item.owner.name || data.item.owner.email}
@@ -142,16 +155,16 @@ export default function RequestBorrowPage() {
           </p>
         </div>
 
-        <div className="flex justify-end space-x-3">
+        <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
           <Link
             to={`/communities/${data.item.community.id}/items/${data.item.id}`}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="w-full sm:w-auto rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 text-center min-h-[44px] flex items-center justify-center sm:inline-flex"
           >
             Cancel
           </Link>
           <button
             type="submit"
-            className="rounded-md bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600"
+            className="w-full sm:w-auto rounded-md bg-green-500 px-6 py-3 text-base font-medium text-white hover:bg-green-600 min-h-[44px]"
           >
             Send Request
           </button>

@@ -1,8 +1,8 @@
-import type { User, UserRole } from "@prisma/client";
+import type { User } from "@prisma/client";
 
 import { prisma } from "~/db.server";
 
-export type { UserRole } from "@prisma/client";
+export type UserRole = "USER" | "ADMIN" | "SUPER_ADMIN";
 
 export async function isAdmin({ userId }: { userId: string }) {
   const user = await prisma.user.findUnique({

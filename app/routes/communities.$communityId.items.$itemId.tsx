@@ -69,26 +69,26 @@ export default function ItemDetailsPage() {
 
   return (
     <div className="max-w-4xl">
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">{data.item.name}</h2>
-          <div className="flex items-center justify-between">
-            <p className="mt-1 text-gray-600">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="flex-1">
+          <h2 className="text-xl sm:text-2xl font-bold">{data.item.name}</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-1">
+            <p className="text-sm sm:text-base text-gray-600">
               by {data.item.owner.name || data.item.owner.email}
             </p>
             {!isOwner && (
               <Link
                 to={`/report?type=user&id=${data.item.ownerId}`}
-                className="text-xs text-gray-500 hover:text-gray-700 underline"
+                className="text-xs text-gray-500 hover:text-gray-700 underline self-start sm:self-auto"
               >
                 Report User
               </Link>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <span
-            className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${
+            className={`inline-flex rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium ${
               data.item.isAvailable
                 ? "bg-green-100 text-green-800"
                 : "bg-red-100 text-red-800"
@@ -100,7 +100,7 @@ export default function ItemDetailsPage() {
             <Form method="post">
               <button
                 type="submit"
-                className="rounded-md bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
+                className="rounded-md bg-red-500 px-3 py-1.5 text-xs sm:text-sm text-white hover:bg-red-600 min-h-[44px]"
                 onClick={(e) => {
                   if (!confirm("Are you sure you want to delete this item?")) {
                     e.preventDefault();
@@ -116,8 +116,8 @@ export default function ItemDetailsPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <h3 className="text-lg font-semibold mb-4">Item Details</h3>
+          <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Item Details</h3>
 
             {data.item.description && (
               <div className="mb-4">
@@ -150,8 +150,8 @@ export default function ItemDetailsPage() {
 
           {/* Current Queue */}
           {(pendingRequests.length > 0 || approvedRequests.length > 0) && (
-            <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6">
-              <h3 className="text-lg font-semibold mb-4">Current Queue</h3>
+            <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-4">Current Queue</h3>
 
               {pendingRequests.length > 0 && (
                 <div className="mb-4">
@@ -221,8 +221,8 @@ export default function ItemDetailsPage() {
 
           {/* Lending History */}
           {data.item.lendingRequests.length > 0 && (
-            <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6">
-              <h3 className="text-lg font-semibold mb-4">Lending History</h3>
+            <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-4">Lending History</h3>
               <div className="space-y-3">
                 {data.item.lendingRequests.map((request) => (
                   <div
@@ -266,8 +266,8 @@ export default function ItemDetailsPage() {
 
         <div className="space-y-6">
           {/* Current Status */}
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <h3 className="text-lg font-semibold mb-4">Current Status</h3>
+          <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Current Status</h3>
             {data.item.isAvailable ? (
               <div>
                 <p className="text-green-600 font-medium">
@@ -276,7 +276,7 @@ export default function ItemDetailsPage() {
                 {!isOwner && (
                   <Link
                     to={`/communities/${data.item.community.id}/items/${data.item.id}/request`}
-                    className="mt-3 block w-full rounded-md bg-green-500 px-4 py-2 text-center text-white hover:bg-green-600"
+                    className="mt-3 block w-full rounded-md bg-green-500 px-4 py-3 text-center text-base text-white font-medium hover:bg-green-600 min-h-[44px] flex items-center justify-center"
                   >
                     Request to Borrow
                   </Link>
@@ -352,18 +352,18 @@ export default function ItemDetailsPage() {
 
           {/* Owner Actions */}
           {isOwner && (
-            <div className="rounded-lg border border-gray-200 bg-white p-6">
-              <h3 className="text-lg font-semibold mb-4">Owner Actions</h3>
+            <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-4">Owner Actions</h3>
               <div className="space-y-3">
                 <Link
                   to={`/communities/${data.item.community.id}/items/${data.item.id}/edit`}
-                  className="block w-full rounded-md bg-blue-500 px-4 py-2 text-center text-white hover:bg-blue-600"
+                  className="block w-full rounded-md bg-blue-500 px-4 py-3 text-center text-base text-white font-medium hover:bg-blue-600 min-h-[44px] flex items-center justify-center"
                 >
                   Edit Item
                 </Link>
                 <Link
                   to={`/communities/${data.item.community.id}/items/${data.item.id}/requests`}
-                  className="block w-full rounded-md bg-purple-500 px-4 py-2 text-center text-white hover:bg-purple-600"
+                  className="block w-full rounded-md bg-purple-500 px-4 py-3 text-center text-base text-white font-medium hover:bg-purple-600 min-h-[44px] flex items-center justify-center"
                 >
                   View Requests
                 </Link>

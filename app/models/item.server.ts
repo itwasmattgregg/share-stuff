@@ -1,8 +1,10 @@
-import type { User, Item, LendingRequest, LendingStatus } from "@prisma/client";
+import type { User, Item, LendingRequest } from "@prisma/client";
 
 import { prisma } from "~/db.server";
 
-export type { Item, LendingRequest, LendingStatus } from "@prisma/client";
+export type LendingStatus = "PENDING" | "APPROVED" | "REJECTED" | "BORROWED" | "RETURNED";
+
+export type { Item, LendingRequest };
 
 export async function getItem({ id }: { id: string }) {
   return prisma.item.findUnique({
@@ -59,9 +61,9 @@ export async function getCommunityItems({
         whereClause.AND = [
           {
             OR: [
-              { name: { contains: searchTerm, mode: "insensitive" } },
-              { description: { contains: searchTerm, mode: "insensitive" } },
-              { category: { contains: searchTerm, mode: "insensitive" } },
+              { name: { contains: searchTerm } },
+              { description: { contains: searchTerm } },
+              { category: { contains: searchTerm } },
             ],
           },
         ];
@@ -191,10 +193,21 @@ export async function requestToBorrowItem({
     );
   }
 
+  // Get the item to find the owner
+  const item = await prisma.item.findUnique({
+    where: { id: itemId },
+    select: { ownerId: true },
+  });
+
+  if (!item) {
+    throw new Error("Item not found");
+  }
+
   return prisma.lendingRequest.create({
     data: {
       requesterId,
       itemId,
+      itemOwnerId: item.ownerId,
       requestNote,
     },
   });

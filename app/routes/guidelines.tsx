@@ -264,7 +264,7 @@ export default function GuidelinesPage() {
         </section>
 
         {/* Call to Action */}
-        <section className="mb-12">
+        {/* <section className="mb-12">
           <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
             <h2 className="text-2xl font-bold text-green-900 mb-4">
               Join the Movement
@@ -290,7 +290,7 @@ export default function GuidelinesPage() {
               </Link>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Footer */}
         <section className="text-center text-gray-600">

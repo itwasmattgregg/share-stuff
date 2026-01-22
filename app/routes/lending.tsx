@@ -1,11 +1,12 @@
-import type { LoaderArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 
+import Layout from "~/components/Layout";
 import { getLendingRequestsForUser } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
   const requests = await getLendingRequestsForUser({ userId });
   return json({ requests });
@@ -13,35 +14,38 @@ export const loader = async ({ request }: LoaderArgs) => {
 
 export default function LendingDashboardPage() {
   const data = useLoaderData<typeof loader>();
-
+  
+  // Get user ID from first request (all requests are for this user)
+  const userId = data.requests[0]?.requesterId || data.requests[0]?.itemOwnerId;
+  
   const myRequests = data.requests.filter(
-    (request) => request.requesterId === data.requests[0]?.requesterId
+    (request) => request.requesterId === userId
   );
   const requestsForMyItems = data.requests.filter(
-    (request) => request.itemOwnerId === data.requests[0]?.requesterId
+    (request) => request.itemOwnerId === userId && request.requesterId !== userId
   );
 
   return (
-    <div className="max-w-6xl">
+    <Layout>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">Lending Dashboard</h2>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">Lending Dashboard</h1>
+        <p className="mt-2 text-sm sm:text-base text-neutral-600">
           Track all your lending activity and requests.
         </p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid gap-6 lg:gap-8 lg:grid-cols-2">
         {/* My Requests */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">My Borrowing Requests</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-neutral-900 mb-4">My Borrowing Requests</h3>
           {myRequests.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No borrowing requests yet.</p>
+            <div className="bg-white border border-neutral-200 rounded-lg text-center py-12">
+              <p className="text-neutral-500 mb-2">No borrowing requests yet.</p>
               <Link
                 to="/communities"
-                className="mt-2 inline-block text-blue-500 hover:text-blue-600"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
               >
-                Browse communities to find items
+                Browse communities to find items →
               </Link>
             </div>
           ) : (
@@ -49,24 +53,21 @@ export default function LendingDashboardPage() {
               {myRequests.map((request) => (
                 <div
                   key={request.id}
-                  className="rounded-lg border border-gray-200 bg-white p-4"
+                  className="bg-white border border-neutral-200 rounded-lg p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h4 className="font-semibold">{request.item.name}</h4>
-                      <p className="text-sm text-gray-600">
+                      <h4 className="font-semibold text-neutral-900">{request.item.name}</h4>
+                      <p className="text-sm text-neutral-600 mt-1">
                         From {request.itemOwner.name || request.itemOwner.email}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        {request.item.community.name}
-                      </p>
                       {request.requestNote && (
-                        <p className="mt-2 text-sm text-gray-700">
+                        <p className="mt-2 text-sm text-neutral-700">
                           "{request.requestNote}"
                         </p>
                       )}
                       {request.responseNote && (
-                        <p className="mt-2 text-sm text-gray-700">
+                        <p className="mt-2 text-sm text-neutral-700">
                           <strong>Owner response:</strong> "
                           {request.responseNote}"
                         </p>
@@ -90,7 +91,7 @@ export default function LendingDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="mt-3 text-xs text-gray-500">
+                  <div className="mt-3 text-xs text-neutral-500">
                     Requested on{" "}
                     {new Date(request.createdAt).toLocaleDateString()}
                   </div>
@@ -102,15 +103,15 @@ export default function LendingDashboardPage() {
 
         {/* Requests for My Items */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">Requests for My Items</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-neutral-900 mb-4">Requests for My Items</h3>
           {requestsForMyItems.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No requests for your items yet.</p>
+            <div className="bg-white border border-neutral-200 rounded-lg text-center py-12">
+              <p className="text-neutral-500 mb-2">No requests for your items yet.</p>
               <Link
                 to="/communities"
-                className="mt-2 inline-block text-blue-500 hover:text-blue-600"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
               >
-                Add items to your communities
+                Add items to your communities →
               </Link>
             </div>
           ) : (
@@ -118,20 +119,17 @@ export default function LendingDashboardPage() {
               {requestsForMyItems.map((request) => (
                 <div
                   key={request.id}
-                  className="rounded-lg border border-gray-200 bg-white p-4"
+                  className="bg-white border border-neutral-200 rounded-lg p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h4 className="font-semibold">{request.item.name}</h4>
-                      <p className="text-sm text-gray-600">
+                      <h4 className="font-semibold text-neutral-900">{request.item.name}</h4>
+                      <p className="text-sm text-neutral-600 mt-1">
                         Requested by{" "}
                         {request.requester.name || request.requester.email}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        {request.item.community.name}
-                      </p>
                       {request.requestNote && (
-                        <p className="mt-2 text-sm text-gray-700">
+                        <p className="mt-2 text-sm text-neutral-700">
                           "{request.requestNote}"
                         </p>
                       )}
@@ -154,16 +152,16 @@ export default function LendingDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="mt-3 flex gap-2">
-                    <Link
-                      to={`/communities/${request.item.community.id}/items/${request.item.id}/requests`}
-                      className="text-sm text-blue-500 hover:text-blue-600"
-                    >
-                      Manage Request
-                    </Link>
-                    <span className="text-xs text-gray-500">
-                      {new Date(request.createdAt).toLocaleDateString()}
+                  <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <span className="text-xs text-neutral-500">
+                      Requested on {new Date(request.createdAt).toLocaleDateString()}
                     </span>
+                    <Link
+                      to={`/items/${request.item.id}`}
+                      className="text-sm text-primary-600 hover:text-primary-700 font-medium self-start sm:self-auto"
+                    >
+                      View Item →
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -171,6 +169,6 @@ export default function LendingDashboardPage() {
           )}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

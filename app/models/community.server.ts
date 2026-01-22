@@ -2,16 +2,16 @@ import type {
   User,
   Community,
   CommunityMembership,
-  MembershipStatus,
 } from "@prisma/client";
 
 import { prisma } from "~/db.server";
 
+export type MembershipStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export type {
   Community,
   CommunityMembership,
-  MembershipStatus,
-} from "@prisma/client";
+};
 
 export async function getCommunity({ id }: { id: string }) {
   return prisma.community.findUnique({
@@ -166,6 +166,17 @@ export async function isUserMemberOfCommunity({
   userId: string;
   communityId: string;
 }) {
+  // Check if user is the owner (owners are automatically members)
+  const community = await prisma.community.findUnique({
+    where: { id: communityId },
+    select: { ownerId: true },
+  });
+
+  if (community?.ownerId === userId) {
+    return true;
+  }
+
+  // Check if user has an approved membership
   const membership = await prisma.communityMembership.findUnique({
     where: {
       userId_communityId: {

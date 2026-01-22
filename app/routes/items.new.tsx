@@ -56,8 +56,8 @@ export default function NewItemPage() {
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-2xl font-bold">Add New Item</h2>
-      <p className="mt-2 text-gray-600">
+      <h2 className="text-xl sm:text-2xl font-bold">Add New Item</h2>
+      <p className="mt-2 text-sm sm:text-base text-gray-600">
         Add an item to your collection that you can share with your communities.
       </p>
 
@@ -77,7 +77,7 @@ export default function NewItemPage() {
               autoFocus={true}
               name="name"
               type="text"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-lg"
+              className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               aria-invalid={actionData?.errors?.name ? true : undefined}
               aria-describedby={
                 actionData?.errors?.name ? "name-error" : undefined
@@ -103,7 +103,7 @@ export default function NewItemPage() {
               id="description"
               name="description"
               rows={3}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-lg"
+              className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               placeholder="Describe the item, any special instructions, etc."
             />
           </div>
@@ -121,7 +121,7 @@ export default function NewItemPage() {
               <select
                 id="category"
                 name="category"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-lg"
+                className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               >
                 <option value="">Select a category</option>
                 {categories.map((category) => (
@@ -144,7 +144,7 @@ export default function NewItemPage() {
               <select
                 id="condition"
                 name="condition"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-lg"
+                className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               >
                 <option value="">Select condition</option>
                 {conditions.map((condition) => (
@@ -157,17 +157,17 @@ export default function NewItemPage() {
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3">
+        <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="w-full sm:w-auto rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 min-h-[44px]"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="rounded-md bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600"
+            className="w-full sm:w-auto rounded-md bg-green-500 px-6 py-3 text-base font-medium text-white hover:bg-green-600 min-h-[44px]"
           >
             Add Item
           </button>

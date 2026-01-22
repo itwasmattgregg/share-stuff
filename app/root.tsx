@@ -1,5 +1,5 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction, LoaderArgs, MetaFunction } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
   Links,
@@ -11,6 +11,8 @@ import {
 } from "@remix-run/react";
 
 import { getUser } from "~/session.server";
+import { getUnreadNotificationCount } from "~/models/notification.server";
+import { getUnreadMessageCount } from "~/models/message.server";
 import stylesheet from "~/tailwind.css";
 
 export const links: LinksFunction = () => [
@@ -18,12 +20,22 @@ export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const requestUrl = new URL(request.url);
+  const user = await getUser(request);
+  const [notificationCount, messageCount] = user
+    ? await Promise.all([
+        getUnreadNotificationCount({ userId: user.id }),
+        getUnreadMessageCount({ userId: user.id }),
+      ])
+    : [0, 0];
+  
   return json({
-    user: await getUser(request),
+    user,
     requestUrl: requestUrl.toString(),
     socialImageUrl: new URL("/social-card.svg", requestUrl).toString(),
+    notificationCount,
+    messageCount,
   });
 };
 

@@ -8,7 +8,9 @@ import {
   updateMembershipStatus,
   isUserOwnerOfCommunity,
 } from "~/models/community.server";
+import { createNotification } from "~/models/notification.server";
 import { requireUserId } from "~/session.server";
+import { prisma } from "~/db.server";
 
 export const loader = async ({ params, request }: LoaderArgs) => {
   const userId = await requireUserId(request);
@@ -63,6 +65,34 @@ export const action = async ({ params, request }: ActionArgs) => {
     status: status as "APPROVED" | "REJECTED",
   });
 
+  // Notify the user about the membership status change
+  const membership = await prisma.communityMembership.findUnique({
+    where: { id: membershipId },
+    include: {
+      community: {
+        select: { id: true, name: true },
+      },
+    },
+  });
+
+  if (membership) {
+    const notificationType = status === "APPROVED" ? "COMMUNITY_APPROVED" : "COMMUNITY_REJECTED";
+    const title = status === "APPROVED" 
+      ? "Community Join Request Approved"
+      : "Community Join Request Rejected";
+    const message = status === "APPROVED"
+      ? `Your request to join "${membership.community.name}" has been approved!`
+      : `Your request to join "${membership.community.name}" has been rejected.`;
+
+    await createNotification({
+      userId: membership.userId,
+      type: notificationType,
+      title,
+      message,
+      link: status === "APPROVED" ? `/communities/${communityId}` : undefined,
+    });
+  }
+
   return redirect(`/communities/${communityId}/manage`);
 };
 
@@ -72,7 +102,7 @@ export default function CommunityManagePage() {
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">Manage Community</h2>
+        <h2 className="text-xl sm:text-2xl font-bold">Manage Community</h2>
         <p className="mt-2 text-gray-600">
           Manage "{data.community.name}" - approve members and view community
           details.

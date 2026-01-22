@@ -25,6 +25,12 @@ model User {
   lendingRequests      LendingRequest[]      @relation("Requester")
   receivedRequests     LendingRequest[]      @relation("ItemOwner")
   reports              Report[]
+  notifications        Notification[]
+  
+  // Messaging relationships
+  conversationsAsUser1 Conversation[] @relation("User1")
+  conversationsAsUser2 Conversation[] @relation("User2")
+  messages              Message[]
 }
 
 model Password {
@@ -48,6 +54,7 @@ model Community {
   owner   User   @relation("CommunityOwner", fields: [ownerId], references: [id], onDelete: Cascade)
 
   memberships CommunityMembership[]
+  conversations Conversation[]
 }
 
 model CommunityMembership {
@@ -121,4 +128,60 @@ model Report {
   // Relationships
   reporterId String
   reporter   User   @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // "COMMUNITY_APPROVED", "COMMUNITY_REJECTED", "LENDING_REQUEST", "LENDING_APPROVED", etc.
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  link      String?  // Optional link to relevant page
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id          String   @id @default(cuid())
+  userId1     String
+  userId2     String
+  communityId String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  user1      User       @relation("User1", fields: [userId1], references: [id], onDelete: Cascade)
+  user2      User       @relation("User2", fields: [userId2], references: [id], onDelete: Cascade)
+  community  Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  messages   Message[]
+
+  @@unique([userId1, userId2, communityId])
+  @@index([userId1])
+  @@index([userId2])
+  @@index([communityId])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  readAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
 }

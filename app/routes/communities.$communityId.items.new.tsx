@@ -1,49 +1,48 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
-import { getItem, updateItem } from "~/models/item.server";
+import {
+  getCommunity,
+  isUserMemberOfCommunity,
+} from "~/models/community.server";
+import { createItem } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
 
 export const loader = async ({ params, request }: LoaderArgs) => {
   const userId = await requireUserId(request);
-  const itemId = params.itemId;
+  const communityId = params.communityId;
 
-  if (!itemId) {
-    throw new Response("Item not found", { status: 404 });
+  if (!communityId) {
+    throw new Response("Community not found", { status: 404 });
   }
 
-  const item = await getItem({ id: itemId });
-
-  if (!item) {
-    throw new Response("Item not found", { status: 404 });
+  const community = await getCommunity({ id: communityId });
+  if (!community) {
+    throw new Response("Community not found", { status: 404 });
   }
 
-  // Check if user owns this item
-  if (item.ownerId !== userId) {
-    throw new Response("Unauthorized", { status: 403 });
+  const isMember = await isUserMemberOfCommunity({ userId, communityId });
+  if (!isMember) {
+    throw new Response("Unauthorized - You must be a member to add items", {
+      status: 403,
+    });
   }
 
-  return json({ item });
+  return json({ community });
 };
 
 export const action = async ({ params, request }: ActionArgs) => {
   const userId = await requireUserId(request);
-  const itemId = params.itemId;
+  const communityId = params.communityId;
 
-  if (!itemId) {
-    throw new Response("Item not found", { status: 404 });
+  if (!communityId) {
+    throw new Response("Community not found", { status: 404 });
   }
 
-  const item = await getItem({ id: itemId });
-
-  if (!item) {
-    throw new Response("Item not found", { status: 404 });
-  }
-
-  // Check if user owns this item
-  if (item.ownerId !== userId) {
+  const isMember = await isUserMemberOfCommunity({ userId, communityId });
+  if (!isMember) {
     throw new Response("Unauthorized", { status: 403 });
   }
 
@@ -52,25 +51,23 @@ export const action = async ({ params, request }: ActionArgs) => {
   const description = formData.get("description");
   const category = formData.get("category");
   const condition = formData.get("condition");
-  const isAvailable = formData.get("isAvailable") === "true";
 
   if (typeof name !== "string" || name.length === 0) {
     return json({ errors: { name: "Item name is required" } }, { status: 400 });
   }
 
-  await updateItem({
-    id: itemId,
+  const item = await createItem({
     name,
     description: typeof description === "string" ? description : undefined,
     category: typeof category === "string" ? category : undefined,
     condition: typeof condition === "string" ? condition : undefined,
-    isAvailable,
+    ownerId: userId,
   });
 
-  return redirect(`/items/${itemId}`);
+  return redirect(`/communities/${communityId}/items`);
 };
 
-export default function EditItemPage() {
+export default function NewCommunityItemPage() {
   const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const nameRef = useRef<HTMLInputElement>(null);
@@ -97,9 +94,17 @@ export default function EditItemPage() {
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-xl sm:text-2xl font-bold">Edit Item</h2>
-      <p className="mt-2 text-sm sm:text-base text-gray-600">
-        Update your item details.
+      <div className="mb-4">
+        <Link
+          to={`/communities/${data.community.id}/items`}
+          className="text-blue-600 hover:text-blue-800 text-sm"
+        >
+          ← Back to {data.community.name} Items
+        </Link>
+      </div>
+      <h2 className="text-xl sm:text-2xl font-bold">Add New Item to {data.community.name}</h2>
+      <p className="mt-2 text-gray-600">
+        Add an item that you're willing to share with this community.
       </p>
 
       <Form method="post" className="mt-6 space-y-6">
@@ -118,7 +123,6 @@ export default function EditItemPage() {
               autoFocus={true}
               name="name"
               type="text"
-              defaultValue={data.item.name}
               className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               aria-invalid={actionData?.errors?.name ? true : undefined}
               aria-describedby={
@@ -145,7 +149,6 @@ export default function EditItemPage() {
               id="description"
               name="description"
               rows={3}
-              defaultValue={data.item.description || ""}
               className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               placeholder="Describe the item, any special instructions, etc."
             />
@@ -164,7 +167,6 @@ export default function EditItemPage() {
               <select
                 id="category"
                 name="category"
-                defaultValue={data.item.category || ""}
                 className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               >
                 <option value="">Select a category</option>
@@ -188,7 +190,6 @@ export default function EditItemPage() {
               <select
                 id="condition"
                 name="condition"
-                defaultValue={data.item.condition || ""}
                 className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               >
                 <option value="">Select condition</option>
@@ -202,24 +203,9 @@ export default function EditItemPage() {
           </div>
         </div>
 
-        <div>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              name="isAvailable"
-              value="true"
-              defaultChecked={data.item.isAvailable}
-              className="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
-            />
-            <span className="ml-2 text-sm text-gray-700">
-              Item is available for lending
-            </span>
-          </label>
-        </div>
-
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
           <Link
-            to={`/items/${data.item.id}`}
+            to={`/communities/${data.community.id}/items`}
             className="w-full sm:w-auto rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 text-center min-h-[44px] flex items-center justify-center sm:inline-flex"
           >
             Cancel
@@ -228,7 +214,7 @@ export default function EditItemPage() {
             type="submit"
             className="w-full sm:w-auto rounded-md bg-green-500 px-6 py-3 text-base font-medium text-white hover:bg-green-600 min-h-[44px]"
           >
-            Update Item
+            Add Item
           </button>
         </div>
       </Form>
