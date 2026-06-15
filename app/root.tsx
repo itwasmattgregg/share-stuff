@@ -12,7 +12,6 @@ import {
 
 import { getUser } from "~/session.server";
 import { getUnreadNotificationCount } from "~/models/notification.server";
-import { getUnreadMessageCount } from "~/models/message.server";
 import stylesheet from "~/tailwind.css";
 
 export const links: LinksFunction = () => [
@@ -23,19 +22,15 @@ export const links: LinksFunction = () => [
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const requestUrl = new URL(request.url);
   const user = await getUser(request);
-  const [notificationCount, messageCount] = user
-    ? await Promise.all([
-        getUnreadNotificationCount({ userId: user.id }),
-        getUnreadMessageCount({ userId: user.id }),
-      ])
-    : [0, 0];
+  const notificationCount = user
+    ? await getUnreadNotificationCount({ userId: user.id })
+    : 0;
   
   return json({
     user,
     requestUrl: requestUrl.toString(),
     socialImageUrl: new URL("/og-image.png", requestUrl).toString(),
     notificationCount,
-    messageCount,
   });
 };
 

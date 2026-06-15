@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@remix-run/react";
-import { useOptionalUser, useMatchesData } from "~/utils";
+import { useOptionalUser } from "~/utils";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -9,16 +9,12 @@ interface SidebarProps {
 export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const user = useOptionalUser();
   const location = useLocation();
-  const rootData = useMatchesData("root") as { messageCount?: number } | undefined;
-  const messageCount = rootData?.messageCount || 0;
-
   if (!user) return null;
 
   const navItems = [
     { to: "/communities", label: "My Communities", icon: "🏘️" },
     { to: "/items", label: "My Items", icon: "📦" },
     { to: "/lending", label: "Lending", icon: "🔄" },
-    { to: "/messages", label: "Messages", icon: "💬", badgeCount: messageCount },
     { to: "/guidelines", label: "Guidelines", icon: "📋" },
     { to: "/report", label: "Report", icon: "🚨" },
   ];

@@ -1,6 +1,6 @@
 # ShareStuff — Community Sharing Platform
 
-A platform for sharing items within trusted, closed communities. Members can lend and borrow belongings, track requests, and message each other — all within private groups they own or belong to.
+A platform for sharing items within trusted, closed communities. Members can lend and borrow belongings and track requests — all within private groups they own or belong to.
 
 Built with Remix v2, Prisma, SQLite, and Tailwind CSS.
 
@@ -29,13 +29,8 @@ ShareStuff lets people create and join private communities where they share thei
 - Owners approve/reject requests and mark items as returned
 - Lending dashboard tracks both your borrows and your incoming requests
 
-### Messaging
-- Direct messages between community members
-- Conversations are grouped by community
-- Unread message count shown in the navigation
-
 ### Notifications
-- In-app notifications for request updates, approvals, and messages
+- In-app notifications for request updates and approvals
 - Mark individual notifications as read or delete them
 - Unread count badge in the navigation
 
@@ -84,7 +79,6 @@ The database seed script creates a user you can use to get started:
 - Session management — [`app/session.server.ts`](./app/session.server.ts)
 - Communities — [`app/models/community.server.ts`](./app/models/community.server.ts)
 - Items — [`app/models/item.server.ts`](./app/models/item.server.ts)
-- Messages — [`app/models/message.server.ts`](./app/models/message.server.ts)
 - Notifications — [`app/models/notification.server.ts`](./app/models/notification.server.ts)
 - Database schema — [`prisma/schema.prisma`](./prisma/schema.prisma)
 

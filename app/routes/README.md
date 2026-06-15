@@ -43,11 +43,6 @@ This directory contains all application routes organized by feature area using c
 - `items.$itemId.tsx` - Item detail page (`/items/:id`)
 - `items.$itemId.edit.tsx` - Edit item (`/items/:id/edit`)
 
-### Messaging Routes (messages prefix)
-- `messages.tsx` - Messages list (`/messages`)
-- `messages.new.tsx` - Start new conversation (`/messages/new`)
-- `messages.$conversationId.tsx` - Conversation detail (`/messages/:id`)
-
 ### Feature Routes (standalone)
 - `lending.tsx` - Lending dashboard (`/lending`)
 - `notifications.tsx` - Notifications page (`/notifications`)

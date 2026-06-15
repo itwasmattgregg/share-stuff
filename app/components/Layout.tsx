@@ -18,8 +18,6 @@ export default function Layout({
     | { notificationCount?: number }
     | undefined;
   const notificationCount = rootData?.notificationCount || 0;
-  const messageCount =
-    (rootData as { messageCount?: number } | undefined)?.messageCount || 0;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Don't show navigation on public pages
@@ -97,7 +95,7 @@ export default function Layout({
               </Link>
 
               {/* User Menu */}
-              {user && <UserMenu user={user} messageCount={messageCount} />}
+              {user && <UserMenu user={user} />}
             </div>
 
             {/* Mobile menu button */}
@@ -204,18 +202,6 @@ export default function Layout({
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     My Profile
-                  </Link>
-                  <Link
-                    to="/messages"
-                    className="block rounded-md px-3 py-2 text-base font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-600"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Messages
-                    {messageCount > 0 && (
-                      <span className="ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 px-2 py-0.5 text-xs font-bold leading-none text-white">
-                        {messageCount > 9 ? "9+" : messageCount}
-                      </span>
-                    )}
                   </Link>
                   {user.role === "ADMIN" || user.role === "SUPER_ADMIN" ? (
                     <Link

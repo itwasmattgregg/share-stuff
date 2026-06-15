@@ -104,9 +104,9 @@ export default function GuidelinesPage() {
                   Communicate clearly and respectfully with other community
                   members
                 </li>
-                <li>Respond to requests and messages in a timely manner</li>
+                <li>Respond to lending requests in a timely manner</li>
                 <li>Be honest about item condition and availability</li>
-                <li>Use the platform's messaging system for coordination</li>
+                <li>Use request notes to coordinate pickups and returns</li>
               </ul>
             </div>
 

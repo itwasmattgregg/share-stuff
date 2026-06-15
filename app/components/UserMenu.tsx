@@ -5,13 +5,11 @@ import type { User } from "~/models/user.server";
 
 type UserMenuProps = {
   user: User;
-  messageCount?: number;
   buttonClassName?: string;
 };
 
 export default function UserMenu({
   user,
-  messageCount = 0,
   buttonClassName = "flex min-h-[44px] items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:text-primary-600",
 }: UserMenuProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -55,18 +53,6 @@ export default function UserMenu({
               onClick={() => setUserMenuOpen(false)}
             >
               My Profile
-            </Link>
-            <Link
-              to="/messages"
-              className="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
-              onClick={() => setUserMenuOpen(false)}
-            >
-              Messages
-              {messageCount > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 px-2 py-0.5 text-xs font-bold leading-none text-white">
-                  {messageCount > 9 ? "9+" : messageCount}
-                </span>
-              )}
             </Link>
             {user.role === "ADMIN" || user.role === "SUPER_ADMIN" ? (
               <Link

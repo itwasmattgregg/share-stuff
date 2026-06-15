@@ -4,7 +4,7 @@ import { Link } from "@remix-run/react";
 
 import ShareStuffLogo from "~/components/ShareStuffLogo";
 import UserMenu from "~/components/UserMenu";
-import { useMatchesData, useOptionalUser } from "~/utils";
+import { useOptionalUser } from "~/utils";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const requestUrl = new URL(request.url);
@@ -41,10 +41,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export default function Index() {
   const user = useOptionalUser();
-  const rootData = useMatchesData("root") as
-    | { messageCount?: number }
-    | undefined;
-  const messageCount = rootData?.messageCount ?? 0;
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -65,7 +61,6 @@ export default function Index() {
               </Link>
               <UserMenu
                 user={user}
-                messageCount={messageCount}
                 buttonClassName="flex items-center space-x-2 rounded-xl border border-blue-200 bg-white/80 px-3 py-2 text-sm font-medium text-gray-700 shadow-sm backdrop-blur transition-colors hover:bg-white sm:px-4 sm:py-2.5"
               />
             </div>
@@ -257,7 +252,7 @@ export default function Index() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Simple Scheduling</h3>
               <p className="text-gray-600 text-sm">
-                Coordinate pickups and returns with built-in messaging and calendar integration.
+                Coordinate pickups and returns with lending requests and calendar integration.
               </p>
             </div>
             

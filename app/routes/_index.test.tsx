@@ -10,7 +10,7 @@ vi.mock("~/utils", async (importOriginal) => {
   return {
     ...actual,
     useOptionalUser: vi.fn(),
-    useMatchesData: vi.fn(() => ({ messageCount: 0 })),
+    useMatchesData: vi.fn(() => ({})),
   };
 });
 
