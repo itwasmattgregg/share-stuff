@@ -1,7 +1,8 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react";
 
+import { isUserMemberOfCommunity } from "~/models/community.server";
 import { getCommunityItems } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
 
@@ -16,47 +17,64 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || undefined;
 
-  const items = await getCommunityItems({ communityId, search });
-  return json({ items, search, communityId, userId });
+  const [items, isMember] = await Promise.all([
+    getCommunityItems({ communityId, search }),
+    isUserMemberOfCommunity({ userId, communityId }),
+  ]);
+
+  return json({ items, search, communityId, isMember, userId });
 };
 
-export default function CommunityIndexPage() {
+export default function CommunityItemsPage() {
   const data = useLoaderData<typeof loader>();
+  const [searchParams] = useSearchParams();
 
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-neutral-900">Community Items</h2>
-        <p className="mt-2 text-neutral-600">
-          Items shared by community members. To add your own items, go to <Link to="/items" className="text-primary-600 hover:text-primary-800">My Items</Link>.
-        </p>
-        
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-neutral-900">Community Items</h2>
+            <p className="mt-1 text-sm sm:text-base text-neutral-600">
+              Items shared by community members.
+            </p>
+          </div>
+          {data.isMember && (
+            <Link
+              to="/items/new"
+              className="rounded-lg bg-secondary-500 px-6 py-3 text-base text-white font-medium hover:bg-secondary-600 shadow-md transition-colors text-center min-h-[44px] flex items-center justify-center sm:inline-flex sm:w-auto"
+            >
+              + Add Item
+            </Link>
+          )}
+        </div>
+
         {/* Search Form */}
-        <div className="mt-4">
-          <Form method="get" className="flex gap-2">
-            <input
-              type="text"
-              name="search"
-              placeholder="Search items by name, description, or category..."
-              defaultValue={data.search || ""}
-              className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-            />
+        <Form method="get" className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            name="search"
+            placeholder="Search items..."
+            defaultValue={data.search || ""}
+            className="flex-1 rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 min-h-[44px]"
+          />
+          <div className="flex gap-2">
             <button
               type="submit"
-              className="rounded-lg bg-primary-500 px-4 py-2 text-sm text-white font-medium hover:bg-primary-600 shadow-md transition-colors"
+              className="flex-1 sm:flex-none rounded-lg bg-primary-500 px-6 py-3 text-base text-white font-medium hover:bg-primary-600 shadow-md transition-colors min-h-[44px]"
             >
               Search
             </button>
             {data.search && (
               <Link
                 to="."
-                className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 shadow-md transition-colors"
+                className="flex-1 sm:flex-none rounded-lg border border-neutral-300 bg-white px-6 py-3 text-base text-neutral-700 hover:bg-neutral-50 shadow-md transition-colors text-center min-h-[44px] flex items-center justify-center"
               >
                 Clear
               </Link>
             )}
-          </Form>
-        </div>
+          </div>
+        </Form>
       </div>
 
       {data.items.length === 0 ? (
@@ -71,9 +89,14 @@ export default function CommunityIndexPage() {
           ) : (
             <>
               <p className="text-neutral-500 mb-4">No items shared by community members yet.</p>
-              <p className="text-sm text-neutral-400">
-                Community members can share their items by adding them to their personal collection.
-              </p>
+              {data.isMember && (
+                <Link
+                  to="/items/new"
+                  className="inline-block rounded-lg bg-secondary-500 px-6 py-3 text-white font-medium hover:bg-secondary-600 shadow-md transition-colors"
+                >
+                  Be the first to add an item
+                </Link>
+              )}
             </>
           )}
         </div>
@@ -92,11 +115,11 @@ export default function CommunityIndexPage() {
               </Link>
             </div>
           )}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {data.items.map((item) => (
             <div
               key={item.id}
-              className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="rounded-lg border border-neutral-200 bg-white p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -165,17 +188,17 @@ export default function CommunityIndexPage() {
                 )}
               </div>
 
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-col sm:flex-row gap-2">
                 <Link
                   to={`/items/${item.id}`}
-                  className="flex-1 rounded-lg bg-primary-500 px-3 py-2 text-center text-sm text-white font-medium hover:bg-primary-600 shadow-md transition-colors"
+                  className="flex-1 rounded-lg bg-primary-500 px-4 py-3 text-center text-base text-white font-medium hover:bg-primary-600 shadow-md transition-colors min-h-[44px] flex items-center justify-center"
                 >
                   View Details
                 </Link>
                 {item.ownerId !== data.userId && (
                   <Link
                     to={`/communities/${data.communityId}/items/${item.id}/request`}
-                    className={`flex-1 rounded-lg px-3 py-2 text-center text-sm text-white font-medium hover:opacity-90 shadow-md transition-colors ${
+                    className={`flex-1 rounded-lg px-4 py-3 text-center text-base text-white font-medium hover:opacity-90 shadow-md transition-colors min-h-[44px] flex items-center justify-center ${
                       item.isAvailable
                         ? "bg-green-500 hover:bg-green-600"
                         : "bg-yellow-500 hover:bg-yellow-600"

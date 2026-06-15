@@ -77,11 +77,18 @@ export default function Index() {
 
           {!user && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <span
-                className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg cursor-not-allowed opacity-75"
+              <Link
+                to="/join"
+                className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:bg-blue-700 transition-colors"
               >
-                Coming Soon
-              </span>
+                Get Started
+              </Link>
+              <Link
+                to="/login"
+                className="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-50 transition-colors"
+              >
+                Sign In
+              </Link>
             </div>
           )}
         </div>
@@ -253,13 +260,14 @@ export default function Index() {
             Join thousands of people who are already sharing and building stronger communities.
           </p>
           
-          {!user && (
+          {!user ? (
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <span
-                className="bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold shadow-lg cursor-not-allowed opacity-75"
+              <Link
+                to="/join"
+                className="bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:bg-blue-50 transition-colors"
               >
-                Coming Soon
-              </span>
+                Create Account
+              </Link>
               <Link
                 to="/guidelines"
                 className="border-2 border-white text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all"
@@ -267,6 +275,13 @@ export default function Index() {
                 Read Guidelines
               </Link>
             </div>
+          ) : (
+            <Link
+              to="/communities"
+              className="inline-block bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:bg-blue-50 transition-colors"
+            >
+              Go to My Communities
+            </Link>
           )}
         </div>
       </section>

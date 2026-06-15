@@ -31,6 +31,7 @@ model User {
   conversationsAsUser1 Conversation[] @relation("User1")
   conversationsAsUser2 Conversation[] @relation("User2")
   messages              Message[]
+  communityInvites      CommunityInvite[]
 }
 
 model Password {
@@ -45,6 +46,7 @@ model Community {
   name        String
   description String?
   rules       String?
+  isListed    Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -55,6 +57,24 @@ model Community {
 
   memberships CommunityMembership[]
   conversations Conversation[]
+  invites       CommunityInvite[]
+}
+
+model CommunityInvite {
+  id          String   @id @default(cuid())
+  token       String   @unique
+  expiresAt   DateTime
+
+  createdAt DateTime @default(now())
+
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([communityId])
+  @@index([expiresAt])
 }
 
 model CommunityMembership {

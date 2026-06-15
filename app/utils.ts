@@ -41,7 +41,7 @@ export function useMatchesData(
     () => matchingRoutes.find((route) => route.id === id),
     [matchingRoutes, id]
   );
-  return route?.data;
+  return route?.data as Record<string, unknown> | undefined;
 }
 
 function isUser(user: any): user is User {
@@ -68,4 +68,14 @@ export function useUser(): User {
 
 export function validateEmail(email: unknown): email is string {
   return typeof email === "string" && email.length > 3 && email.includes("@");
+}
+
+export function formatLendingRequestDateTime(date: Date | string) {
+  return new Date(date).toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }

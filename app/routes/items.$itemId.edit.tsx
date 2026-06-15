@@ -1,12 +1,12 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
 import { getItem, updateItem } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
 
-export const loader = async ({ params, request }: LoaderArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
   const itemId = params.itemId;
 
@@ -28,7 +28,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   return json({ item });
 };
 
-export const action = async ({ params, request }: ActionArgs) => {
+export const action = async ({ params, request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
   const itemId = params.itemId;
 

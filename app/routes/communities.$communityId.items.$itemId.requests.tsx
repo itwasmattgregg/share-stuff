@@ -1,13 +1,17 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 
-import { getItem, updateLendingRequestStatus } from "~/models/item.server";
-import { createNotification } from "~/models/notification.server";
+import {
+  getItem,
+  notifyLendingRequestStatusChange,
+  updateLendingRequestForItemOwner,
+} from "~/models/item.server";
+import type { LendingStatus } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
-import { prisma } from "~/db.server";
+import { formatLendingRequestDateTime } from "~/utils";
 
-export const loader = async ({ params, request }: LoaderArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
   const itemId = params.itemId;
 
@@ -26,10 +30,10 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     throw new Response("Unauthorized", { status: 403 });
   }
 
-  return json({ item });
+  return json({ item, communityId: params.communityId });
 };
 
-export const action = async ({ params, request }: ActionArgs) => {
+export const action = async ({ params, request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
   const itemId = params.itemId;
 
@@ -46,80 +50,31 @@ export const action = async ({ params, request }: ActionArgs) => {
     throw new Response("Invalid request", { status: 400 });
   }
 
-  await updateLendingRequestStatus({
+  const lendingRequest = await updateLendingRequestForItemOwner({
+    userId,
+    itemId,
     requestId,
-    status: status as "APPROVED" | "REJECTED" | "BORROWED" | "RETURNED",
+    status: status as LendingStatus,
     responseNote: typeof responseNote === "string" ? responseNote : undefined,
+  }).catch((error: Error) => {
+    if (error.message === "Unauthorized") {
+      throw new Response("Unauthorized", { status: 403 });
+    }
+    if (error.message === "Item not found") {
+      throw new Response("Item not found", { status: 404 });
+    }
+    throw new Response(error.message, { status: 400 });
   });
 
-  // Get request details for notification
-  const lendingRequest = await prisma.lendingRequest.findUnique({
-    where: { id: requestId },
-    include: {
-      item: {
-        select: { id: true, name: true },
-      },
-      requester: {
-        select: { id: true },
-      },
-      itemOwner: {
-        select: { id: true },
-      },
+  const communityId = params.communityId;
+  await notifyLendingRequestStatusChange({
+    lendingRequest,
+    status: status as LendingStatus,
+    links: {
+      requester: `/communities/${communityId}/items/${itemId}`,
+      owner: `/communities/${communityId}/items/${itemId}/requests`,
     },
   });
-
-  if (lendingRequest) {
-    const statusValue = status as string;
-    const communityId = params.communityId;
-
-    if (statusValue === "APPROVED") {
-      await createNotification({
-        userId: lendingRequest.requesterId,
-        type: "LENDING_APPROVED",
-        title: "Lending Request Approved",
-        message: `Your request to borrow "${lendingRequest.item.name}" has been approved!`,
-        link: `/communities/${communityId}/items/${itemId}`,
-      });
-    } else if (statusValue === "REJECTED") {
-      await createNotification({
-        userId: lendingRequest.requesterId,
-        type: "LENDING_REJECTED",
-        title: "Lending Request Rejected",
-        message: `Your request to borrow "${lendingRequest.item.name}" has been rejected.`,
-        link: `/communities/${communityId}/items/${itemId}`,
-      });
-    } else if (statusValue === "BORROWED") {
-      await createNotification({
-        userId: lendingRequest.requesterId,
-        type: "ITEM_BORROWED",
-        title: "Item Marked as Borrowed",
-        message: `"${lendingRequest.item.name}" has been marked as borrowed.`,
-        link: `/communities/${communityId}/items/${itemId}`,
-      });
-      await createNotification({
-        userId: lendingRequest.itemOwnerId,
-        type: "ITEM_BORROWED",
-        title: "Item Borrowed",
-        message: `Someone has borrowed "${lendingRequest.item.name}".`,
-        link: `/communities/${communityId}/items/${itemId}/requests`,
-      });
-    } else if (statusValue === "RETURNED") {
-      await createNotification({
-        userId: lendingRequest.requesterId,
-        type: "ITEM_RETURNED",
-        title: "Item Returned",
-        message: `"${lendingRequest.item.name}" has been marked as returned.`,
-        link: `/communities/${communityId}/items/${itemId}`,
-      });
-      await createNotification({
-        userId: lendingRequest.itemOwnerId,
-        type: "ITEM_RETURNED",
-        title: "Item Returned",
-        message: `"${lendingRequest.item.name}" has been returned.`,
-        link: `/communities/${communityId}/items/${itemId}/requests`,
-      });
-    }
-  }
 
   return redirect(
     `/communities/${params.communityId}/items/${itemId}/requests`
@@ -168,7 +123,7 @@ export default function ItemRequestsPage() {
                     </h4>
                     <p className="text-sm text-gray-600">
                       Requested on{" "}
-                      {new Date(request.createdAt).toLocaleDateString()}
+                      {formatLendingRequestDateTime(request.createdAt)}
                     </p>
                     {request.requestNote && (
                       <p className="mt-2 text-sm text-gray-700">
@@ -239,7 +194,7 @@ export default function ItemRequestsPage() {
                     </h4>
                     <p className="text-sm text-gray-600">
                       Borrowed on{" "}
-                      {new Date(request.createdAt).toLocaleDateString()}
+                      {formatLendingRequestDateTime(request.createdAt)}
                     </p>
                     {request.requestNote && (
                       <p className="mt-2 text-sm text-gray-700">
@@ -294,7 +249,7 @@ export default function ItemRequestsPage() {
                     </h4>
                     <p className="text-sm text-gray-600">
                       Approved on{" "}
-                      {new Date(request.createdAt).toLocaleDateString()}
+                      {formatLendingRequestDateTime(request.createdAt)}
                     </p>
                     {request.requestNote && (
                       <p className="mt-2 text-sm text-gray-700">
@@ -342,7 +297,7 @@ export default function ItemRequestsPage() {
                     </h4>
                     <p className="text-sm text-gray-600">
                       {request.status === "RETURNED" ? "Returned" : "Rejected"}{" "}
-                      on {new Date(request.createdAt).toLocaleDateString()}
+                      on {formatLendingRequestDateTime(request.createdAt)}
                     </p>
                     {request.requestNote && (
                       <p className="mt-2 text-sm text-gray-700">
@@ -381,7 +336,7 @@ export default function ItemRequestsPage() {
 
       <div className="mt-8">
         <Link
-          to={`/communities/${data.item.community.id}/items/${data.item.id}`}
+          to={`/communities/${data.communityId}/items/${data.item.id}`}
           className="rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
         >
           Back to Item

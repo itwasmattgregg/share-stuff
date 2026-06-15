@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 
@@ -12,7 +12,7 @@ import {
 import { requireUserId } from "~/session.server";
 import { prisma } from "~/db.server";
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
   await requireSuperAdmin({ userId });
 
@@ -34,7 +34,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   return json({ admins, regularUsers });
 };
 
-export const action = async ({ request }: ActionArgs) => {
+export const action = async ({ request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
   await requireSuperAdmin({ userId });
 

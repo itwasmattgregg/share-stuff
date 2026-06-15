@@ -108,3 +108,7 @@ Thumbs.db
 
 # Fly.io
 .fly/
+
+# Cypress artifacts
+cypress/screenshots/
+cypress/videos/

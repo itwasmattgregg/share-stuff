@@ -1,190 +1,143 @@
-# Share Stuff - Community Sharing Platform
+# ShareStuff — Community Sharing Platform
 
-A community-driven platform for sharing items within closed groups. Built with Remix v2, Prisma, and SQLite.
+A platform for sharing items within trusted, closed communities. Members can lend and borrow belongings, track requests, and message each other — all within private groups they own or belong to.
 
-## 🎯 What It Does
+Built with Remix v2, Prisma, SQLite, and Tailwind CSS.
 
-Share Stuff allows people to create and join communities where they can share their belongings with others. Think of it as a neighborhood library for tools, books, DVDs, and more.
+## What It Does
 
-## ✨ Key Features
+ShareStuff lets people create and join private communities where they share their belongings with neighbours and friends. Think of it as a neighbourhood library for tools, books, games, kitchen gear, and more.
 
-### Community Management
-- **Create Communities**: Start your own sharing community with custom rules
-- **Join Communities**: Browse and request to join existing communities  
-- **Approval System**: Community owners approve new members
-- **Privacy Controls**: Only approved members can see community content
+## Features
 
-### Item Sharing
-- **Add Items**: Share your belongings with the community
-- **Browse Items**: See what's available to borrow
-- **Categories**: Organize items by type (books, tools, DVDs, etc.)
-- **Condition Tracking**: Note the condition of your items
+### Communities
+- Create a community with a name, description, and rules
+- Request to join existing communities
+- Community owners approve or reject membership requests
+- Only approved members can view community content
 
-### Lending System
-- **Request to Borrow**: Request items with optional messages
-- **Queue System**: Multiple people can request the same item
-- **Status Tracking**: Track items through PENDING → APPROVED → BORROWED → RETURNED
-- **Owner Controls**: Approve/reject requests and track returns
+### Items
+- Add items to your personal collection with name, description, category, and condition
+- Items are visible to members of any community you belong to
+- Mark items as available or unavailable
+- Edit or delete your items at any time
 
-### Privacy Features
-- **Item Owner Visibility**: Only you can see who has your items
-- **Community Privacy**: Others see items are borrowed but not by whom
-- **Access Control**: Only community members can see items
+### Lending
+- Request to borrow an item with an optional note
+- Queue system — multiple people can request the same item
+- Full status lifecycle: `PENDING → APPROVED → BORROWED → RETURNED`
+- Owners approve/reject requests and mark items as returned
+- Lending dashboard tracks both your borrows and your incoming requests
 
-## 🏗️ Built With
+### Messaging
+- Direct messages between community members
+- Conversations are grouped by community
+- Unread message count shown in the navigation
 
-- [Remix v2](https://remix.run) - Full-stack React framework
-- [Prisma](https://prisma.io) - Database ORM with SQLite
-- [Tailwind CSS](https://tailwindcss.com) - Utility-first styling
-- [TypeScript](https://typescriptlang.org) - Type safety
-- [Fly.io](https://fly.io) - App deployment with Docker
-- [GitHub Actions](https://github.com/features/actions) - CI/CD
-- [Cypress](https://cypress.io) - E2E testing
-- [Vitest](https://vitest.dev) - Unit testing
+### Notifications
+- In-app notifications for request updates, approvals, and messages
+- Mark individual notifications as read or delete them
+- Unread count badge in the navigation
 
-## Quickstart
+### Admin
+- User management (view, role changes)
+- Community oversight
+- Report review
+- Platform statistics
 
-Click this button to create a [Gitpod](https://gitpod.io) workspace with the project set up and Fly pre-installed
+## Tech Stack
 
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/remix-run/indie-stack/tree/main)
+- [Remix v2](https://remix.run) — full-stack React framework
+- [Prisma](https://prisma.io) — database ORM
+- [SQLite](https://sqlite.org) — database
+- [Tailwind CSS](https://tailwindcss.com) — utility-first styling
+- [TypeScript](https://typescriptlang.org) — type safety
+- [Fly.io](https://fly.io) — deployment with Docker
+- [GitHub Actions](https://github.com/features/actions) — CI/CD
+- [Cypress](https://cypress.io) — end-to-end testing
+- [Vitest](https://vitest.dev) — unit testing
 
 ## Development
 
-- Initial setup:
+Initial setup:
 
-  ```sh
-  npm run setup
-  ```
+```sh
+npm run setup
+```
 
-- Start dev server:
+Start the dev server:
 
-  ```sh
-  npm run dev
-  ```
+```sh
+npm run dev
+```
 
-This starts your app in development mode, rebuilding assets on file changes.
+This starts the app in development mode, rebuilding assets on file changes.
 
-The database seed script creates a new user with some data you can use to get started:
+The database seed script creates a user you can use to get started:
 
 - Email: `rachel@remix.run`
 - Password: `racheliscool`
 
-### Relevant code:
+### Key files
 
-This is a pretty simple note-taking app, but it's a good example of how you can build a full stack app with Prisma and Remix. The main functionality is creating users, logging in and out, and creating and deleting notes.
-
-- creating users, and logging in and out [./app/models/user.server.ts](./app/models/user.server.ts)
-- user sessions, and verifying them [./app/session.server.ts](./app/session.server.ts)
-- creating, and deleting notes [./app/models/note.server.ts](./app/models/note.server.ts)
+- User auth — [`app/models/user.server.ts`](./app/models/user.server.ts)
+- Session management — [`app/session.server.ts`](./app/session.server.ts)
+- Communities — [`app/models/community.server.ts`](./app/models/community.server.ts)
+- Items — [`app/models/item.server.ts`](./app/models/item.server.ts)
+- Messages — [`app/models/message.server.ts`](./app/models/message.server.ts)
+- Notifications — [`app/models/notification.server.ts`](./app/models/notification.server.ts)
+- Database schema — [`prisma/schema.prisma`](./prisma/schema.prisma)
 
 ## Deployment
 
-This Remix Stack comes with two GitHub Actions that handle automatically deploying your app to production and staging environments.
+This app deploys to [Fly.io](https://fly.io). See [DEPLOYMENT.md](./DEPLOYMENT.md) for full instructions.
 
-Prior to your first deployment, you'll need to do a few things:
-
-- [Install Fly](https://fly.io/docs/getting-started/installing-flyctl/)
-
-- Sign up and log in to Fly
-
-  ```sh
-  fly auth signup
-  ```
-
-  > **Note:** If you have more than one Fly account, ensure that you are signed into the same account in the Fly CLI as you are in the browser. In your terminal, run `fly auth whoami` and ensure the email matches the Fly account signed into the browser.
-
-- Create two apps on Fly, one for staging and one for production:
-
-  ```sh
-  fly apps create share-stuff-9485
-  fly apps create share-stuff-9485-staging
-  ```
-
-  > **Note:** Make sure this name matches the `app` set in your `fly.toml` file. Otherwise, you will not be able to deploy.
-
-  - Initialize Git.
-
-  ```sh
-  git init
-  ```
-
-- Create a new [GitHub Repository](https://repo.new), and then add it as the remote for your project. **Do not push your app yet!**
-
-  ```sh
-  git remote add origin <ORIGIN_URL>
-  ```
-
-- Add a `FLY_API_TOKEN` to your GitHub repo. To do this, go to your user settings on Fly and create a new [token](https://web.fly.io/user/personal_access_tokens/new), then add it to [your repo secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) with the name `FLY_API_TOKEN`.
-
-- Add a `SESSION_SECRET` to your fly app secrets, to do this you can run the following commands:
-
-  ```sh
-  fly secrets set SESSION_SECRET=$(openssl rand -hex 32) --app share-stuff-9485
-  fly secrets set SESSION_SECRET=$(openssl rand -hex 32) --app share-stuff-9485-staging
-  ```
-
-  If you don't have openssl installed, you can also use [1Password](https://1password.com/password-generator) to generate a random secret, just replace `$(openssl rand -hex 32)` with the generated secret.
-
-- Create a persistent volume for the sqlite database for both your staging and production environments. Run the following:
-
-  ```sh
-  fly volumes create data --size 1 --app share-stuff-9485
-  fly volumes create data --size 1 --app share-stuff-9485-staging
-  ```
-
-Now that everything is set up you can commit and push your changes to your repo. Every commit to your `main` branch will trigger a deployment to your production environment, and every commit to your `dev` branch will trigger a deployment to your staging environment.
+GitHub Actions automatically deploy:
+- `main` branch → production
+- `dev` branch → staging
 
 ### Connecting to your database
 
-The sqlite database lives at `/data/sqlite.db` in your deployed application. You can connect to the live database by running `fly ssh console -C database-cli`.
+The SQLite database lives at `/data/sqlite.db` in the deployed app. Connect to it with:
 
-### Getting Help with Deployment
-
-If you run into any issues deploying to Fly, make sure you've followed all of the steps above and if you have, then post as many details about your deployment (including your app name) to [the Fly support community](https://community.fly.io). They're normally pretty responsive over there and hopefully can help resolve any of your deployment issues and questions.
-
-## GitHub Actions
-
-We use GitHub Actions for continuous integration and deployment. Anything that gets into the `main` branch will be deployed to production after running tests/build/etc. Anything in the `dev` branch will be deployed to staging.
+```sh
+fly ssh console -C database-cli
+```
 
 ## Testing
 
-### Cypress
+### Cypress (E2E)
 
-We use Cypress for our End-to-End tests in this project. You'll find those in the `cypress` directory. As you make changes, add to an existing file or create a new file in the `cypress/e2e` directory to test your changes.
+Run end-to-end tests in development:
 
-We use [`@testing-library/cypress`](https://testing-library.com/cypress) for selecting elements on the page semantically.
-
-To run these tests in development, run `npm run test:e2e:dev` which will start the dev server for the app as well as the Cypress client. Make sure the database is running in docker as described above.
-
-We have a utility for testing authenticated features without having to go through the login flow:
-
-```ts
-cy.login();
-// you are now logged in as a new user
+```sh
+npm run test:e2e:dev
 ```
 
-We also have a utility to auto-delete the user at the end of your test. Just make sure to add this in each test file:
+A `cy.login()` helper lets you test authenticated flows without going through the login form. Clean up test users after each test with `cy.cleanupUser()`.
 
-```ts
-afterEach(() => {
-  cy.cleanupUser();
-});
+### Vitest (Unit)
+
+Run unit tests:
+
+```sh
+npm test
 ```
-
-That way, we can keep your local db clean and keep your tests isolated from one another.
-
-### Vitest
-
-For lower level tests of utilities and individual components, we use `vitest`. We have DOM-specific assertion helpers via [`@testing-library/jest-dom`](https://testing-library.com/jest-dom).
 
 ### Type Checking
 
-This project uses TypeScript. It's recommended to get TypeScript set up for your editor to get a really great in-editor experience with type checking and auto-complete. To run type checking across the whole project, run `npm run typecheck`.
+```sh
+npm run typecheck
+```
 
 ### Linting
 
-This project uses ESLint for linting. That is configured in `.eslintrc.js`.
+```sh
+npm run lint
+```
 
 ### Formatting
 
-We use [Prettier](https://prettier.io/) for auto-formatting in this project. It's recommended to install an editor plugin (like the [VSCode Prettier plugin](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)) to get auto-formatting on save. There's also a `npm run format` script you can run to format all files in the project.
+```sh
+npm run format
+```

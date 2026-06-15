@@ -5,24 +5,68 @@ import { Link, useLoaderData } from "@remix-run/react";
 import Layout from "~/components/Layout";
 import { getLendingRequestsForUser } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
+import { formatLendingRequestDateTime } from "~/utils";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
   const requests = await getLendingRequestsForUser({ userId });
-  return json({ requests });
+  return json({ requests, userId });
 };
+
+const ACTIVE_INCOMING_REQUEST_STATUSES = new Set([
+  "BORROWED",
+  "APPROVED",
+  "PENDING",
+]);
+
+const INCOMING_REQUEST_STATUS_ORDER: Record<string, number> = {
+  BORROWED: 0,
+  APPROVED: 1,
+  PENDING: 2,
+};
+
+export function partitionLendingRequests<
+  T extends {
+    requesterId: string;
+    itemOwnerId: string;
+    status: string;
+    createdAt: Date | string;
+  },
+>(requests: T[], userId: string) {
+  const requestsForMyItems = requests
+    .filter(
+      (request) =>
+        request.itemOwnerId === userId &&
+        ACTIVE_INCOMING_REQUEST_STATUSES.has(request.status)
+    )
+    .sort((left, right) => {
+      const statusOrder =
+        (INCOMING_REQUEST_STATUS_ORDER[left.status] ?? 99) -
+        (INCOMING_REQUEST_STATUS_ORDER[right.status] ?? 99);
+
+      if (statusOrder !== 0) {
+        return statusOrder;
+      }
+
+      return (
+        new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()
+      );
+    });
+
+  return {
+    myRequests: requests.filter(
+      (request) =>
+        request.requesterId === userId && request.itemOwnerId !== userId
+    ),
+    requestsForMyItems,
+  };
+}
 
 export default function LendingDashboardPage() {
   const data = useLoaderData<typeof loader>();
-  
-  // Get user ID from first request (all requests are for this user)
-  const userId = data.requests[0]?.requesterId || data.requests[0]?.itemOwnerId;
-  
-  const myRequests = data.requests.filter(
-    (request) => request.requesterId === userId
-  );
-  const requestsForMyItems = data.requests.filter(
-    (request) => request.itemOwnerId === userId && request.requesterId !== userId
+  const { myRequests, requestsForMyItems } = partitionLendingRequests(
+    data.requests,
+    data.userId
   );
 
   return (
@@ -93,7 +137,7 @@ export default function LendingDashboardPage() {
                   </div>
                   <div className="mt-3 text-xs text-neutral-500">
                     Requested on{" "}
-                    {new Date(request.createdAt).toLocaleDateString()}
+                    {formatLendingRequestDateTime(request.createdAt)}
                   </div>
                 </div>
               ))}
@@ -106,7 +150,7 @@ export default function LendingDashboardPage() {
           <h3 className="text-base sm:text-lg font-semibold text-neutral-900 mb-4">Requests for My Items</h3>
           {requestsForMyItems.length === 0 ? (
             <div className="bg-white border border-neutral-200 rounded-lg text-center py-12">
-              <p className="text-neutral-500 mb-2">No requests for your items yet.</p>
+              <p className="text-neutral-500 mb-2">No active requests for your items.</p>
               <Link
                 to="/communities"
                 className="text-sm text-primary-600 hover:text-primary-700 font-medium"
@@ -154,7 +198,8 @@ export default function LendingDashboardPage() {
                   </div>
                   <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <span className="text-xs text-neutral-500">
-                      Requested on {new Date(request.createdAt).toLocaleDateString()}
+                      Requested on{" "}
+                      {formatLendingRequestDateTime(request.createdAt)}
                     </span>
                     <Link
                       to={`/items/${request.item.id}`}

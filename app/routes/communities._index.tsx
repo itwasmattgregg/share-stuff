@@ -11,8 +11,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function CommunitiesIndexPage() {
   const navigate = useNavigate();
   // Get communities data from parent route
-  const parentData = useMatchesData("routes/communities");
-  const communities = parentData?.communities || [];
+  const parentData = useMatchesData("routes/communities") as
+    | { communities?: Array<{ id: string }> }
+    | undefined;
+  const communities = parentData?.communities ?? [];
 
   // Redirect to first community if available
   useEffect(() => {

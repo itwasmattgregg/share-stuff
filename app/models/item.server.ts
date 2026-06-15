@@ -1,6 +1,7 @@
 import type { User, Item, LendingRequest } from "@prisma/client";
 
 import { prisma } from "~/db.server";
+import { createNotification } from "~/models/notification.server";
 
 export type LendingStatus = "PENDING" | "APPROVED" | "REJECTED" | "BORROWED" | "RETURNED";
 
@@ -203,6 +204,10 @@ export async function requestToBorrowItem({
     throw new Error("Item not found");
   }
 
+  if (item.ownerId === requesterId) {
+    throw new Error("You cannot request your own item");
+  }
+
   return prisma.lendingRequest.create({
     data: {
       requesterId,
@@ -268,6 +273,155 @@ export async function updateLendingRequestStatus({
   }
 
   return request;
+}
+
+export function getAllowedLendingRequestStatusesForUpdate(
+  targetStatus: LendingStatus
+): LendingStatus[] {
+  switch (targetStatus) {
+    case "APPROVED":
+    case "REJECTED":
+      return ["PENDING"];
+    case "BORROWED":
+      return ["APPROVED"];
+    case "RETURNED":
+      return ["BORROWED"];
+    default:
+      return [];
+  }
+}
+
+export async function updateLendingRequestForItemOwner({
+  userId,
+  itemId,
+  requestId,
+  status,
+  responseNote,
+}: {
+  userId: string;
+  itemId: string;
+  requestId: string;
+  status: LendingStatus;
+  responseNote?: string;
+}) {
+  const allowedFromStatuses = getAllowedLendingRequestStatusesForUpdate(status);
+
+  if (allowedFromStatuses.length === 0) {
+    throw new Error("Invalid status");
+  }
+
+  const item = await prisma.item.findUnique({
+    where: { id: itemId },
+    select: { id: true, ownerId: true },
+  });
+
+  if (!item) {
+    throw new Error("Item not found");
+  }
+
+  if (item.ownerId !== userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const lendingRequest = await prisma.lendingRequest.findUnique({
+    where: { id: requestId },
+    include: {
+      item: {
+        select: { id: true, name: true },
+      },
+      requester: {
+        select: { id: true },
+      },
+      itemOwner: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (!lendingRequest || lendingRequest.itemId !== itemId) {
+    throw new Error("Invalid request");
+  }
+
+  if (
+    !allowedFromStatuses.includes(lendingRequest.status as LendingStatus)
+  ) {
+    throw new Error("Invalid request status transition");
+  }
+
+  await updateLendingRequestStatus({
+    requestId,
+    status,
+    responseNote,
+  });
+
+  return lendingRequest;
+}
+
+export async function notifyLendingRequestStatusChange({
+  lendingRequest,
+  status,
+  links,
+}: {
+  lendingRequest: {
+    requesterId: string;
+    itemOwnerId: string;
+    item: { name: string };
+  };
+  status: LendingStatus;
+  links: {
+    requester: string;
+    owner: string;
+  };
+}) {
+  const itemName = lendingRequest.item.name;
+
+  if (status === "APPROVED") {
+    await createNotification({
+      userId: lendingRequest.requesterId,
+      type: "LENDING_APPROVED",
+      title: "Lending Request Approved",
+      message: `Your request to borrow "${itemName}" has been approved!`,
+      link: links.requester,
+    });
+  } else if (status === "REJECTED") {
+    await createNotification({
+      userId: lendingRequest.requesterId,
+      type: "LENDING_REJECTED",
+      title: "Lending Request Rejected",
+      message: `Your request to borrow "${itemName}" has been rejected.`,
+      link: links.requester,
+    });
+  } else if (status === "BORROWED") {
+    await createNotification({
+      userId: lendingRequest.requesterId,
+      type: "ITEM_BORROWED",
+      title: "Item Marked as Borrowed",
+      message: `"${itemName}" has been marked as borrowed.`,
+      link: links.requester,
+    });
+    await createNotification({
+      userId: lendingRequest.itemOwnerId,
+      type: "ITEM_BORROWED",
+      title: "Item Borrowed",
+      message: `Someone has borrowed "${itemName}".`,
+      link: links.owner,
+    });
+  } else if (status === "RETURNED") {
+    await createNotification({
+      userId: lendingRequest.requesterId,
+      type: "ITEM_RETURNED",
+      title: "Item Returned",
+      message: `"${itemName}" has been marked as returned.`,
+      link: links.requester,
+    });
+    await createNotification({
+      userId: lendingRequest.itemOwnerId,
+      type: "ITEM_RETURNED",
+      title: "Item Returned",
+      message: `"${itemName}" has been returned.`,
+      link: links.owner,
+    });
+  }
 }
 
 export async function getCurrentBorrower({ itemId }: { itemId: string }) {

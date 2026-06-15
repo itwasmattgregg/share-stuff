@@ -1,13 +1,13 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
-import { useEffect, useRef } from "react";
+import { Form, Link, useLoaderData } from "@remix-run/react";
+import { useRef } from "react";
 
 import { getItem, requestToBorrowItem } from "~/models/item.server";
 import { createNotification } from "~/models/notification.server";
 import { requireUserId } from "~/session.server";
 
-export const loader = async ({ params, request }: LoaderArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
   const itemId = params.itemId;
 
@@ -21,6 +21,10 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     throw new Response("Item not found", { status: 404 });
   }
 
+  if (item.ownerId === userId) {
+    throw new Response("You cannot request your own item", { status: 400 });
+  }
+
   // Check if user already has a pending request (allow queue but not duplicate requests)
   const existingRequest = item.lendingRequests.find(
     (request) => request.requesterId === userId && request.status === "PENDING"
@@ -32,10 +36,10 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     });
   }
 
-  return json({ item });
+  return json({ item, communityId: params.communityId });
 };
 
-export const action = async ({ params, request }: ActionArgs) => {
+export const action = async ({ params, request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
   const itemId = params.itemId;
 
@@ -46,6 +50,16 @@ export const action = async ({ params, request }: ActionArgs) => {
   const formData = await request.formData();
   const requestNote = formData.get("requestNote");
 
+  const item = await getItem({ id: itemId });
+
+  if (!item) {
+    throw new Response("Item not found", { status: 404 });
+  }
+
+  if (item.ownerId === userId) {
+    throw new Response("You cannot request your own item", { status: 400 });
+  }
+
   const lendingRequest = await requestToBorrowItem({
     requesterId: userId,
     itemId,
@@ -53,7 +67,6 @@ export const action = async ({ params, request }: ActionArgs) => {
   });
 
   // Get item to notify owner
-  const item = await getItem({ id: itemId });
   if (item) {
     await createNotification({
       userId: item.ownerId,
@@ -69,14 +82,7 @@ export const action = async ({ params, request }: ActionArgs) => {
 
 export default function RequestBorrowPage() {
   const data = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const noteRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (actionData?.errors?.requestNote) {
-      noteRef.current?.focus();
-    }
-  }, [actionData]);
 
   return (
     <div className="max-w-2xl">
@@ -137,18 +143,7 @@ export default function RequestBorrowPage() {
               rows={4}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-lg"
               placeholder="Let the owner know when you need it, how long you'll keep it, or any other relevant information..."
-              aria-invalid={actionData?.errors?.requestNote ? true : undefined}
-              aria-describedby={
-                actionData?.errors?.requestNote
-                  ? "requestNote-error"
-                  : undefined
-              }
             />
-            {actionData?.errors?.requestNote ? (
-              <div className="pt-1 text-red-700" id="requestNote-error">
-                {actionData.errors.requestNote}
-              </div>
-            ) : null}
           </div>
           <p className="mt-1 text-sm text-gray-500">
             This message will be sent to the item owner along with your request.
@@ -157,7 +152,7 @@ export default function RequestBorrowPage() {
 
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
           <Link
-            to={`/communities/${data.item.community.id}/items/${data.item.id}`}
+            to={`/communities/${data.communityId}/items/${data.item.id}`}
             className="w-full sm:w-auto rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 text-center min-h-[44px] flex items-center justify-center sm:inline-flex"
           >
             Cancel

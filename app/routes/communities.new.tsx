@@ -1,18 +1,19 @@
-import type { ActionArgs } from "@remix-run/node";
+import type { ActionFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { createCommunity } from "~/models/community.server";
 import { requireUserId } from "~/session.server";
 
-export const action = async ({ request }: ActionArgs) => {
+export const action = async ({ request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
 
   const formData = await request.formData();
   const name = formData.get("name");
   const description = formData.get("description");
   const rules = formData.get("rules");
+  const isListed = formData.get("isListed") === "true";
 
   if (typeof name !== "string" || name.length === 0) {
     return json(
@@ -25,6 +26,7 @@ export const action = async ({ request }: ActionArgs) => {
     name,
     description: typeof description === "string" ? description : undefined,
     rules: typeof rules === "string" ? rules : undefined,
+    isListed,
     ownerId: userId,
   });
 
@@ -34,6 +36,7 @@ export const action = async ({ request }: ActionArgs) => {
 export default function NewCommunityPage() {
   const actionData = useActionData<typeof action>();
   const nameRef = useRef<HTMLInputElement>(null);
+  const [isListed, setIsListed] = useState(true);
 
   useEffect(() => {
     if (actionData?.errors?.name) {
@@ -112,6 +115,36 @@ export default function NewCommunityPage() {
               placeholder="What are the rules for this community? (e.g., return items within 2 weeks, handle items with care, etc.)"
             />
           </div>
+        </div>
+
+        <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-neutral-900">
+                List in Discover
+              </p>
+              <p className="mt-0.5 text-sm text-neutral-500">
+                Allow anyone to find this community and request to join. Members
+                and items are always private until approved.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isListed}
+              onClick={() => setIsListed(!isListed)}
+              className={`relative mt-0.5 flex-shrink-0 h-6 w-11 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                isListed ? "bg-primary-500" : "bg-neutral-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  isListed ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+          <input type="hidden" name="isListed" value={String(isListed)} />
         </div>
 
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3">

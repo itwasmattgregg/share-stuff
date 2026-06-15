@@ -1,0 +1,90 @@
+import { randomBytes } from "node:crypto";
+
+import { prisma } from "~/db.server";
+
+const INVITE_EXPIRY_DAYS = 5;
+
+export function getInviteExpiryDate(from = new Date()) {
+  return new Date(from.getTime() + INVITE_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+}
+
+function createInviteToken() {
+  return randomBytes(24).toString("base64url");
+}
+
+export async function createCommunityInvite({
+  communityId,
+  createdById,
+}: {
+  communityId: string;
+  createdById: string;
+}) {
+  return prisma.communityInvite.create({
+    data: {
+      token: createInviteToken(),
+      communityId,
+      createdById,
+      expiresAt: getInviteExpiryDate(),
+    },
+    include: {
+      community: {
+        select: { id: true, name: true, description: true },
+      },
+    },
+  });
+}
+
+export async function getCommunityInviteByToken({ token }: { token: string }) {
+  return prisma.communityInvite.findUnique({
+    where: { token },
+    include: {
+      community: {
+        select: { id: true, name: true, description: true },
+      },
+    },
+  });
+}
+
+export function isCommunityInviteValid(invite: { expiresAt: Date }) {
+  return invite.expiresAt.getTime() > Date.now();
+}
+
+export async function joinCommunityViaInvite({
+  userId,
+  communityId,
+}: {
+  userId: string;
+  communityId: string;
+}) {
+  const community = await prisma.community.findUnique({
+    where: { id: communityId },
+    select: { ownerId: true },
+  });
+
+  if (!community) {
+    throw new Error("Community not found");
+  }
+
+  if (community.ownerId === userId) {
+    return { alreadyMember: true };
+  }
+
+  await prisma.communityMembership.upsert({
+    where: {
+      userId_communityId: {
+        userId,
+        communityId,
+      },
+    },
+    update: {
+      status: "APPROVED",
+    },
+    create: {
+      userId,
+      communityId,
+      status: "APPROVED",
+    },
+  });
+
+  return { alreadyMember: false };
+}

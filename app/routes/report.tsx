@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import { createReport } from "~/models/report.server";
 import { requireUserId } from "~/session.server";
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
   const url = new URL(request.url);
   const type = url.searchParams.get("type"); // "user" or "community"
@@ -15,7 +15,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   return json({ type, id });
 };
 
-export const action = async ({ request }: ActionArgs) => {
+export const action = async ({ request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
 
   const formData = await request.formData();
@@ -25,16 +25,22 @@ export const action = async ({ request }: ActionArgs) => {
   const description = formData.get("description");
   const evidence = formData.get("evidence");
 
-  // Validate required fields
-  if (!reportType || !targetId || !reason || !description) {
-    return json(
-      {
-        errors: {
-          general: "All fields are required",
-        },
-      },
-      { status: 400 }
-    );
+  const errors: { reason?: string; description?: string } = {};
+
+  if (!reason || typeof reason !== "string") {
+    errors.reason = "Please select a reason";
+  }
+
+  if (!description || typeof description !== "string" || description.trim().length === 0) {
+    errors.description = "Please provide a description";
+  }
+
+  if (!reportType || !targetId) {
+    errors.description ??= "Invalid report target";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return json({ errors }, { status: 400 });
   }
 
   // Save report to database

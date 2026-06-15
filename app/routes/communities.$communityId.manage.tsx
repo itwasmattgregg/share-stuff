@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 
@@ -6,13 +6,14 @@ import {
   getCommunity,
   getPendingMemberships,
   updateMembershipStatus,
+  updateCommunity,
   isUserOwnerOfCommunity,
 } from "~/models/community.server";
 import { createNotification } from "~/models/notification.server";
 import { requireUserId } from "~/session.server";
 import { prisma } from "~/db.server";
 
-export const loader = async ({ params, request }: LoaderArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
   const communityId = params.communityId;
 
@@ -38,7 +39,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   return json({ community, pendingMemberships });
 };
 
-export const action = async ({ params, request }: ActionArgs) => {
+export const action = async ({ params, request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
   const communityId = params.communityId;
 
@@ -53,6 +54,14 @@ export const action = async ({ params, request }: ActionArgs) => {
   }
 
   const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "update-listing") {
+    const isListed = formData.get("isListed") === "true";
+    await updateCommunity({ id: communityId, isListed });
+    return redirect(`/communities/${communityId}/manage`);
+  }
+
   const membershipId = formData.get("membershipId");
   const status = formData.get("status");
 
@@ -137,16 +146,43 @@ export default function CommunityManagePage() {
                   <div>
                     <span className="text-gray-500">Members:</span>
                     <span className="ml-2 font-medium">
-                      {data.community.memberships.length}
+                      {data.community.memberships.filter(m => m.status === "APPROVED").length}
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Items:</span>
+                    <span className="text-gray-500">Pending:</span>
                     <span className="ml-2 font-medium">
-                      {data.community.items.length}
+                      {data.pendingMemberships.length}
                     </span>
                   </div>
                 </div>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Discovery</h4>
+                <Form method="post" className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+                  <input type="hidden" name="intent" value="update-listing" />
+                  <input type="hidden" name="isListed" value={String(!data.community.isListed)} />
+                  <div>
+                    <p className="text-sm font-medium text-neutral-900">
+                      {data.community.isListed ? "Listed in Discover" : "Unlisted"}
+                    </p>
+                    <p className="text-xs text-neutral-500 mt-0.5">
+                      {data.community.isListed
+                        ? "Anyone can find and request to join."
+                        : "Only people with a direct link can request to join."}
+                    </p>
+                  </div>
+                  <button
+                    type="submit"
+                    className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                      data.community.isListed
+                        ? "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+                        : "bg-primary-500 text-white hover:bg-primary-600"
+                    }`}
+                  >
+                    {data.community.isListed ? "Unlist" : "List It"}
+                  </button>
+                </Form>
               </div>
             </div>
           </div>

@@ -11,8 +11,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function ItemsIndexPage() {
   const navigate = useNavigate();
   // Get items data from parent route
-  const parentData = useMatchesData("routes/items");
-  const items = parentData?.items || [];
+  const parentData = useMatchesData("routes/items") as
+    | { items?: Array<{ id: string }> }
+    | undefined;
+  const items = parentData?.items ?? [];
 
   // Redirect to first item if available
   useEffect(() => {

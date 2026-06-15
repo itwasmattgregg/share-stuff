@@ -80,11 +80,13 @@ export async function createCommunity({
   name,
   description,
   rules,
+  isListed = true,
   ownerId,
 }: {
   name: string;
   description?: string;
   rules?: string;
+  isListed?: boolean;
   ownerId: string;
 }) {
   return prisma.community.create({
@@ -92,6 +94,7 @@ export async function createCommunity({
       name,
       description,
       rules,
+      isListed,
       ownerId,
       memberships: {
         create: {
@@ -100,6 +103,38 @@ export async function createCommunity({
         },
       },
     },
+  });
+}
+
+export async function updateCommunity({
+  id,
+  isListed,
+}: {
+  id: string;
+  isListed: boolean;
+}) {
+  return prisma.community.update({
+    where: { id },
+    data: { isListed },
+  });
+}
+
+export async function getListedCommunities({ userId }: { userId: string }) {
+  return prisma.community.findMany({
+    where: { isListed: true },
+    include: {
+      owner: {
+        select: { id: true, email: true, name: true },
+      },
+      memberships: {
+        where: { userId },
+        select: { status: true },
+      },
+      _count: {
+        select: { memberships: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
   });
 }
 
