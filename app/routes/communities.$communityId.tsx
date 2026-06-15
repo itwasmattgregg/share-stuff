@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { createCommunityInvite } from "~/models/community-invite.server";
 import {
   getCommunity,
+  isCommunityArchived,
   isUserMemberOfCommunity,
   isUserOwnerOfCommunity,
 } from "~/models/community.server";
@@ -46,6 +47,10 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     throw new Response("Unauthorized", { status: 403 });
   }
 
+  if (await isCommunityArchived({ id: communityId })) {
+    throw new Response("This community has been archived", { status: 400 });
+  }
+
   const invite = await createCommunityInvite({
     communityId,
     createdById: userId,
@@ -73,9 +78,13 @@ export default function CommunityPage() {
   if (!data.isMember) {
     return (
       <div className="bg-white border border-neutral-200 rounded-lg p-12 text-center">
-        <h2 className="text-2xl font-bold text-neutral-900 mb-4">Access Denied</h2>
+        <h2 className="text-2xl font-bold text-neutral-900 mb-4">
+          {data.community.isArchived ? "Community Archived" : "Access Denied"}
+        </h2>
         <p className="mt-4 text-neutral-600 mb-6">
-          You are not a member of this community. Communities are private and only accessible to members.
+          {data.community.isArchived
+            ? "This community has been archived and is no longer accepting members."
+            : "You are not a member of this community. Communities are private and only accessible to members."}
         </p>
         <Link
           to="/communities"
@@ -83,6 +92,38 @@ export default function CommunityPage() {
         >
           Back to My Communities
         </Link>
+      </div>
+    );
+  }
+
+  if (data.community.isArchived) {
+    return (
+      <div className="bg-white border border-neutral-200 rounded-lg p-12 text-center">
+        <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">
+          Archived
+        </span>
+        <h2 className="mt-4 text-2xl font-bold text-neutral-900">
+          {data.community.name}
+        </h2>
+        <p className="mt-4 text-neutral-600 mb-6">
+          This community has been archived. Item sharing and invite links are
+          paused until the owner restores it.
+        </p>
+        {data.isOwner ? (
+          <Link
+            to="manage"
+            className="inline-block rounded-lg bg-primary-500 px-6 py-3 text-white font-medium hover:bg-primary-600 shadow-md transition-colors"
+          >
+            Manage Community
+          </Link>
+        ) : (
+          <Link
+            to="/communities"
+            className="inline-block rounded-lg bg-primary-500 px-6 py-3 text-white font-medium hover:bg-primary-600 shadow-md transition-colors"
+          >
+            Back to My Communities
+          </Link>
+        )}
       </div>
     );
   }

@@ -3,6 +3,7 @@ import { json, redirect } from "@remix-run/node";
 import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
+import ShareStuffLogo from "~/components/ShareStuffLogo";
 import { createUser, getUserByEmail } from "~/models/user.server";
 import { createUserSession, getUserId } from "~/session.server";
 import { safeRedirect, validateEmail } from "~/utils";
@@ -94,6 +95,11 @@ export default function Join() {
   return (
     <div className="flex min-h-full flex-col justify-center">
       <div className="mx-auto w-full max-w-md px-8">
+        <div className="mb-8 flex justify-center">
+          <Link to="/" aria-label="ShareStuff home">
+            <ShareStuffLogo />
+          </Link>
+        </div>
         <Form method="post" className="space-y-6">
           <div>
             <label

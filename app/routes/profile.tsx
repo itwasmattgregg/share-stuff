@@ -1,6 +1,6 @@
 import { json, redirect } from "@remix-run/node";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useActionData, useLoaderData, useSearchParams } from "@remix-run/react";
 import { useState } from "react";
 
 import Layout from "~/components/Layout";
@@ -8,6 +8,7 @@ import { getUserCommunities } from "~/models/community.server";
 import { getUserItems } from "~/models/item.server";
 import { requireUserId, logout } from "~/session.server";
 import { getUserById, deleteUserByEmail } from "~/models/user.server";
+import { changeUserPassword } from "~/models/password.server";
 import { prisma } from "~/db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -73,6 +74,41 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       });
       return redirect("/profile");
     }
+  } else if (action === "change-password") {
+    const currentPassword = formData.get("currentPassword");
+    const newPassword = formData.get("newPassword");
+    const confirmPassword = formData.get("confirmPassword");
+
+    if (
+      typeof currentPassword !== "string" ||
+      typeof newPassword !== "string" ||
+      typeof confirmPassword !== "string"
+    ) {
+      return json(
+        { passwordError: "Invalid submission" },
+        { status: 400 }
+      );
+    }
+
+    if (newPassword !== confirmPassword) {
+      return json(
+        { passwordError: "New passwords do not match" },
+        { status: 400 }
+      );
+    }
+
+    try {
+      await changeUserPassword({
+        userId,
+        currentPassword,
+        newPassword,
+      });
+      return redirect("/profile?passwordUpdated=1");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to change password";
+      return json({ passwordError: message }, { status: 400 });
+    }
   } else if (action === "delete-account") {
     const confirmEmail = formData.get("confirmEmail");
     const user = await getUserById(userId);
@@ -94,7 +130,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function ProfilePage() {
   const data = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const [searchParams] = useSearchParams();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const passwordUpdated = searchParams.get("passwordUpdated") === "1";
 
   return (
     <Layout>
@@ -132,7 +171,7 @@ export default function ProfilePage() {
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Name
+                Display Name
               </label>
               <input
                 type="text"
@@ -157,6 +196,82 @@ export default function ProfilePage() {
                 className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 shadow-md transition-colors"
               >
                 Update Profile
+              </button>
+            </div>
+          </Form>
+        </div>
+
+        {/* Password */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Password</h2>
+          {passwordUpdated && (
+            <div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">
+              Your password has been updated.
+            </div>
+          )}
+          {actionData && "passwordError" in actionData && actionData.passwordError ? (
+            <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+              {actionData.passwordError}
+            </div>
+          ) : null}
+          <Form method="post" className="space-y-4">
+            <input type="hidden" name="action" value="change-password" />
+            <div>
+              <label
+                htmlFor="currentPassword"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Current password
+              </label>
+              <input
+                type="password"
+                id="currentPassword"
+                name="currentPassword"
+                required
+                autoComplete="current-password"
+                className="w-full rounded-md border border-gray-300 px-3 py-2"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="newPassword"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                New password
+              </label>
+              <input
+                type="password"
+                id="newPassword"
+                name="newPassword"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className="w-full rounded-md border border-gray-300 px-3 py-2"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Confirm new password
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className="w-full rounded-md border border-gray-300 px-3 py-2"
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 shadow-md transition-colors"
+              >
+                Change Password
               </button>
             </div>
           </Form>

@@ -60,6 +60,7 @@ describe("joinCommunityViaInvite", () => {
   it("approves membership for invitees", async () => {
     prismaMock.community.findUnique.mockResolvedValue({
       ownerId: "owner-1",
+      isArchived: false,
     });
 
     await joinCommunityViaInvite({
@@ -86,6 +87,7 @@ describe("joinCommunityViaInvite", () => {
   it("does not create membership for the community owner", async () => {
     prismaMock.community.findUnique.mockResolvedValue({
       ownerId: "owner-1",
+      isArchived: false,
     });
 
     const result = await joinCommunityViaInvite({
@@ -95,5 +97,19 @@ describe("joinCommunityViaInvite", () => {
 
     expect(result.alreadyMember).toBe(true);
     expect(prismaMock.communityMembership.upsert).not.toHaveBeenCalled();
+  });
+
+  it("rejects invites for archived communities", async () => {
+    prismaMock.community.findUnique.mockResolvedValue({
+      ownerId: "owner-1",
+      isArchived: true,
+    });
+
+    await expect(
+      joinCommunityViaInvite({
+        userId: "user-1",
+        communityId: "community-1",
+      })
+    ).rejects.toThrow("This community has been archived");
   });
 });

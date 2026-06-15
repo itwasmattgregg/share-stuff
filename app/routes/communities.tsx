@@ -101,6 +101,7 @@ export default function CommunitiesPage() {
                         <div className="font-medium">{community.name}</div>
                         <div className="text-xs text-neutral-500 mt-1">
                           {community._count.memberships} members
+                          {community.isArchived ? " · Archived" : ""}
                         </div>
                       </Link>
                     );
@@ -140,6 +141,7 @@ export default function CommunitiesPage() {
                     )}
                     <div className="text-xs text-neutral-500 mt-3">
                       {community._count.memberships} members
+                      {community.isArchived ? " · Archived" : ""}
                     </div>
                   </Link>
                 ))}

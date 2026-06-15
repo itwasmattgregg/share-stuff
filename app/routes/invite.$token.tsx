@@ -25,6 +25,13 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     });
   }
 
+  if (invite.community.isArchived) {
+    return json({
+      status: "archived" as const,
+      communityName: invite.community.name,
+    });
+  }
+
   const userId = await getUserId(request);
   const invitePath = `/invite/${token}`;
 
@@ -57,6 +64,25 @@ export default function CommunityInvitePage() {
         <p className="mt-4 text-neutral-600">
           This invite link may have expired or already been used. Ask a community
           member to send you a new link.
+        </p>
+        <Link
+          to="/communities"
+          className="mt-6 inline-block rounded-lg bg-primary-500 px-6 py-3 text-white font-medium hover:bg-primary-600"
+        >
+          Go to Communities
+        </Link>
+      </div>
+    );
+  }
+
+  if (data.status === "archived") {
+    return (
+      <div className="mx-auto max-w-lg py-16 px-4 text-center">
+        <h1 className="text-2xl font-bold text-neutral-900">
+          {data.communityName} has been archived
+        </h1>
+        <p className="mt-4 text-neutral-600">
+          This community is no longer accepting new members.
         </p>
         <Link
           to="/communities"

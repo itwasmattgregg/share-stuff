@@ -2,7 +2,9 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link } from "@remix-run/react";
 
-import { useOptionalUser } from "~/utils";
+import ShareStuffLogo from "~/components/ShareStuffLogo";
+import UserMenu from "~/components/UserMenu";
+import { useMatchesData, useOptionalUser } from "~/utils";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const requestUrl = new URL(request.url);
@@ -39,23 +41,35 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export default function Index() {
   const user = useOptionalUser();
+  const rootData = useMatchesData("root") as
+    | { messageCount?: number }
+    | undefined;
+  const messageCount = rootData?.messageCount ?? 0;
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Navigation */}
       <nav className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl flex justify-between items-center">
-          {/* Custom Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              </svg>
+        <div className="mx-auto max-w-7xl flex justify-between items-center gap-4">
+          <Link to={user ? "/communities" : "/"} aria-label="ShareStuff home">
+            <ShareStuffLogo />
+          </Link>
+
+          {user ? (
+            <div className="flex items-center gap-3">
+              <Link
+                to="/communities"
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors sm:px-5 sm:py-2.5 sm:text-base"
+              >
+                My Communities
+              </Link>
+              <UserMenu
+                user={user}
+                messageCount={messageCount}
+                buttonClassName="flex items-center space-x-2 rounded-xl border border-blue-200 bg-white/80 px-3 py-2 text-sm font-medium text-gray-700 shadow-sm backdrop-blur transition-colors hover:bg-white sm:px-4 sm:py-2.5"
+              />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              ShareStuff
-            </span>
-          </div>
+          ) : null}
         </div>
       </nav>
 
@@ -75,7 +89,7 @@ export default function Index() {
             Reduce waste, save money, and build meaningful connections in your community.
           </p>
 
-          {!user && (
+          {!user ? (
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 to="/join"
@@ -88,6 +102,18 @@ export default function Index() {
                 className="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-50 transition-colors"
               >
                 Sign In
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <p className="text-lg text-gray-700">
+                Welcome back{user.name ? `, ${user.name}` : ""}!
+              </p>
+              <Link
+                to="/communities"
+                className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:bg-blue-700 transition-colors"
+              >
+                Go to My Communities
               </Link>
             </div>
           )}
@@ -303,7 +329,14 @@ export default function Index() {
             </p>
             <div className="flex justify-center space-x-6 text-sm text-gray-400">
               <Link to="/guidelines" className="hover:text-white transition-colors">Guidelines</Link>
-              <Link to="/login" className="hover:text-white transition-colors">Sign In</Link>
+              {user ? (
+                <>
+                  <Link to="/communities" className="hover:text-white transition-colors">My Communities</Link>
+                  <Link to="/profile" className="hover:text-white transition-colors">Profile</Link>
+                </>
+              ) : (
+                <Link to="/login" className="hover:text-white transition-colors">Sign In</Link>
+              )}
             </div>
           </div>
         </div>

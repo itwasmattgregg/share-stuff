@@ -119,9 +119,34 @@ export async function updateCommunity({
   });
 }
 
+export async function setCommunityArchived({
+  id,
+  isArchived,
+}: {
+  id: string;
+  isArchived: boolean;
+}) {
+  return prisma.community.update({
+    where: { id },
+    data: {
+      isArchived,
+      ...(isArchived ? { isListed: false } : {}),
+    },
+  });
+}
+
+export async function isCommunityArchived({ id }: { id: string }) {
+  const community = await prisma.community.findUnique({
+    where: { id },
+    select: { isArchived: true },
+  });
+
+  return community?.isArchived ?? false;
+}
+
 export async function getListedCommunities({ userId }: { userId: string }) {
   return prisma.community.findMany({
-    where: { isListed: true },
+    where: { isListed: true, isArchived: false },
     include: {
       owner: {
         select: { id: true, email: true, name: true },
@@ -145,6 +170,10 @@ export async function requestToJoinCommunity({
   userId: string;
   communityId: string;
 }) {
+  if (await isCommunityArchived({ id: communityId })) {
+    throw new Error("This community has been archived");
+  }
+
   return prisma.communityMembership.upsert({
     where: {
       userId_communityId: {

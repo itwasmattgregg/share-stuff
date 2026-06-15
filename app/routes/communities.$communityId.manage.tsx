@@ -7,6 +7,7 @@ import {
   getPendingMemberships,
   updateMembershipStatus,
   updateCommunity,
+  setCommunityArchived,
   isUserOwnerOfCommunity,
 } from "~/models/community.server";
 import { createNotification } from "~/models/notification.server";
@@ -59,6 +60,12 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   if (intent === "update-listing") {
     const isListed = formData.get("isListed") === "true";
     await updateCommunity({ id: communityId, isListed });
+    return redirect(`/communities/${communityId}/manage`);
+  }
+
+  if (intent === "set-archived") {
+    const isArchived = formData.get("isArchived") === "true";
+    await setCommunityArchived({ id: communityId, isArchived });
     return redirect(`/communities/${communityId}/manage`);
   }
 
@@ -116,6 +123,11 @@ export default function CommunityManagePage() {
           Manage "{data.community.name}" - approve members and view community
           details.
         </p>
+        {data.community.isArchived && (
+          <span className="mt-3 inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">
+            Archived
+          </span>
+        )}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
@@ -159,30 +171,37 @@ export default function CommunityManagePage() {
               </div>
               <div>
                 <h4 className="font-medium mb-2">Discovery</h4>
-                <Form method="post" className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-                  <input type="hidden" name="intent" value="update-listing" />
-                  <input type="hidden" name="isListed" value={String(!data.community.isListed)} />
-                  <div>
-                    <p className="text-sm font-medium text-neutral-900">
-                      {data.community.isListed ? "Listed in Discover" : "Unlisted"}
-                    </p>
-                    <p className="text-xs text-neutral-500 mt-0.5">
-                      {data.community.isListed
-                        ? "Anyone can find and request to join."
-                        : "Only people with a direct link can request to join."}
-                    </p>
-                  </div>
-                  <button
-                    type="submit"
-                    className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                      data.community.isListed
-                        ? "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
-                        : "bg-primary-500 text-white hover:bg-primary-600"
-                    }`}
-                  >
-                    {data.community.isListed ? "Unlist" : "List It"}
-                  </button>
-                </Form>
+                {data.community.isArchived ? (
+                  <p className="text-sm text-neutral-500">
+                    Archived communities are hidden from Discover and cannot accept
+                    new members. Restore the community to change discovery settings.
+                  </p>
+                ) : (
+                  <Form method="post" className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+                    <input type="hidden" name="intent" value="update-listing" />
+                    <input type="hidden" name="isListed" value={String(!data.community.isListed)} />
+                    <div>
+                      <p className="text-sm font-medium text-neutral-900">
+                        {data.community.isListed ? "Listed in Discover" : "Unlisted"}
+                      </p>
+                      <p className="text-xs text-neutral-500 mt-0.5">
+                        {data.community.isListed
+                          ? "Anyone can find and request to join."
+                          : "Only people with a direct link can request to join."}
+                      </p>
+                    </div>
+                    <button
+                      type="submit"
+                      className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                        data.community.isListed
+                          ? "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+                          : "bg-primary-500 text-white hover:bg-primary-600"
+                      }`}
+                    >
+                      {data.community.isListed ? "Unlist" : "List It"}
+                    </button>
+                  </Form>
+                )}
               </div>
             </div>
           </div>
@@ -310,6 +329,56 @@ export default function CommunityManagePage() {
             </table>
           </div>
         </div>
+      </div>
+
+      <div className="mt-8 rounded-lg border border-neutral-200 bg-white p-6">
+        <h3 className="text-lg font-semibold mb-2">
+          {data.community.isArchived ? "Restore Community" : "Archive Community"}
+        </h3>
+        {data.community.isArchived ? (
+          <>
+            <p className="text-sm text-neutral-600 mb-4">
+              This community is archived. Members can no longer browse items or share
+              invite links. Restore it to make the community active again.
+            </p>
+            <Form method="post">
+              <input type="hidden" name="intent" value="set-archived" />
+              <input type="hidden" name="isArchived" value="false" />
+              <button
+                type="submit"
+                className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600"
+              >
+                Restore Community
+              </button>
+            </Form>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-neutral-600 mb-4">
+              Archiving hides this community from Discover, disables invite links, and
+              pauses community activity. You can restore it later.
+            </p>
+            <Form method="post">
+              <input type="hidden" name="intent" value="set-archived" />
+              <input type="hidden" name="isArchived" value="true" />
+              <button
+                type="submit"
+                className="rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+                onClick={(event) => {
+                  if (
+                    !confirm(
+                      `Archive "${data.community.name}"? Members will lose access until you restore it.`
+                    )
+                  ) {
+                    event.preventDefault();
+                  }
+                }}
+              >
+                Archive Community
+              </button>
+            </Form>
+          </>
+        )}
       </div>
 
       <div className="mt-8">

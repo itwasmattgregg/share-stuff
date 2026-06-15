@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 
 import { prisma } from "~/db.server";
+import { isCommunityArchived } from "~/models/community.server";
 
 const INVITE_EXPIRY_DAYS = 5;
 
@@ -19,6 +20,10 @@ export async function createCommunityInvite({
   communityId: string;
   createdById: string;
 }) {
+  if (await isCommunityArchived({ id: communityId })) {
+    throw new Error("This community has been archived");
+  }
+
   return prisma.communityInvite.create({
     data: {
       token: createInviteToken(),
@@ -28,7 +33,7 @@ export async function createCommunityInvite({
     },
     include: {
       community: {
-        select: { id: true, name: true, description: true },
+        select: { id: true, name: true, description: true, isArchived: true },
       },
     },
   });
@@ -39,7 +44,7 @@ export async function getCommunityInviteByToken({ token }: { token: string }) {
     where: { token },
     include: {
       community: {
-        select: { id: true, name: true, description: true },
+        select: { id: true, name: true, description: true, isArchived: true },
       },
     },
   });
@@ -58,11 +63,15 @@ export async function joinCommunityViaInvite({
 }) {
   const community = await prisma.community.findUnique({
     where: { id: communityId },
-    select: { ownerId: true },
+    select: { ownerId: true, isArchived: true },
   });
 
   if (!community) {
     throw new Error("Community not found");
+  }
+
+  if (community.isArchived) {
+    throw new Error("This community has been archived");
   }
 
   if (community.ownerId === userId) {

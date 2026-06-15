@@ -10,6 +10,7 @@ vi.mock("~/utils", async (importOriginal) => {
   return {
     ...actual,
     useOptionalUser: vi.fn(),
+    useMatchesData: vi.fn(() => ({ messageCount: 0 })),
   };
 });
 
@@ -56,8 +57,10 @@ describe("home page", () => {
     expect(
       screen.queryByRole("link", { name: /get started/i })
     ).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /my communities/i }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /member/i })).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /go to my communities/i })
+      screen.getAllByRole("link", { name: /go to my communities/i })[0]
     ).toHaveAttribute("href", "/communities");
   });
 });

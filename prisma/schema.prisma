@@ -17,6 +17,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   password Password?
+  passwordResetTokens PasswordResetToken[]
 
   // Community relationships
   ownedCommunities     Community[]           @relation("CommunityOwner")
@@ -41,12 +42,27 @@ model Password {
   userId String @unique
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
 model Community {
   id          String  @id @default(cuid())
   name        String
   description String?
   rules       String?
   isListed    Boolean @default(true)
+  isArchived  Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
