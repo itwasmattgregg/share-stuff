@@ -18,6 +18,7 @@ ShareStuff lets people create and join private communities where they share thei
 
 ### Items
 - Add items to your personal collection with name, description, category, and condition
+- Optional photo per item (client-side compression, stored in Cloudflare R2)
 - Items are visible to members of any community you belong to
 - Mark items as available or unavailable
 - Edit or delete your items at any time

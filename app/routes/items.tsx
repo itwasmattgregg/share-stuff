@@ -3,6 +3,7 @@ import { json } from "@remix-run/node";
 import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 
 import Layout from "~/components/Layout";
+import ItemPhoto from "~/components/ItemPhoto";
 import { getUserItems } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
 
@@ -100,6 +101,13 @@ export default function ItemsPage() {
                       to={item.id}
                       className="block bg-white border border-neutral-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow"
                     >
+                      <ItemPhoto
+                        itemId={item.id}
+                        photoKey={item.photoKey}
+                        alt={item.name}
+                        className="mb-3 h-36 w-full rounded-lg border border-neutral-200 object-cover"
+                      />
+
                       <div className="flex items-start justify-between mb-3">
                         <h3 className="text-lg font-semibold text-neutral-900 flex-1">
                           {item.name}

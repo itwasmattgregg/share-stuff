@@ -33,7 +33,15 @@ openssl rand -base64 32
 
 # Set DATABASE_URL to the mounted SQLite file
 fly secrets set DATABASE_URL="file:/data/sqlite.db"
+
+# Optional: Cloudflare R2 for item photo uploads
+fly secrets set R2_ACCOUNT_ID="your-cloudflare-account-id"
+fly secrets set R2_ACCESS_KEY_ID="your-r2-access-key-id"
+fly secrets set R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
+fly secrets set R2_BUCKET_NAME="share-stuff-photos"
 ```
+
+Create an R2 bucket in the Cloudflare dashboard, then create an API token with read/write access to that bucket. Photos are served through authenticated app routes, so the bucket can stay private.
 
 ### Deployment
 

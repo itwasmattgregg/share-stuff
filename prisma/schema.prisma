@@ -109,6 +109,7 @@ model Item {
   description String?
   category    String? // e.g., "book", "tool", "dvd", "game"
   condition   String? // e.g., "excellent", "good", "fair"
+  photoKey    String?
   isAvailable Boolean @default(true)
 
   createdAt DateTime @default(now())

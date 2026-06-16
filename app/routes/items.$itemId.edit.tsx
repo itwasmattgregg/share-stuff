@@ -3,8 +3,16 @@ import { json, redirect } from "@remix-run/node";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
+import ItemPhotoField from "~/components/ItemPhotoField";
 import { getItem, updateItem } from "~/models/item.server";
+import { isStorageConfigured } from "~/models/storage.server";
 import { requireUserId } from "~/session.server";
+import { applyItemPhotoChanges } from "~/utils/item-photo.server";
+
+type ItemFormErrors = {
+  name?: string;
+  photo?: string;
+};
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -20,12 +28,14 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     throw new Response("Item not found", { status: 404 });
   }
 
-  // Check if user owns this item
   if (item.ownerId !== userId) {
     throw new Response("Unauthorized", { status: 403 });
   }
 
-  return json({ item });
+  return json({
+    item,
+    photoUploadEnabled: isStorageConfigured(),
+  });
 };
 
 export const action = async ({ params, request }: ActionFunctionArgs) => {
@@ -42,7 +52,6 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     throw new Response("Item not found", { status: 404 });
   }
 
-  // Check if user owns this item
   if (item.ownerId !== userId) {
     throw new Response("Unauthorized", { status: 403 });
   }
@@ -53,9 +62,28 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   const category = formData.get("category");
   const condition = formData.get("condition");
   const isAvailable = formData.get("isAvailable") === "true";
+  const photo = formData.get("photo");
+  const removePhoto = formData.get("removePhoto") === "true";
 
   if (typeof name !== "string" || name.length === 0) {
-    return json({ errors: { name: "Item name is required" } }, { status: 400 });
+    return json<{ errors: ItemFormErrors }>(
+      { errors: { name: "Item name is required" } },
+      { status: 400 }
+    );
+  }
+
+  const photoResult = await applyItemPhotoChanges({
+    itemId,
+    existingPhotoKey: item.photoKey,
+    photo,
+    removePhoto,
+  });
+
+  if (!photoResult.ok) {
+    return json<{ errors: ItemFormErrors }>(
+      { errors: { photo: photoResult.error } },
+      { status: 400 }
+    );
   }
 
   await updateItem({
@@ -65,13 +93,16 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     category: typeof category === "string" ? category : undefined,
     condition: typeof condition === "string" ? condition : undefined,
     isAvailable,
+    ...(photoResult.photoKey !== undefined
+      ? { photoKey: photoResult.photoKey }
+      : {}),
   });
 
   return redirect(`/items/${itemId}`);
 };
 
 export default function EditItemPage() {
-  const data = useLoaderData<typeof loader>();
+  const { item, photoUploadEnabled } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -102,7 +133,7 @@ export default function EditItemPage() {
         Update your item details.
       </p>
 
-      <Form method="post" className="mt-6 space-y-6">
+      <Form method="post" encType="multipart/form-data" className="mt-6 space-y-6">
         <div>
           <label
             htmlFor="name"
@@ -118,7 +149,7 @@ export default function EditItemPage() {
               autoFocus={true}
               name="name"
               type="text"
-              defaultValue={data.item.name}
+              defaultValue={item.name}
               className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               aria-invalid={actionData?.errors?.name ? true : undefined}
               aria-describedby={
@@ -145,7 +176,7 @@ export default function EditItemPage() {
               id="description"
               name="description"
               rows={3}
-              defaultValue={data.item.description || ""}
+              defaultValue={item.description || ""}
               className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               placeholder="Describe the item, any special instructions, etc."
             />
@@ -164,7 +195,7 @@ export default function EditItemPage() {
               <select
                 id="category"
                 name="category"
-                defaultValue={data.item.category || ""}
+                defaultValue={item.category || ""}
                 className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               >
                 <option value="">Select a category</option>
@@ -188,7 +219,7 @@ export default function EditItemPage() {
               <select
                 id="condition"
                 name="condition"
-                defaultValue={data.item.condition || ""}
+                defaultValue={item.condition || ""}
                 className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
               >
                 <option value="">Select condition</option>
@@ -202,13 +233,26 @@ export default function EditItemPage() {
           </div>
         </div>
 
+        {photoUploadEnabled ? (
+          <ItemPhotoField
+            itemId={item.id}
+            photoKey={item.photoKey}
+            error={actionData?.errors?.photo}
+          />
+        ) : item.photoKey ? (
+          <p className="text-sm text-gray-500">
+            This item has a photo, but uploads are not configured in this
+            environment.
+          </p>
+        ) : null}
+
         <div>
           <label className="flex items-center">
             <input
               type="checkbox"
               name="isAvailable"
               value="true"
-              defaultChecked={data.item.isAvailable}
+              defaultChecked={item.isAvailable}
               className="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
             />
             <span className="ml-2 text-sm text-gray-700">
@@ -219,7 +263,7 @@ export default function EditItemPage() {
 
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
           <Link
-            to={`/items/${data.item.id}`}
+            to={`/items/${item.id}`}
             className="w-full sm:w-auto rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 text-center min-h-[44px] flex items-center justify-center sm:inline-flex"
           >
             Cancel

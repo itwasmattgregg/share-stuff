@@ -10,6 +10,7 @@ const mockItem = {
   description: "A sturdy hammer",
   category: "Tool",
   condition: "Good",
+  photoKey: null,
   isAvailable: true,
   ownerId: "user-1",
   createdAt: new Date("2024-01-01"),
@@ -23,7 +24,7 @@ vi.mock("@remix-run/react", async (importOriginal) => {
     Form: ({ children, ...props }: React.FormHTMLAttributes<HTMLFormElement>) => (
       <form {...props}>{children}</form>
     ),
-    useLoaderData: () => ({ item: mockItem }),
+    useLoaderData: () => ({ item: mockItem, photoUploadEnabled: false }),
     useActionData: () => undefined,
   };
 });

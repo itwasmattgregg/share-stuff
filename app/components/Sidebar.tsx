@@ -74,7 +74,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 key={item.to}
                 to={item.to}
                 onClick={onClose}
-                className={`flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
+                className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
                   isActive
                     ? "bg-primary-50 text-primary-700 border-l-4 border-primary-500"
                     : "text-neutral-700 hover:bg-neutral-50 hover:text-primary-600"
@@ -84,11 +84,6 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                   <span className="text-lg">{item.icon}</span>
                   <span>{item.label}</span>
                 </div>
-                {item.badgeCount !== undefined && item.badgeCount > 0 && (
-                  <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-primary-500 rounded-full">
-                    {item.badgeCount > 9 ? "9+" : item.badgeCount}
-                  </span>
-                )}
               </Link>
             );
           })}

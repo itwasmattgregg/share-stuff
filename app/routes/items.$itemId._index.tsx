@@ -8,6 +8,7 @@ import {
   updateLendingRequestForItemOwner,
 } from "~/models/item.server";
 import type { LendingStatus } from "~/models/item.server";
+import ItemPhoto from "~/components/ItemPhoto";
 import { requireUserId } from "~/session.server";
 import { formatLendingRequestDateTime } from "~/utils";
 
@@ -110,6 +111,13 @@ export default function ItemDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
+          <ItemPhoto
+            itemId={data.item.id}
+            photoKey={data.item.photoKey}
+            alt={data.item.name}
+            className="h-64 w-full rounded-lg border border-gray-200 object-cover"
+          />
+
           <div className="rounded-lg border border-gray-200 bg-white p-6">
             <h3 className="text-lg font-semibold mb-4">Item Details</h3>
 

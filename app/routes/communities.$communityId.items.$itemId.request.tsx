@@ -5,6 +5,7 @@ import { useRef } from "react";
 
 import { getItem, requestToBorrowItem } from "~/models/item.server";
 import { createNotification } from "~/models/notification.server";
+import ItemPhoto from "~/components/ItemPhoto";
 import { requireUserId } from "~/session.server";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
@@ -104,6 +105,13 @@ export default function RequestBorrowPage() {
       </div>
 
       <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <ItemPhoto
+          itemId={data.item.id}
+          photoKey={data.item.photoKey}
+          alt={data.item.name}
+          className="mb-4 h-48 w-full max-w-sm rounded-lg border border-gray-200 object-cover"
+        />
+
         <h3 className="font-semibold">Item Details</h3>
         <div className="mt-2 text-sm text-gray-600">
           <p>

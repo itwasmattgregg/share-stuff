@@ -3,6 +3,7 @@ import { json } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 
 import { getCommunityItems } from "~/models/item.server";
+import ItemPhoto from "~/components/ItemPhoto";
 import { requireUserId } from "~/session.server";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
@@ -98,6 +99,13 @@ export default function CommunityIndexPage() {
               key={item.id}
               className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
             >
+              <ItemPhoto
+                itemId={item.id}
+                photoKey={item.photoKey}
+                alt={item.name}
+                className="mb-4 h-40 w-full rounded-lg border border-neutral-200 object-cover"
+              />
+
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-neutral-900">{item.name}</h3>

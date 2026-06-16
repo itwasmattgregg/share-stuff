@@ -1,10 +1,26 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
-import { createItem } from "~/models/item.server";
+import ItemPhotoField from "~/components/ItemPhotoField";
+import { createItem, updateItem } from "~/models/item.server";
+import {
+  buildItemPhotoKey,
+  isStorageConfigured,
+  uploadObject,
+} from "~/models/storage.server";
 import { requireUserId } from "~/session.server";
+import { parseItemPhotoUpload } from "~/utils/item-photo.server";
+
+type ItemFormErrors = {
+  name?: string;
+  photo?: string;
+};
+
+export const loader = async () => {
+  return json({ photoUploadEnabled: isStorageConfigured() });
+};
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -14,9 +30,34 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const description = formData.get("description");
   const category = formData.get("category");
   const condition = formData.get("condition");
+  const photo = formData.get("photo");
 
   if (typeof name !== "string" || name.length === 0) {
-    return json({ errors: { name: "Item name is required" } }, { status: 400 });
+    return json<{ errors: ItemFormErrors }>(
+      { errors: { name: "Item name is required" } },
+      { status: 400 }
+    );
+  }
+
+  const parsedPhoto = await parseItemPhotoUpload(photo);
+
+  if (!parsedPhoto.ok) {
+    return json<{ errors: ItemFormErrors }>(
+      { errors: { photo: parsedPhoto.error } },
+      { status: 400 }
+    );
+  }
+
+  if (parsedPhoto.data && !isStorageConfigured()) {
+    return json<{ errors: ItemFormErrors }>(
+      {
+        errors: {
+          photo:
+            "Photo uploads are not configured. Ask the site admin to set up object storage.",
+        },
+      },
+      { status: 400 }
+    );
   }
 
   const item = await createItem({
@@ -27,10 +68,26 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     ownerId: userId,
   });
 
+  if (parsedPhoto.data) {
+    const photoKey = buildItemPhotoKey(item.id, parsedPhoto.data.extension);
+
+    await uploadObject({
+      key: photoKey,
+      body: parsedPhoto.data.buffer,
+      contentType: parsedPhoto.data.contentType,
+    });
+
+    await updateItem({
+      id: item.id,
+      photoKey,
+    });
+  }
+
   return redirect(`/items/${item.id}`);
 };
 
 export default function NewItemPage() {
+  const { photoUploadEnabled } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -61,7 +118,7 @@ export default function NewItemPage() {
         Add an item to your collection that you can share with your communities.
       </p>
 
-      <Form method="post" className="mt-6 space-y-6">
+      <Form method="post" encType="multipart/form-data" className="mt-6 space-y-6">
         <div>
           <label
             htmlFor="name"
@@ -156,6 +213,14 @@ export default function NewItemPage() {
             </div>
           </div>
         </div>
+
+        {photoUploadEnabled ? (
+          <ItemPhotoField error={actionData?.errors?.photo} />
+        ) : (
+          <p className="text-sm text-gray-500">
+            Photo uploads are not configured in this environment yet.
+          </p>
+        )}
 
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
           <button

@@ -2,6 +2,7 @@ import type { User, Item, LendingRequest } from "@prisma/client";
 
 import { prisma } from "~/db.server";
 import { createNotification } from "~/models/notification.server";
+import { removeItemPhoto } from "~/utils/item-photo.server";
 
 export type LendingStatus = "PENDING" | "APPROVED" | "REJECTED" | "BORROWED" | "RETURNED";
 
@@ -116,12 +117,14 @@ export async function createItem({
   description,
   category,
   condition,
+  photoKey,
   ownerId,
 }: {
   name: string;
   description?: string;
   category?: string;
   condition?: string;
+  photoKey?: string;
   ownerId: string;
 }) {
   return prisma.item.create({
@@ -130,6 +133,7 @@ export async function createItem({
       description,
       category,
       condition,
+      photoKey,
       ownerId,
     },
   });
@@ -142,6 +146,7 @@ export async function updateItem({
   category,
   condition,
   isAvailable,
+  photoKey,
 }: {
   id: string;
   name?: string;
@@ -149,6 +154,7 @@ export async function updateItem({
   category?: string;
   condition?: string;
   isAvailable?: boolean;
+  photoKey?: string | null;
 }) {
   return prisma.item.update({
     where: { id },
@@ -158,11 +164,21 @@ export async function updateItem({
       category,
       condition,
       isAvailable,
+      photoKey,
     },
   });
 }
 
 export async function deleteItem({ id }: { id: string }) {
+  const item = await prisma.item.findUnique({
+    where: { id },
+    select: { photoKey: true },
+  });
+
+  if (item?.photoKey) {
+    await removeItemPhoto(item.photoKey);
+  }
+
   return prisma.item.delete({
     where: { id },
   });
