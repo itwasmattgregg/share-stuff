@@ -17,7 +17,9 @@ vi.mock("~/db.server", () => ({
   prisma: prismaMock,
 }));
 
-import { formatDays, getPlatformAnalytics } from "./analytics.server";
+import { formatDays } from "~/utils";
+
+import { getPlatformAnalytics } from "./analytics.server";
 
 describe("formatDays", () => {
   it("formats null as an em dash", () => {
@@ -57,15 +59,22 @@ describe("getPlatformAnalytics", () => {
         {
           borrowedAt: new Date("2026-01-01"),
           returnedAt: new Date("2026-01-11"),
+          createdAt: new Date("2026-01-01"),
+          updatedAt: new Date("2026-01-11"),
         },
       ])
       .mockResolvedValueOnce([
-        { borrowedAt: new Date("2026-01-15") },
+        {
+          borrowedAt: new Date("2026-01-15"),
+          createdAt: new Date("2026-01-15"),
+          updatedAt: new Date("2026-01-15"),
+        },
       ])
       .mockResolvedValueOnce([
         {
           id: "trade-1",
           returnedAt: new Date("2026-01-20"),
+          updatedAt: new Date("2026-01-20"),
           item: { name: "Drill" },
           requester: { name: "Alex", email: "alex@example.com" },
           itemOwner: { name: "Sam", email: "sam@example.com" },

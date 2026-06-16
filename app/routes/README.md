@@ -15,7 +15,6 @@ This directory contains all application routes organized by feature area using c
 
 ### Admin Routes (admin prefix)
 - `admin.tsx` - Admin dashboard (`/admin`)
-- `admin.admins.tsx` - Admin management (`/admin/admins`)
 - `admin.communities.tsx` - Community management (`/admin/communities`)
 - `admin.reports.tsx` - Report management (`/admin/reports`)
 - `admin.settings.tsx` - Settings (`/admin/settings`)

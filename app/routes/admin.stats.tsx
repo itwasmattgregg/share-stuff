@@ -2,7 +2,8 @@ import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 
-import { formatDays, getPlatformAnalytics } from "~/models/analytics.server";
+import { formatDays } from "~/utils";
+import { getPlatformAnalytics } from "~/models/analytics.server";
 import { requireAdmin } from "~/models/admin.server";
 import { requireUserId } from "~/session.server";
 
@@ -232,9 +233,12 @@ export default function AdminStatsPage() {
                   {trade.requester.name || trade.requester.email} borrowed from{" "}
                   {trade.itemOwner.name || trade.itemOwner.email}
                 </div>
-                {trade.returnedAt ? (
+                {trade.returnedAt ?? trade.updatedAt ? (
                   <div className="text-xs text-gray-400">
-                    Returned {new Date(trade.returnedAt).toLocaleDateString()}
+                    Returned{" "}
+                    {new Date(
+                      trade.returnedAt ?? trade.updatedAt
+                    ).toLocaleDateString()}
                   </div>
                 ) : null}
               </li>

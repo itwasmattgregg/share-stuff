@@ -79,3 +79,15 @@ export function formatLendingRequestDateTime(date: Date | string) {
     minute: "2-digit",
   });
 }
+
+export function formatDays(days: number | null) {
+  if (days === null) {
+    return "—";
+  }
+
+  if (days < 1) {
+    return "< 1 day";
+  }
+
+  return `${days.toFixed(1)} days`;
+}

@@ -4,7 +4,10 @@ import { Form, Link, useLoaderData } from "@remix-run/react";
 
 import {
   requireAdmin,
+  requireSuperAdmin,
+  isSuperAdmin,
   promoteToAdmin,
+  promoteToSuperAdmin,
   demoteToUser,
 } from "~/models/admin.server";
 import { requireUserId } from "~/session.server";
@@ -14,26 +17,29 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
   await requireAdmin({ userId });
 
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      createdAt: true,
-      _count: {
-        select: {
-          ownedCommunities: true,
-          items: true,
-          lendingRequests: true,
-          communityMemberships: true,
+  const [users, canManageSuperAdmins] = await Promise.all([
+    prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+        _count: {
+          select: {
+            ownedCommunities: true,
+            items: true,
+            lendingRequests: true,
+            communityMemberships: true,
+          },
         },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    }),
+    isSuperAdmin({ userId }),
+  ]);
 
-  return json({ users });
+  return json({ users, canManageSuperAdmins });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -50,6 +56,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   if (action === "promote") {
     await promoteToAdmin({ userId: targetUserId });
+  } else if (action === "promote-super") {
+    await requireSuperAdmin({ userId });
+    await promoteToSuperAdmin({ userId: targetUserId });
   } else if (action === "demote") {
     await demoteToUser({ userId: targetUserId });
   }
@@ -58,7 +67,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function AdminUsersPage() {
-  const data = useLoaderData<typeof loader>();
+  const { users, canManageSuperAdmins } = useLoaderData<typeof loader>();
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -99,7 +108,7 @@ export default function AdminUsersPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {data.users.map((user) => (
+            {users.map((user) => (
               <tr key={user.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
@@ -143,16 +152,34 @@ export default function AdminUsersPage() {
                       </button>
                     </Form>
                   ) : user.role === "ADMIN" ? (
-                    <Form method="post" className="inline">
-                      <input type="hidden" name="userId" value={user.id} />
-                      <input type="hidden" name="action" value="demote" />
-                      <button
-                        type="submit"
-                        className="text-danger-600 hover:text-danger-900"
-                      >
-                        Demote to User
-                      </button>
-                    </Form>
+                    <div className="space-x-3">
+                      {canManageSuperAdmins ? (
+                        <Form method="post" className="inline">
+                          <input type="hidden" name="userId" value={user.id} />
+                          <input
+                            type="hidden"
+                            name="action"
+                            value="promote-super"
+                          />
+                          <button
+                            type="submit"
+                            className="text-secondary-600 hover:text-secondary-900"
+                          >
+                            Promote to Super Admin
+                          </button>
+                        </Form>
+                      ) : null}
+                      <Form method="post" className="inline">
+                        <input type="hidden" name="userId" value={user.id} />
+                        <input type="hidden" name="action" value="demote" />
+                        <button
+                          type="submit"
+                          className="text-danger-600 hover:text-danger-900"
+                        >
+                          Demote to User
+                        </button>
+                      </Form>
+                    </div>
                   ) : (
                     <span className="text-gray-400">No actions available</span>
                   )}

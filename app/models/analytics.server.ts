@@ -17,16 +17,18 @@ function averageDays(durations: number[]) {
   return average(durations);
 }
 
-function formatDays(days: number | null) {
-  if (days === null) {
-    return "—";
-  }
+function borrowStartDate(request: {
+  borrowedAt: Date | null;
+  createdAt: Date;
+}) {
+  return request.borrowedAt ?? request.createdAt;
+}
 
-  if (days < 1) {
-    return "< 1 day";
-  }
-
-  return `${days.toFixed(1)} days`;
+function returnEndDate(request: {
+  returnedAt: Date | null;
+  updatedAt: Date;
+}) {
+  return request.returnedAt ?? request.updatedAt;
 }
 
 export async function getPlatformAnalytics() {
@@ -48,7 +50,7 @@ export async function getPlatformAnalytics() {
     communities,
     lendingStatusCounts,
     itemCategoryCounts,
-    recentTrades,
+    recentTradesRaw,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.community.count(),
@@ -62,19 +64,21 @@ export async function getPlatformAnalytics() {
     prisma.report.count(),
     prisma.report.count({ where: { status: "PENDING" } }),
     prisma.lendingRequest.findMany({
-      where: {
-        status: "RETURNED",
-        borrowedAt: { not: null },
-        returnedAt: { not: null },
-      },
+      where: { status: "RETURNED" },
       select: {
         borrowedAt: true,
         returnedAt: true,
+        createdAt: true,
+        updatedAt: true,
       },
     }),
     prisma.lendingRequest.findMany({
-      where: { status: "BORROWED", borrowedAt: { not: null } },
-      select: { borrowedAt: true },
+      where: { status: "BORROWED" },
+      select: {
+        borrowedAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     }),
     prisma.communityMembership.groupBy({
       by: ["communityId"],
@@ -91,15 +95,15 @@ export async function getPlatformAnalytics() {
     prisma.item.groupBy({
       by: ["category"],
       _count: { id: true },
-      orderBy: { _count: { id: "desc" } },
     }),
     prisma.lendingRequest.findMany({
       where: { status: "RETURNED" },
-      take: 5,
-      orderBy: { returnedAt: "desc" },
+      take: 20,
+      orderBy: { updatedAt: "desc" },
       select: {
         id: true,
         returnedAt: true,
+        updatedAt: true,
         item: { select: { name: true } },
         requester: { select: { name: true, email: true } },
         itemOwner: { select: { name: true, email: true } },
@@ -127,18 +131,13 @@ export async function getPlatformAnalytics() {
     (a, b) => a.population - b.population
   );
 
-  const completedBorrowDurations = returnedRequests
-    .filter(
-      (request): request is { borrowedAt: Date; returnedAt: Date } =>
-        request.borrowedAt !== null && request.returnedAt !== null
-    )
-    .map((request) => daysBetween(request.borrowedAt, request.returnedAt));
+  const completedBorrowDurations = returnedRequests.map((request) =>
+    daysBetween(borrowStartDate(request), returnEndDate(request))
+  );
 
-  const activeBorrowDurations = activeBorrows
-    .filter(
-      (request): request is { borrowedAt: Date } => request.borrowedAt !== null
-    )
-    .map((request) => daysBetween(request.borrowedAt, new Date()));
+  const activeBorrowDurations = activeBorrows.map((request) =>
+    daysBetween(borrowStartDate(request), new Date())
+  );
 
   const borrowUtilization =
     totalItems > 0 ? (currentlyBorrowed / totalItems) * 100 : 0;
@@ -149,6 +148,14 @@ export async function getPlatformAnalytics() {
           (completedTrades + currentlyBorrowed + approvedAwaitingPickup)) *
         100
       : 0;
+
+  const recentTrades = [...recentTradesRaw]
+    .sort((a, b) => {
+      const aDate = a.returnedAt ?? a.updatedAt;
+      const bDate = b.returnedAt ?? b.updatedAt;
+      return bDate.getTime() - aDate.getTime();
+    })
+    .slice(0, 5);
 
   return {
     overview: {
@@ -186,13 +193,13 @@ export async function getPlatformAnalytics() {
       })),
     },
     items: {
-      byCategory: itemCategoryCounts.map((entry) => ({
-        category: entry.category ?? "Uncategorized",
-        count: entry._count.id,
-      })),
+      byCategory: itemCategoryCounts
+        .map((entry) => ({
+          category: entry.category ?? "Uncategorized",
+          count: entry._count.id,
+        }))
+        .sort((a, b) => b.count - a.count),
     },
     recentTrades,
   };
 }
-
-export { formatDays };

@@ -44,23 +44,6 @@ export async function requireSuperAdmin({ userId }: { userId: string }) {
   return true;
 }
 
-export async function getAllAdmins() {
-  return prisma.user.findMany({
-    where: {
-      role: {
-        in: ["ADMIN", "SUPER_ADMIN"],
-      },
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      createdAt: true,
-    },
-    orderBy: { createdAt: "asc" },
-  });
-}
 
 export async function promoteToAdmin({ userId }: { userId: string }) {
   return prisma.user.update({
