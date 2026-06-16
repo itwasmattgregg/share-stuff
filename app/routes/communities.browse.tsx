@@ -37,8 +37,7 @@ export default function BrowseCommunitiesPage() {
           Discover Communities
         </h2>
         <p className="mt-1 text-sm sm:text-base text-neutral-600">
-          Find a community to join. All communities are private — you'll need
-          approval to see their members and items.
+          Find a community to join.
         </p>
       </div>
 
