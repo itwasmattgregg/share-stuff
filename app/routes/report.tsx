@@ -1,26 +1,20 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, Link, useActionData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
 import { createReport } from "~/models/report.server";
 import { requireUserId } from "~/session.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const userId = await requireUserId(request);
-  const url = new URL(request.url);
-  const type = url.searchParams.get("type"); // "user" or "community"
-  const id = url.searchParams.get("id");
-
-  return json({ type, id });
+  await requireUserId(request);
+  return null;
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
 
   const formData = await request.formData();
-  const reportType = formData.get("reportType");
-  const targetId = formData.get("targetId");
   const reason = formData.get("reason");
   const description = formData.get("description");
   const evidence = formData.get("evidence");
@@ -35,18 +29,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     errors.description = "Please provide a description";
   }
 
-  if (!reportType || !targetId) {
-    errors.description ??= "Invalid report target";
-  }
-
   if (Object.keys(errors).length > 0) {
     return json({ errors }, { status: 400 });
   }
 
-  // Save report to database
   await createReport({
-    reportType: reportType as "USER" | "COMMUNITY",
-    targetId: targetId as string,
     reason: reason as string,
     description: description as string,
     evidence: typeof evidence === "string" ? evidence : undefined,
@@ -57,7 +44,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function ReportPage() {
-  const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const reasonRef = useRef<HTMLSelectElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
@@ -115,9 +101,6 @@ export default function ReportPage() {
       </div>
 
       <Form method="post" className="space-y-6">
-        <input type="hidden" name="reportType" value={data.type || "user"} />
-        <input type="hidden" name="targetId" value={data.id || ""} />
-
         <div>
           <label
             htmlFor="reason"

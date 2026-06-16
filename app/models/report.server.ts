@@ -36,15 +36,15 @@ export async function getReportById({ id }: { id: string }) {
 }
 
 export async function createReport({
-  reportType,
-  targetId,
+  reportType = "GENERAL",
+  targetId = "unspecified",
   reason,
   description,
   evidence,
   reporterId,
 }: {
-  reportType: "USER" | "COMMUNITY";
-  targetId: string;
+  reportType?: string;
+  targetId?: string;
   reason: string;
   description: string;
   evidence?: string;
