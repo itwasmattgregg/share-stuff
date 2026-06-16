@@ -119,16 +119,32 @@ export default function CommunityManagePage() {
     <div className="max-w-4xl">
       <div className="mb-6">
         <h2 className="text-xl sm:text-2xl font-bold">Manage Community</h2>
-        <p className="mt-2 text-gray-600">
-          Manage "{data.community.name}" - approve members and view community
-          details.
-        </p>
         {data.community.isArchived && (
           <span className="mt-3 inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">
             Archived
           </span>
         )}
       </div>
+
+      {data.community.isArchived ? (
+        <div className="mb-8 rounded-lg border border-neutral-200 bg-white p-6">
+          <h3 className="text-lg font-semibold mb-2">Restore Community</h3>
+          <p className="text-sm text-neutral-600 mb-4">
+            This community is archived. Members can no longer browse items or share
+            invite links. Restore it to make the community active again.
+          </p>
+          <Form method="post">
+            <input type="hidden" name="intent" value="set-archived" />
+            <input type="hidden" name="isArchived" value="false" />
+            <button
+              type="submit"
+              className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600"
+            >
+              Restore Community
+            </button>
+          </Form>
+        </div>
+      ) : null}
 
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Community Info */}
@@ -331,55 +347,34 @@ export default function CommunityManagePage() {
         </div>
       </div>
 
-      <div className="mt-8 rounded-lg border border-neutral-200 bg-white p-6">
-        <h3 className="text-lg font-semibold mb-2">
-          {data.community.isArchived ? "Restore Community" : "Archive Community"}
-        </h3>
-        {data.community.isArchived ? (
-          <>
-            <p className="text-sm text-neutral-600 mb-4">
-              This community is archived. Members can no longer browse items or share
-              invite links. Restore it to make the community active again.
-            </p>
-            <Form method="post">
-              <input type="hidden" name="intent" value="set-archived" />
-              <input type="hidden" name="isArchived" value="false" />
-              <button
-                type="submit"
-                className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600"
-              >
-                Restore Community
-              </button>
-            </Form>
-          </>
-        ) : (
-          <>
-            <p className="text-sm text-neutral-600 mb-4">
-              Archiving hides this community from Discover, disables invite links, and
-              pauses community activity. You can restore it later.
-            </p>
-            <Form method="post">
-              <input type="hidden" name="intent" value="set-archived" />
-              <input type="hidden" name="isArchived" value="true" />
-              <button
-                type="submit"
-                className="rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
-                onClick={(event) => {
-                  if (
-                    !confirm(
-                      `Archive "${data.community.name}"? Members will lose access until you restore it.`
-                    )
-                  ) {
-                    event.preventDefault();
-                  }
-                }}
-              >
-                Archive Community
-              </button>
-            </Form>
-          </>
-        )}
-      </div>
+      {!data.community.isArchived ? (
+        <div className="mt-8 rounded-lg border border-neutral-200 bg-white p-6">
+          <h3 className="text-lg font-semibold mb-2">Archive Community</h3>
+          <p className="text-sm text-neutral-600 mb-4">
+            Archiving hides this community from Discover, disables invite links, and
+            pauses community activity. You can restore it later.
+          </p>
+          <Form method="post">
+            <input type="hidden" name="intent" value="set-archived" />
+            <input type="hidden" name="isArchived" value="true" />
+            <button
+              type="submit"
+              className="rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              onClick={(event) => {
+                if (
+                  !confirm(
+                    `Archive "${data.community.name}"? Members will lose access until you restore it.`
+                  )
+                ) {
+                  event.preventDefault();
+                }
+              }}
+            >
+              Archive Community
+            </button>
+          </Form>
+        </div>
+      ) : null}
 
       <div className="mt-8">
         <Link

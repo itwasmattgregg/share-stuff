@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Link, Outlet, useFetcher, useLoaderData } from "@remix-run/react";
+import { Link, Outlet, useFetcher, useLoaderData, useLocation } from "@remix-run/react";
 import { useEffect, useState } from "react";
 
 import { createCommunityInvite } from "~/models/community-invite.server";
@@ -66,8 +66,10 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
 export default function CommunityPage() {
   const data = useLoaderData<typeof loader>();
+  const location = useLocation();
   const shareFetcher = useFetcher<typeof action>();
   const [copied, setCopied] = useState(false);
+  const isManageRoute = /\/manage\/?$/.test(location.pathname);
 
   useEffect(() => {
     if (!copied) return;
@@ -97,6 +99,10 @@ export default function CommunityPage() {
   }
 
   if (data.community.isArchived) {
+    if (data.isOwner && isManageRoute) {
+      return <Outlet />;
+    }
+
     return (
       <div className="bg-white border border-neutral-200 rounded-lg p-12 text-center">
         <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">

@@ -17,7 +17,7 @@ describe("auth", () => {
     cy.visitAndCheck("/");
     cy.findByRole("link", { name: /get started/i }).click();
 
-    cy.findByRole("textbox", { name: /full name/i }).type(loginForm.name);
+    cy.findByRole("textbox", { name: /display name/i }).type(loginForm.name);
     cy.findByRole("textbox", { name: /email/i }).type(loginForm.email);
     cy.findByLabelText(/^password$/i).type(loginForm.password);
     cy.findByRole("button", { name: /create account/i }).click();

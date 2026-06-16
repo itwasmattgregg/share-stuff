@@ -106,7 +106,7 @@ export default function Join() {
               htmlFor="name"
               className="block text-sm font-medium text-gray-700"
             >
-              Full Name
+              Display Name
             </label>
             <div className="mt-1">
               <input
