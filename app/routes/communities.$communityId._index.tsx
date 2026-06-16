@@ -3,6 +3,7 @@ import { json } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 
 import { getCommunityItems } from "~/models/item.server";
+import CommunityItemRequestLink from "~/components/CommunityItemRequestLink";
 import ItemPhoto from "~/components/ItemPhoto";
 import { requireUserId } from "~/session.server";
 
@@ -180,18 +181,15 @@ export default function CommunityIndexPage() {
                 >
                   View Details
                 </Link>
-                {item.ownerId !== data.userId && (
-                  <Link
-                    to={`/communities/${data.communityId}/items/${item.id}/request`}
-                    className={`flex-1 rounded-lg px-3 py-2 text-center text-sm text-white font-medium hover:opacity-90 shadow-md transition-colors ${
-                      item.isAvailable
-                        ? "bg-green-500 hover:bg-green-600"
-                        : "bg-yellow-500 hover:bg-yellow-600"
-                    }`}
-                  >
-                    {item.isAvailable ? "Request" : "Join Queue"}
-                  </Link>
-                )}
+                <CommunityItemRequestLink
+                  itemId={item.id}
+                  communityId={data.communityId}
+                  ownerId={item.ownerId}
+                  userId={data.userId}
+                  isAvailable={item.isAvailable}
+                  lendingRequests={item.lendingRequests}
+                  className="flex-1 rounded-lg px-3 py-2 text-center text-sm font-medium shadow-md transition-colors min-h-[44px] flex items-center justify-center"
+                />
               </div>
             </div>
           ))}

@@ -4,6 +4,7 @@ import { Form, useActionData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 
 import { createCommunity } from "~/models/community.server";
+import ToggleSwitch from "~/components/ToggleSwitch";
 import { requireUserId } from "~/session.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -128,21 +129,13 @@ export default function NewCommunityPage() {
                 and items are always private until approved.
               </p>
             </div>
-            <button
+            <ToggleSwitch
+              checked={isListed}
+              label="List in Discover"
               type="button"
-              role="switch"
-              aria-checked={isListed}
+              className="mt-0.5"
               onClick={() => setIsListed(!isListed)}
-              className={`relative mt-0.5 flex-shrink-0 h-6 w-11 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                isListed ? "bg-primary-500" : "bg-neutral-300"
-              }`}
-            >
-              <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                  isListed ? "translate-x-5" : "translate-x-0.5"
-                }`}
-              />
-            </button>
+            />
           </div>
           <input type="hidden" name="isListed" value={String(isListed)} />
         </div>

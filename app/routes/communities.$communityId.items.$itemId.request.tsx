@@ -3,7 +3,11 @@ import { json, redirect } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 import { useRef } from "react";
 
-import { getItem, requestToBorrowItem } from "~/models/item.server";
+import {
+  getItem,
+  getActiveBorrowerRequestForUser,
+  requestToBorrowItem,
+} from "~/models/item.server";
 import { createNotification } from "~/models/notification.server";
 import ItemPhoto from "~/components/ItemPhoto";
 import { requireUserId } from "~/session.server";
@@ -26,15 +30,13 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     throw new Response("You cannot request your own item", { status: 400 });
   }
 
-  // Check if user already has a pending request (allow queue but not duplicate requests)
-  const existingRequest = item.lendingRequests.find(
-    (request) => request.requesterId === userId && request.status === "PENDING"
+  const existingRequest = getActiveBorrowerRequestForUser(
+    item.lendingRequests,
+    userId
   );
 
   if (existingRequest) {
-    throw new Response("You already have a pending request for this item", {
-      status: 400,
-    });
+    return redirect(`/communities/${params.communityId}/items`);
   }
 
   return json({ item, communityId: params.communityId });
@@ -61,11 +63,22 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     throw new Response("You cannot request your own item", { status: 400 });
   }
 
-  const lendingRequest = await requestToBorrowItem({
-    requesterId: userId,
-    itemId,
-    requestNote: typeof requestNote === "string" ? requestNote : undefined,
-  });
+  try {
+    await requestToBorrowItem({
+      requesterId: userId,
+      itemId,
+      requestNote: typeof requestNote === "string" ? requestNote : undefined,
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "You already have an active request for this item"
+    ) {
+      return redirect(`/communities/${params.communityId}/items`);
+    }
+
+    throw error;
+  }
 
   // Get item to notify owner
   if (item) {
@@ -78,7 +91,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     });
   }
 
-  return redirect(`/communities/${params.communityId}/items/${itemId}`);
+  return redirect(`/communities/${params.communityId}/items`);
 };
 
 export default function RequestBorrowPage() {

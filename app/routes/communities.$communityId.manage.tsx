@@ -10,6 +10,7 @@ import {
   setCommunityArchived,
   isUserOwnerOfCommunity,
 } from "~/models/community.server";
+import ToggleSwitch from "~/components/ToggleSwitch";
 import { createNotification } from "~/models/notification.server";
 import { requireUserId } from "~/session.server";
 import { prisma } from "~/db.server";
@@ -193,29 +194,31 @@ export default function CommunityManagePage() {
                     new members. Restore the community to change discovery settings.
                   </p>
                 ) : (
-                  <Form method="post" className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+                  <Form method="post" className="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
                     <input type="hidden" name="intent" value="update-listing" />
-                    <input type="hidden" name="isListed" value={String(!data.community.isListed)} />
-                    <div>
-                      <p className="text-sm font-medium text-neutral-900">
-                        {data.community.isListed ? "Listed in Discover" : "Unlisted"}
-                      </p>
-                      <p className="text-xs text-neutral-500 mt-0.5">
-                        {data.community.isListed
-                          ? "Anyone can find and request to join."
-                          : "Only people with a direct link can request to join."}
-                      </p>
+                    <input
+                      type="hidden"
+                      name="isListed"
+                      value={String(!data.community.isListed)}
+                    />
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-neutral-900">
+                          List in Discover
+                        </p>
+                        <p className="mt-0.5 text-sm text-neutral-500">
+                          {data.community.isListed
+                            ? "Anyone can find and request to join."
+                            : "Only people with a direct link can request to join."}
+                        </p>
+                      </div>
+                      <ToggleSwitch
+                        checked={data.community.isListed}
+                        label="List in Discover"
+                        type="submit"
+                        className="mt-0.5"
+                      />
                     </div>
-                    <button
-                      type="submit"
-                      className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                        data.community.isListed
-                          ? "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
-                          : "bg-primary-500 text-white hover:bg-primary-600"
-                      }`}
-                    >
-                      {data.community.isListed ? "Unlist" : "List It"}
-                    </button>
                   </Form>
                 )}
               </div>

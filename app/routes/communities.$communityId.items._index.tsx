@@ -4,6 +4,8 @@ import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react";
 
 import { isUserMemberOfCommunity } from "~/models/community.server";
 import { getCommunityItems } from "~/models/item.server";
+import CommunityItemRequestLink from "~/components/CommunityItemRequestLink";
+import ItemPhoto from "~/components/ItemPhoto";
 import { requireUserId } from "~/session.server";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
@@ -195,18 +197,14 @@ export default function CommunityItemsPage() {
                 >
                   View Details
                 </Link>
-                {item.ownerId !== data.userId && (
-                  <Link
-                    to={`/communities/${data.communityId}/items/${item.id}/request`}
-                    className={`flex-1 rounded-lg px-4 py-3 text-center text-base text-white font-medium hover:opacity-90 shadow-md transition-colors min-h-[44px] flex items-center justify-center ${
-                      item.isAvailable
-                        ? "bg-green-500 hover:bg-green-600"
-                        : "bg-yellow-500 hover:bg-yellow-600"
-                    }`}
-                  >
-                    {item.isAvailable ? "Request" : "Join Queue"}
-                  </Link>
-                )}
+                <CommunityItemRequestLink
+                  itemId={item.id}
+                  communityId={data.communityId}
+                  ownerId={item.ownerId}
+                  userId={data.userId}
+                  isAvailable={item.isAvailable}
+                  lendingRequests={item.lendingRequests}
+                />
               </div>
             </div>
           ))}

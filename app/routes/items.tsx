@@ -19,8 +19,10 @@ export default function ItemsPage() {
   const isIndexPage =
     location.pathname === "/items" || location.pathname === "/items/";
   const isNewPage = location.pathname === "/items/new";
-  const isItemChildRoute =
+  const isItemPage =
     location.pathname.startsWith("/items/") && !isNewPage;
+  const hasItems = data.items.length > 0;
+  const showDetailPanel = isNewPage || isItemPage || isIndexPage;
 
   return (
     <Layout>
@@ -33,15 +35,17 @@ export default function ItemsPage() {
         </div>
         <Link
           to="new"
-          className="rounded-lg bg-primary-500 px-6 py-3 text-base text-white font-medium hover:bg-primary-600 shadow-md transition-colors text-center min-h-[44px] flex items-center justify-center sm:inline-flex"
+          className={`rounded-lg px-6 py-3 text-base font-medium shadow-md transition-colors text-center min-h-[44px] flex items-center justify-center sm:inline-flex ${
+            isNewPage
+              ? "bg-primary-600 text-white"
+              : "bg-primary-500 text-white hover:bg-primary-600"
+          }`}
         >
           + Add Item
         </Link>
       </div>
 
-      {isNewPage ? (
-        <Outlet />
-      ) : isIndexPage && data.items.length === 0 ? (
+      {isIndexPage && !hasItems ? (
         <div className="bg-white border border-neutral-200 rounded-lg p-12 text-center">
           <p className="text-neutral-500 text-lg mb-2">No items yet.</p>
           <p className="text-neutral-400 text-sm mb-4">
@@ -56,14 +60,15 @@ export default function ItemsPage() {
         </div>
       ) : (
         <div className="flex gap-6">
-          {data.items.length > 0 && (
+          {hasItems && (
             <>
               <aside className="hidden lg:block w-64 flex-shrink-0">
                 <div className="bg-white border border-neutral-200 rounded-lg p-4">
                   <h2 className="text-sm font-semibold text-neutral-900 mb-3">Items</h2>
                   <nav className="space-y-1">
                     {data.items.map((item) => {
-                      const isActive = location.pathname.includes(`/items/${item.id}`);
+                      const isActive =
+                        !isNewPage && location.pathname.includes(`/items/${item.id}`);
                       return (
                         <Link
                           key={item.id}
@@ -93,7 +98,7 @@ export default function ItemsPage() {
                 </div>
               </aside>
 
-              {!isItemChildRoute && (
+              {isIndexPage && !isNewPage && (
                 <div className="lg:hidden grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 w-full">
                   {data.items.map((item) => (
                     <Link
@@ -146,8 +151,12 @@ export default function ItemsPage() {
             </>
           )}
 
-          {(isItemChildRoute || isIndexPage) && (
-            <div className={`flex-1 min-w-0 ${!isItemChildRoute ? "hidden lg:block" : ""}`}>
+          {showDetailPanel && (
+            <div
+              className={`flex-1 min-w-0 ${
+                isItemPage || isNewPage ? "" : "hidden lg:block"
+              }`}
+            >
               <Outlet />
             </div>
           )}
