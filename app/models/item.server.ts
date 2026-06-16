@@ -17,6 +17,45 @@ export {
 
 export type { Item, LendingRequest };
 
+function communityItemOwnerFilter(communityId: string) {
+  return {
+    owner: {
+      OR: [
+        {
+          ownedCommunities: {
+            some: { id: communityId },
+          },
+        },
+        {
+          communityMemberships: {
+            some: {
+              communityId,
+              status: "APPROVED",
+            },
+          },
+        },
+      ],
+    },
+  };
+}
+
+export async function isItemVisibleInCommunity({
+  itemId,
+  communityId,
+}: {
+  itemId: string;
+  communityId: string;
+}) {
+  const count = await prisma.item.count({
+    where: {
+      id: itemId,
+      ...communityItemOwnerFilter(communityId),
+    },
+  });
+
+  return count > 0;
+}
+
 export async function getItem({ id }: { id: string }) {
   return prisma.item.findUnique({
     where: { id },
@@ -44,27 +83,7 @@ export async function getCommunityItems({
   search?: string;
 }) {
   // Get all items from users who are members of this community
-  const whereClause: any = {
-    owner: {
-      OR: [
-        // Community owner
-        {
-          ownedCommunities: {
-            some: { id: communityId },
-          },
-        },
-        // Community members
-        {
-          communityMemberships: {
-            some: {
-              communityId,
-              status: "APPROVED",
-            },
-          },
-        },
-      ],
-    },
-  };
+  const whereClause: any = communityItemOwnerFilter(communityId);
 
       // Add search functionality if search term is provided
       if (search && search.trim()) {
@@ -278,7 +297,12 @@ export async function updateLendingRequestStatus({
 }) {
   const request = await prisma.lendingRequest.update({
     where: { id: requestId },
-    data: { status, responseNote },
+    data: {
+      status,
+      responseNote,
+      ...(status === "BORROWED" ? { borrowedAt: new Date() } : {}),
+      ...(status === "RETURNED" ? { returnedAt: new Date() } : {}),
+    },
   });
 
   // If approved, mark item as unavailable

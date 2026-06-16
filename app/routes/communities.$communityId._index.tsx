@@ -176,7 +176,7 @@ export default function CommunityIndexPage() {
 
               <div className="mt-4 flex flex-col sm:flex-row gap-2">
                 <Link
-                  to={`/items/${item.id}`}
+                  to={`/communities/${data.communityId}/items/${item.id}`}
                   className="flex flex-1 items-center justify-center whitespace-nowrap rounded-lg bg-primary-500 px-3 py-2 text-sm text-white font-medium hover:bg-primary-600 shadow-md transition-colors min-h-[44px]"
                 >
                   View Details

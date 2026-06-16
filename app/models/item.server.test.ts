@@ -10,6 +10,7 @@ const prismaMock = vi.hoisted(() => ({
   item: {
     findUnique: vi.fn(),
     update: vi.fn(),
+    count: vi.fn(),
   },
 }));
 
@@ -23,6 +24,7 @@ vi.mock("~/models/notification.server", () => ({
 
 import {
   getAllowedLendingRequestStatusesForUpdate,
+  isItemVisibleInCommunity,
   requestToBorrowItem,
   updateLendingRequestForItemOwner,
 } from "./item.server";
@@ -142,5 +144,43 @@ describe("updateLendingRequestForItemOwner", () => {
       where: { id: "request-1" },
       data: { status: "REJECTED", responseNote: undefined },
     });
+  });
+});
+
+describe("isItemVisibleInCommunity", () => {
+  beforeEach(() => {
+    prismaMock.item.count.mockReset();
+  });
+
+  it("returns true when the item belongs to a community member", async () => {
+    prismaMock.item.count.mockResolvedValue(1);
+
+    await expect(
+      isItemVisibleInCommunity({ itemId: "item-1", communityId: "community-1" })
+    ).resolves.toBe(true);
+
+    expect(prismaMock.item.count).toHaveBeenCalledWith({
+      where: {
+        id: "item-1",
+        owner: {
+          OR: [
+            { ownedCommunities: { some: { id: "community-1" } } },
+            {
+              communityMemberships: {
+                some: { communityId: "community-1", status: "APPROVED" },
+              },
+            },
+          ],
+        },
+      },
+    });
+  });
+
+  it("returns false when the item is outside the community", async () => {
+    prismaMock.item.count.mockResolvedValue(0);
+
+    await expect(
+      isItemVisibleInCommunity({ itemId: "item-1", communityId: "community-1" })
+    ).resolves.toBe(false);
   });
 });
