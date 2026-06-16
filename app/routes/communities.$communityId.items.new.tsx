@@ -97,7 +97,7 @@ export default function NewCommunityItemPage() {
       <div className="mb-4">
         <Link
           to={`/communities/${data.community.id}/items`}
-          className="text-blue-600 hover:text-blue-800 text-sm"
+          className="text-primary-600 hover:text-primary-800 text-sm"
         >
           ← Back to {data.community.name} Items
         </Link>
@@ -130,7 +130,7 @@ export default function NewCommunityItemPage() {
               }
             />
             {actionData?.errors?.name ? (
-              <div className="pt-1 text-red-700" id="name-error">
+              <div className="pt-1 text-danger-700" id="name-error">
                 {actionData.errors.name}
               </div>
             ) : null}
@@ -212,7 +212,7 @@ export default function NewCommunityItemPage() {
           </Link>
           <button
             type="submit"
-            className="w-full sm:w-auto rounded-md bg-green-500 px-6 py-3 text-base font-medium text-white hover:bg-green-600 min-h-[44px]"
+            className="w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px]"
           >
             Add Item
           </button>

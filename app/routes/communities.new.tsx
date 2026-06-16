@@ -75,7 +75,7 @@ export default function NewCommunityPage() {
               }
             />
             {actionData?.errors?.name ? (
-              <div className="pt-1 text-red-700" id="name-error">
+              <div className="pt-1 text-danger-700" id="name-error">
                 {actionData.errors.name}
               </div>
             ) : null}
@@ -150,7 +150,7 @@ export default function NewCommunityPage() {
           </button>
           <button
             type="submit"
-            className="w-full sm:w-auto rounded-md bg-blue-500 px-6 py-3 text-base font-medium text-white hover:bg-blue-600 min-h-[44px]"
+            className="w-full sm:w-auto rounded-md bg-primary-600 px-6 py-3 text-base font-medium text-white hover:bg-primary-700 min-h-[44px]"
           >
             Create Community
           </button>

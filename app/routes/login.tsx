@@ -125,7 +125,7 @@ export default function LoginPage() {
                 className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
               />
               {actionData?.errors?.email ? (
-                <div className="pt-1 text-red-700" id="email-error">
+                <div className="pt-1 text-danger-700" id="email-error">
                   {actionData.errors.email}
                   {actionData.unverifiedEmail ? (
                     <>
@@ -165,7 +165,7 @@ export default function LoginPage() {
                 className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
               />
               {actionData?.errors?.password ? (
-                <div className="pt-1 text-red-700" id="password-error">
+                <div className="pt-1 text-danger-700" id="password-error">
                   {actionData.errors.password}
                 </div>
               ) : null}
@@ -175,7 +175,7 @@ export default function LoginPage() {
           <input type="hidden" name="redirectTo" value={redirectTo} />
           <button
             type="submit"
-            className="w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+            className="w-full rounded bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 focus:bg-primary-500"
           >
             Log in
           </button>
@@ -185,7 +185,7 @@ export default function LoginPage() {
                 id="remember"
                 name="remember"
                 type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
               <label
                 htmlFor="remember"
@@ -195,7 +195,7 @@ export default function LoginPage() {
               </label>
             </div>
             <Link
-              className="text-sm text-blue-500 underline"
+              className="text-sm text-primary-600 underline"
               to={{
                 pathname: "/forgot-password",
                 search: searchParams.toString(),
@@ -207,7 +207,7 @@ export default function LoginPage() {
           <div className="text-center text-sm text-gray-500">
             Don't have an account?{" "}
             <Link
-              className="text-blue-500 underline"
+              className="text-primary-600 underline"
               to={{
                 pathname: "/join",
                 search: searchParams.toString(),

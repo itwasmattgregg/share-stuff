@@ -137,7 +137,7 @@ export default function ItemPhotoField({
                   setRemovePhoto(false);
                 }
               }}
-              className="rounded border-gray-300 text-red-600 shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50"
+              className="rounded border-gray-300 text-danger-600 shadow-sm focus:border-danger-300 focus:ring focus:ring-danger-200 focus:ring-opacity-50"
             />
             Remove current photo
           </label>
@@ -145,7 +145,7 @@ export default function ItemPhotoField({
       </div>
 
       {displayError ? (
-        <div className="pt-2 text-sm text-red-700">{displayError}</div>
+        <div className="pt-2 text-sm text-danger-700">{displayError}</div>
       ) : null}
     </div>
   );

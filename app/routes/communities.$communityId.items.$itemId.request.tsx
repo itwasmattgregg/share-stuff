@@ -107,8 +107,8 @@ export default function RequestBorrowPage() {
           {data.item.owner.name || data.item.owner.email}
         </p>
         {!data.item.isAvailable && (
-          <div className="mt-3 rounded-md bg-yellow-50 border border-yellow-200 p-3">
-            <p className="text-sm text-yellow-800">
+          <div className="mt-3 rounded-md bg-warning-50 border border-warning-200 p-3">
+            <p className="text-sm text-warning-800">
               <strong>Note:</strong> This item is currently borrowed, but you
               can still request it. You'll be added to the queue and notified
               when it becomes available.
@@ -180,18 +180,18 @@ export default function RequestBorrowPage() {
           </Link>
           <button
             type="submit"
-            className="w-full sm:w-auto rounded-md bg-green-500 px-6 py-3 text-base font-medium text-white hover:bg-green-600 min-h-[44px]"
+            className="w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px]"
           >
             Send Request
           </button>
         </div>
       </Form>
 
-      <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <h4 className="text-sm font-medium text-blue-800">
+      <div className="mt-8 rounded-lg border border-primary-200 bg-primary-50 p-4">
+        <h4 className="text-sm font-medium text-primary-800">
           What happens next?
         </h4>
-        <ul className="mt-2 text-sm text-blue-700 space-y-1">
+        <ul className="mt-2 text-sm text-primary-700 space-y-1">
           <li>• The item owner will receive your request</li>
           <li>• They can approve or decline your request</li>
           <li>• You'll be notified of their decision</li>

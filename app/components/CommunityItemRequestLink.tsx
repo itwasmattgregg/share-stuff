@@ -49,8 +49,8 @@ export default function CommunityItemRequestLink({
       to={`/communities/${communityId}/items/${itemId}/request`}
       className={`${className} text-white hover:opacity-90 ${
         isAvailable
-          ? "bg-green-500 hover:bg-green-600"
-          : "bg-yellow-500 hover:bg-yellow-600"
+          ? "bg-success-600 hover:bg-success-700"
+          : "bg-warning-500 hover:bg-warning-600"
       }`}
     >
       {isAvailable ? "Request" : "Join Queue"}

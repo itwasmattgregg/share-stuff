@@ -21,11 +21,11 @@ export default function GuidelinesPage() {
       <div className="prose prose-lg max-w-none">
         {/* Introduction */}
         <section className="mb-12">
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mb-8">
-            <h2 className="text-2xl font-semibold text-blue-900 mb-3">
+          <div className="bg-primary-50 border-l-4 border-primary-400 p-6 mb-8">
+            <h2 className="text-2xl font-semibold text-primary-900 mb-3">
               Our Vision
             </h2>
-            <p className="text-blue-800">
+            <p className="text-primary-800">
               Share Stuff is built on the principle that we can create stronger,
               more connected communities by sharing what we have with our
               neighbors. This platform is designed to combat the isolation and
@@ -42,44 +42,44 @@ export default function GuidelinesPage() {
           </h2>
 
           <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-green-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-green-900 mb-3">
+            <div className="bg-success-50 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold text-success-900 mb-3">
                 🤝 Mutual Aid & Trust
               </h3>
-              <p className="text-green-800">
+              <p className="text-success-800">
                 We believe in helping each other without expectation of profit.
                 Share what you can, borrow what you need, and build trust
                 through consistent, respectful interactions.
               </p>
             </div>
 
-            <div className="bg-purple-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-purple-900 mb-3">
+            <div className="bg-secondary-50 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold text-secondary-900 mb-3">
                 🏘️ Community Self-Governance
               </h3>
-              <p className="text-purple-800">
+              <p className="text-secondary-800">
                 Each community sets its own rules and manages its own
                 membership. Community creators have the right to approve or
                 remove members based on their community's values and needs.
               </p>
             </div>
 
-            <div className="bg-orange-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-orange-900 mb-3">
+            <div className="bg-warning-50 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold text-warning-900 mb-3">
                 🚫 No Commercial Activity
               </h3>
-              <p className="text-orange-800">
+              <p className="text-warning-800">
                 This platform is for sharing, not selling. No buying, selling,
                 or commercial transactions. There are plenty of other platforms
                 for that—this is about building community, not profit.
               </p>
             </div>
 
-            <div className="bg-red-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-red-900 mb-3">
+            <div className="bg-danger-50 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold text-danger-900 mb-3">
                 ❤️ Respect & Kindness
               </h3>
-              <p className="text-red-800">
+              <p className="text-danger-800">
                 Harassment, discrimination, or unkind behavior will not be
                 tolerated. We are building a space where everyone feels safe and
                 respected.
@@ -163,11 +163,11 @@ export default function GuidelinesPage() {
             Prohibited Activities
           </h2>
 
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold text-red-900 mb-4">
+          <div className="bg-danger-50 border border-danger-200 rounded-lg p-6">
+            <h3 className="text-xl font-semibold text-danger-900 mb-4">
               The following activities are strictly prohibited:
             </h3>
-            <ul className="list-disc list-inside space-y-2 text-red-800">
+            <ul className="list-disc list-inside space-y-2 text-danger-800">
               <li>
                 <strong>Commercial Activity:</strong> No buying, selling, or
                 renting items
@@ -237,11 +237,11 @@ export default function GuidelinesPage() {
             Enforcement & Reporting
           </h2>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold text-yellow-900 mb-4">
+          <div className="bg-warning-50 border border-warning-200 rounded-lg p-6">
+            <h3 className="text-xl font-semibold text-warning-900 mb-4">
               How We Handle Violations
             </h3>
-            <div className="space-y-4 text-yellow-800">
+            <div className="space-y-4 text-warning-800">
               <p>
                 <strong>Community-Level Enforcement:</strong> Community creators
                 have the right to remove members who violate their community's
@@ -265,11 +265,11 @@ export default function GuidelinesPage() {
 
         {/* Call to Action */}
         {/* <section className="mb-12">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
-            <h2 className="text-2xl font-bold text-green-900 mb-4">
+          <div className="bg-success-50 border border-success-200 rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-bold text-success-900 mb-4">
               Join the Movement
             </h2>
-            <p className="text-green-800 mb-6">
+            <p className="text-success-800 mb-6">
               Together, we can build communities based on trust, cooperation,
               and mutual aid. Every item shared, every act of kindness, every
               connection made brings us closer to a world where we take care of
@@ -278,13 +278,13 @@ export default function GuidelinesPage() {
             <div className="space-x-4">
               <Link
                 to="/communities"
-                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700"
+                className="inline-block bg-success-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-success-800"
               >
                 Browse Communities
               </Link>
               <Link
                 to="/communities/new"
-                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700"
+                className="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700"
               >
                 Create Community
               </Link>

@@ -80,11 +80,11 @@ export default function ReportPage() {
         </p>
       </div>
 
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
-        <h2 className="text-lg font-semibold text-yellow-900 mb-2">
+      <div className="bg-warning-50 border border-warning-200 rounded-lg p-6 mb-8">
+        <h2 className="text-lg font-semibold text-warning-900 mb-2">
           Before You Report
         </h2>
-        <ul className="text-yellow-800 space-y-1">
+        <ul className="text-warning-800 space-y-1">
           <li>
             • Make sure the behavior violates our{" "}
             <Link to="/guidelines" className="underline">
@@ -124,7 +124,7 @@ export default function ReportPage() {
             ))}
           </select>
           {actionData?.errors?.reason && (
-            <div className="pt-1 text-red-700">{actionData.errors.reason}</div>
+            <div className="pt-1 text-danger-700">{actionData.errors.reason}</div>
           )}
         </div>
 
@@ -146,7 +146,7 @@ export default function ReportPage() {
             aria-invalid={actionData?.errors?.description ? true : undefined}
           />
           {actionData?.errors?.description && (
-            <div className="pt-1 text-red-700">
+            <div className="pt-1 text-danger-700">
               {actionData.errors.description}
             </div>
           )}
@@ -172,11 +172,11 @@ export default function ReportPage() {
           </p>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-900 mb-2">
+        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-primary-900 mb-2">
             What happens next?
           </h3>
-          <ul className="text-sm text-blue-800 space-y-1">
+          <ul className="text-sm text-primary-800 space-y-1">
             <li>• Your report will be reviewed by platform administrators</li>
             <li>• We may contact you for additional information</li>
             <li>• Appropriate action will be taken based on our guidelines</li>
@@ -195,7 +195,7 @@ export default function ReportPage() {
           </Link>
           <button
             type="submit"
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            className="rounded-md bg-danger-600 px-4 py-2 text-sm font-medium text-white hover:bg-danger-700"
           >
             Submit Report
           </button>

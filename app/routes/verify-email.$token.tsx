@@ -66,7 +66,7 @@ export default function VerifyEmailTokenPage() {
           </p>
           <Link
             to="/verify-email"
-            className="mt-6 inline-block text-blue-500 underline"
+            className="mt-6 inline-block text-primary-600 underline"
           >
             Request a new verification link
           </Link>

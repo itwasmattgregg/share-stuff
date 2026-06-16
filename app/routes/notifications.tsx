@@ -129,7 +129,7 @@ export default function NotificationsPage() {
                     />
                     <button
                       type="submit"
-                      className="text-xs text-red-600 hover:text-red-700"
+                      className="text-xs text-danger-600 hover:text-danger-700"
                     >
                       Delete
                     </button>

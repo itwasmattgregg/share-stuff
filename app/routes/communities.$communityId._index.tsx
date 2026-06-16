@@ -120,7 +120,7 @@ export default function CommunityIndexPage() {
                       {item.lendingRequests.filter(
                         (r) => r.status === "PENDING"
                       ).length > 0 && (
-                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-yellow-800">
+                        <span className="inline-flex items-center rounded-full bg-warning-100 px-2 py-1 text-warning-800">
                           {
                             item.lendingRequests.filter(
                               (r) => r.status === "PENDING"
@@ -132,7 +132,7 @@ export default function CommunityIndexPage() {
                       {item.lendingRequests.filter(
                         (r) => r.status === "APPROVED"
                       ).length > 0 && (
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-green-800">
+                        <span className="inline-flex items-center rounded-full bg-success-100 px-2 py-1 text-success-800">
                           {
                             item.lendingRequests.filter(
                               (r) => r.status === "APPROVED"
@@ -148,8 +148,8 @@ export default function CommunityIndexPage() {
                   <span
                     className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                       item.isAvailable
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
+                        ? "bg-success-100 text-success-800"
+                        : "bg-danger-100 text-danger-800"
                     }`}
                   >
                     {item.isAvailable ? "Available" : "Borrowed"}

@@ -154,8 +154,8 @@ export default function ItemDetailPage() {
               <span
                 className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                   data.item.isAvailable
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
+                    ? "bg-success-100 text-success-800"
+                    : "bg-danger-100 text-danger-800"
                 }`}
               >
                 {data.item.isAvailable ? "Available" : "Borrowed"}
@@ -173,22 +173,22 @@ export default function ItemDetailPage() {
             ) : (
               <div className="space-y-4">
                 {borrowedRequest && (
-                  <div className="rounded-md border border-blue-200 bg-blue-50 p-4">
+                  <div className="rounded-md border border-primary-200 bg-primary-50 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium text-blue-900">
+                        <p className="text-sm font-medium text-primary-900">
                           Currently borrowed by{" "}
                           {borrowedRequest.requester.name ||
                             borrowedRequest.requester.email}
                         </p>
-                        <p className="text-xs text-blue-700">
+                        <p className="text-xs text-primary-700">
                           Since{" "}
                           {formatLendingRequestDateTime(
                             borrowedRequest.createdAt
                           )}
                         </p>
                         {borrowedRequest.requestNote && (
-                          <p className="mt-2 text-sm text-blue-800">
+                          <p className="mt-2 text-sm text-primary-800">
                             {borrowedRequest.requestNote}
                           </p>
                         )}
@@ -202,7 +202,7 @@ export default function ItemDetailPage() {
                         <input type="hidden" name="status" value="RETURNED" />
                         <button
                           type="submit"
-                          className="rounded-md bg-green-500 px-3 py-2 text-sm text-white hover:bg-green-600"
+                          className="rounded-md bg-success-500 px-3 py-2 text-sm text-white hover:bg-success-700"
                           onClick={(event) => {
                             if (
                               !confirm(
@@ -232,7 +232,7 @@ export default function ItemDetailPage() {
                       {pendingRequests.map((request) => (
                         <div
                           key={request.id}
-                          className="rounded-md border border-yellow-200 bg-yellow-50 p-3"
+                          className="rounded-md border border-warning-200 bg-warning-50 p-3"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div>
@@ -264,7 +264,7 @@ export default function ItemDetailPage() {
                               />
                               <button
                                 type="submit"
-                                className="rounded-md bg-red-500 px-3 py-2 text-sm text-white hover:bg-red-600"
+                                className="rounded-md bg-danger-500 px-3 py-2 text-sm text-white hover:bg-danger-700"
                                 onClick={(event) => {
                                   if (
                                     !confirm(
@@ -308,7 +308,7 @@ export default function ItemDetailPage() {
                           <span
                             className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                               request.status === "APPROVED"
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-success-100 text-success-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >

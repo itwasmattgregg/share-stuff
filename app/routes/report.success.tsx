@@ -4,9 +4,9 @@ export default function ReportSuccessPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 text-center">
       <div className="mb-8">
-        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-success-100 mb-4">
           <svg
-            className="h-6 w-6 text-green-600"
+            className="h-6 w-6 text-success-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -27,11 +27,11 @@ export default function ReportSuccessPage() {
         </p>
       </div>
 
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
-        <h2 className="text-lg font-semibold text-green-900 mb-3">
+      <div className="bg-success-50 border border-success-200 rounded-lg p-6 mb-8">
+        <h2 className="text-lg font-semibold text-success-900 mb-3">
           What happens next?
         </h2>
-        <ul className="text-green-800 space-y-2 text-left">
+        <ul className="text-success-800 space-y-2 text-left">
           <li>
             • Your report has been received and will be reviewed by our team
           </li>
@@ -47,14 +47,14 @@ export default function ReportSuccessPage() {
         </ul>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-        <h2 className="text-lg font-semibold text-blue-900 mb-3">
+      <div className="bg-primary-50 border border-primary-200 rounded-lg p-6 mb-8">
+        <h2 className="text-lg font-semibold text-primary-900 mb-3">
           Need immediate help?
         </h2>
-        <p className="text-blue-800 mb-4">
+        <p className="text-primary-800 mb-4">
           If you're experiencing harassment or feel unsafe, you can:
         </p>
-        <ul className="text-blue-800 space-y-2 text-left">
+        <ul className="text-primary-800 space-y-2 text-left">
           <li>• Block the user who is causing issues</li>
           <li>• Leave the community if the issue is community-specific</li>
           <li>• Contact the community creator directly</li>
@@ -65,14 +65,14 @@ export default function ReportSuccessPage() {
       <div className="space-y-4">
         <Link
           to="/communities"
-          className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700"
+          className="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700"
         >
           Return to Communities
         </Link>
         <div>
           <Link
             to="/guidelines"
-            className="text-blue-600 hover:text-blue-800 underline"
+            className="text-primary-600 hover:text-primary-800 underline"
           >
             Review Community Guidelines
           </Link>

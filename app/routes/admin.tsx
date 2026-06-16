@@ -41,7 +41,7 @@ export default function AdminDashboardPage() {
           </p>
           <Link
             to="/admin/reports"
-            className="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="inline-block bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700"
           >
             Manage Reports
           </Link>
@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
           </p>
           <Link
             to="/admin/users"
-            className="inline-block bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            className="inline-block bg-success-600 text-white px-4 py-2 rounded hover:bg-success-700"
           >
             Manage Users
           </Link>
@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
           </p>
           <Link
             to="/admin/communities"
-            className="inline-block bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+            className="inline-block bg-secondary-500 text-white px-4 py-2 rounded hover:bg-secondary-700"
           >
             Manage Communities
           </Link>
@@ -89,7 +89,7 @@ export default function AdminDashboardPage() {
           </p>
           <Link
             to="/admin/stats"
-            className="inline-block bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+            className="inline-block bg-warning-500 text-white px-4 py-2 rounded hover:bg-warning-700"
           >
             View Statistics
           </Link>
@@ -105,7 +105,7 @@ export default function AdminDashboardPage() {
           </p>
           <Link
             to="/admin/admins"
-            className="inline-block bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            className="inline-block bg-danger-600 text-white px-4 py-2 rounded hover:bg-danger-700"
           >
             Manage Admins
           </Link>
@@ -164,8 +164,8 @@ export default function AdminDashboardPage() {
                     <span
                       className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                         admin.role === "SUPER_ADMIN"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-blue-100 text-blue-800"
+                          ? "bg-danger-100 text-danger-800"
+                          : "bg-primary-100 text-primary-800"
                       }`}
                     >
                       {admin.role}

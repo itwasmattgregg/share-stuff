@@ -103,7 +103,7 @@ export default function ResetPasswordPage() {
           </p>
           <Link
             to="/forgot-password"
-            className="mt-6 inline-block text-blue-500 underline"
+            className="mt-6 inline-block text-primary-600 underline"
           >
             Request a new reset link
           </Link>
@@ -130,7 +130,7 @@ export default function ResetPasswordPage() {
 
         <Form method="post" className="space-y-6">
           {actionData?.errors?.form ? (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-md bg-danger-50 p-3 text-sm text-danger-700">
               {actionData.errors.form}
             </div>
           ) : null}
@@ -173,7 +173,7 @@ export default function ResetPasswordPage() {
               className="mt-1 w-full rounded border border-gray-500 px-2 py-1 text-lg"
             />
             {actionData?.errors?.confirmPassword ? (
-              <div className="pt-1 text-red-700">
+              <div className="pt-1 text-danger-700">
                 {actionData.errors.confirmPassword}
               </div>
             ) : null}
@@ -181,7 +181,7 @@ export default function ResetPasswordPage() {
 
           <button
             type="submit"
-            className="w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+            className="w-full rounded bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 focus:bg-primary-500"
           >
             Update password
           </button>

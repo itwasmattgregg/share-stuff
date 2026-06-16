@@ -84,8 +84,8 @@ export default function ItemsPage() {
                             <span
                               className={`ml-2 inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium flex-shrink-0 ${
                                 item.isAvailable
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
+                                  ? "bg-success-100 text-success-800"
+                                  : "bg-danger-100 text-danger-800"
                               }`}
                             >
                               {item.isAvailable ? "Available" : "Borrowed"}
@@ -120,8 +120,8 @@ export default function ItemsPage() {
                         <span
                           className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                             item.isAvailable
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
+                              ? "bg-success-100 text-success-800"
+                              : "bg-danger-100 text-danger-800"
                           }`}
                         >
                           {item.isAvailable ? "Available" : "Borrowed"}

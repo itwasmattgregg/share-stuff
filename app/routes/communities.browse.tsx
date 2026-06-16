@@ -72,12 +72,12 @@ export default function BrowseCommunitiesPage() {
                     {community.name}
                   </h3>
                   {(isMember || isOwner) && (
-                    <span className="flex-shrink-0 inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                    <span className="flex-shrink-0 inline-flex rounded-full bg-success-100 px-2 py-1 text-xs font-medium text-success-800">
                       Member
                     </span>
                   )}
                   {isPending && (
-                    <span className="flex-shrink-0 inline-flex rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+                    <span className="flex-shrink-0 inline-flex rounded-full bg-warning-100 px-2 py-1 text-xs font-medium text-warning-800">
                       Pending
                     </span>
                   )}

@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {actionData?.submitted ? (
-          <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+          <div className="rounded-lg border border-success-200 bg-success-50 p-4 text-sm text-success-800">
             If an account exists for that email, a password reset link has been
             sent. Check your inbox.
           </div>
@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
                   className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
                 />
                 {actionData?.errors?.email ? (
-                  <div className="pt-1 text-red-700">
+                  <div className="pt-1 text-danger-700">
                     {actionData.errors.email}
                   </div>
                 ) : null}
@@ -105,7 +105,7 @@ export default function ForgotPasswordPage() {
 
             <button
               type="submit"
-              className="w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+              className="w-full rounded bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 focus:bg-primary-500"
             >
               Send reset link
             </button>
@@ -114,7 +114,7 @@ export default function ForgotPasswordPage() {
 
         <p className="mt-6 text-center text-sm text-gray-500">
           <Link
-            className="text-blue-500 underline"
+            className="text-primary-600 underline"
             to={{
               pathname: "/login",
               search: searchParams.toString(),

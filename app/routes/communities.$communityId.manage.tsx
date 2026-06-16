@@ -240,7 +240,7 @@ export default function CommunityManagePage() {
               {data.pendingMemberships.map((membership) => (
                 <div
                   key={membership.id}
-                  className="rounded-lg border border-yellow-200 bg-yellow-50 p-4"
+                  className="rounded-lg border border-warning-200 bg-warning-50 p-4"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -262,7 +262,7 @@ export default function CommunityManagePage() {
                         <input type="hidden" name="status" value="APPROVED" />
                         <button
                           type="submit"
-                          className="rounded-md bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600"
+                          className="rounded-md bg-success-500 px-3 py-1 text-sm text-white hover:bg-success-700"
                         >
                           Approve
                         </button>
@@ -276,7 +276,7 @@ export default function CommunityManagePage() {
                         <input type="hidden" name="status" value="REJECTED" />
                         <button
                           type="submit"
-                          className="rounded-md bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
+                          className="rounded-md bg-danger-500 px-3 py-1 text-sm text-white hover:bg-danger-700"
                           onClick={(e) => {
                             if (
                               !confirm(
@@ -330,10 +330,10 @@ export default function CommunityManagePage() {
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                           membership.status === "APPROVED"
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-success-100 text-success-800"
                             : membership.status === "PENDING"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
+                            ? "bg-warning-100 text-warning-800"
+                            : "bg-danger-100 text-danger-800"
                         }`}
                       >
                         {membership.status}

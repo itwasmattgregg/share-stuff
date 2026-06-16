@@ -114,7 +114,7 @@ export default function ItemRequestsPage() {
             {pendingRequests.map((request) => (
               <div
                 key={request.id}
-                className="rounded-lg border border-yellow-200 bg-yellow-50 p-6"
+                className="rounded-lg border border-warning-200 bg-warning-50 p-6"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -141,7 +141,7 @@ export default function ItemRequestsPage() {
                       <input type="hidden" name="status" value="APPROVED" />
                       <button
                         type="submit"
-                        className="rounded-md bg-green-500 px-4 py-2 text-sm text-white hover:bg-green-600"
+                        className="rounded-md bg-success-500 px-4 py-2 text-sm text-white hover:bg-success-700"
                       >
                         Approve
                       </button>
@@ -155,7 +155,7 @@ export default function ItemRequestsPage() {
                       <input type="hidden" name="status" value="REJECTED" />
                       <button
                         type="submit"
-                        className="rounded-md bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600"
+                        className="rounded-md bg-danger-500 px-4 py-2 text-sm text-white hover:bg-danger-700"
                         onClick={(e) => {
                           if (
                             !confirm(
@@ -185,7 +185,7 @@ export default function ItemRequestsPage() {
             {borrowedRequests.map((request) => (
               <div
                 key={request.id}
-                className="rounded-lg border border-blue-200 bg-blue-50 p-6"
+                className="rounded-lg border border-primary-200 bg-primary-50 p-6"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -212,7 +212,7 @@ export default function ItemRequestsPage() {
                       <input type="hidden" name="status" value="RETURNED" />
                       <button
                         type="submit"
-                        className="rounded-md bg-green-500 px-4 py-2 text-sm text-white hover:bg-green-600"
+                        className="rounded-md bg-success-500 px-4 py-2 text-sm text-white hover:bg-success-700"
                         onClick={(e) => {
                           if (!confirm("Mark this item as returned?")) {
                             e.preventDefault();
@@ -240,7 +240,7 @@ export default function ItemRequestsPage() {
             {approvedRequests.map((request) => (
               <div
                 key={request.id}
-                className="rounded-lg border border-green-200 bg-green-50 p-6"
+                className="rounded-lg border border-success-200 bg-success-50 p-6"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -267,7 +267,7 @@ export default function ItemRequestsPage() {
                       <input type="hidden" name="status" value="BORROWED" />
                       <button
                         type="submit"
-                        className="rounded-md bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600"
+                        className="rounded-md bg-primary-600 px-4 py-2 text-sm text-white hover:bg-primary-700"
                       >
                         Mark as Borrowed
                       </button>
@@ -313,8 +313,8 @@ export default function ItemRequestsPage() {
                   <span
                     className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                       request.status === "RETURNED"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
+                        ? "bg-success-100 text-success-800"
+                        : "bg-danger-100 text-danger-800"
                     }`}
                   >
                     {request.status}

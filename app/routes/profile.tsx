@@ -205,12 +205,12 @@ export default function ProfilePage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Password</h2>
           {passwordUpdated && (
-            <div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">
+            <div className="mb-4 rounded-md bg-success-50 p-3 text-sm text-success-800">
               Your password has been updated.
             </div>
           )}
           {actionData && "passwordError" in actionData && actionData.passwordError ? (
-            <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+            <div className="mb-4 rounded-md bg-danger-50 p-3 text-sm text-danger-700">
               {actionData.passwordError}
             </div>
           ) : null}
@@ -285,7 +285,7 @@ export default function ProfilePage() {
           {data.communities.length === 0 ? (
             <p className="text-gray-500">
               You haven't joined any communities yet.{" "}
-              <Link to="/communities/new" className="text-blue-600 hover:text-blue-800">
+              <Link to="/communities/new" className="text-primary-600 hover:text-primary-800">
                 Create a community
               </Link>{" "}
               to get started.
@@ -325,7 +325,7 @@ export default function ProfilePage() {
               {data.pendingMemberships.map((membership) => (
                 <div
                   key={membership.id}
-                  className="flex items-center justify-between rounded-lg border border-yellow-200 bg-yellow-50 p-4"
+                  className="flex items-center justify-between rounded-lg border border-warning-200 bg-warning-50 p-4"
                 >
                   <div>
                     <h3 className="font-semibold text-gray-900">
@@ -340,7 +340,7 @@ export default function ProfilePage() {
                       Requested on {new Date(membership.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
+                  <span className="inline-flex rounded-full bg-warning-100 px-3 py-1 text-xs font-medium text-warning-800">
                     Pending Approval
                   </span>
                 </div>
@@ -357,7 +357,7 @@ export default function ProfilePage() {
           {data.items.length === 0 ? (
             <p className="text-gray-500">
               You haven't added any items yet.{" "}
-              <Link to="/items/new" className="text-blue-600 hover:text-blue-800">
+              <Link to="/items/new" className="text-primary-600 hover:text-primary-800">
                 Add your first item
               </Link>
               .
@@ -378,15 +378,15 @@ export default function ProfilePage() {
                   )}
                   <div className="mt-2 flex gap-2">
                     {item.category && (
-                      <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                      <span className="inline-flex rounded-full bg-primary-100 px-2 py-1 text-xs text-primary-800">
                         {item.category}
                       </span>
                     )}
                     <span
                       className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                         item.isAvailable
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
+                          ? "bg-success-100 text-success-800"
+                          : "bg-danger-100 text-danger-800"
                       }`}
                     >
                       {item.isAvailable ? "Available" : "Borrowed"}
@@ -400,7 +400,7 @@ export default function ProfilePage() {
             <div className="mt-4">
               <Link
                 to="/items"
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                className="text-primary-600 hover:text-primary-800 text-sm font-medium"
               >
                 View all {data.items.length} items →
               </Link>
@@ -409,8 +409,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Account Deletion */}
-        <div className="bg-white border border-red-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-red-800 mb-4">
+        <div className="bg-white border border-danger-200 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-danger-800 mb-4">
             Danger Zone
           </h2>
           {!showDeleteConfirm ? (
@@ -422,7 +422,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                className="rounded-md bg-danger-600 px-4 py-2 text-sm font-medium text-white hover:bg-danger-700"
               >
                 Delete My Account
               </button>
@@ -443,7 +443,7 @@ export default function ProfilePage() {
                   id="confirmEmail"
                   name="confirmEmail"
                   required
-                  className="w-full rounded-md border border-red-300 px-3 py-2"
+                  className="w-full rounded-md border border-danger-300 px-3 py-2"
                   placeholder="Enter your email to confirm"
                 />
               </div>
@@ -457,7 +457,7 @@ export default function ProfilePage() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                  className="rounded-md bg-danger-600 px-4 py-2 text-sm font-medium text-white hover:bg-danger-700"
                 >
                   Permanently Delete Account
                 </button>

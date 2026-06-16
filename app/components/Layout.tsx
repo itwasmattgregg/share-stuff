@@ -1,5 +1,6 @@
 import { Link, Form, useLocation } from "@remix-run/react";
 import { useState } from "react";
+import ShareStuffLogo from "~/components/ShareStuffLogo";
 import UserMenu from "~/components/UserMenu";
 import { useOptionalUser, useMatchesData } from "~/utils";
 
@@ -40,11 +41,10 @@ export default function Layout({
             <div className="flex flex-shrink-0 items-center">
               <Link
                 to="/communities"
-                className="flex items-center space-x-3 text-primary-600 hover:text-primary-700"
+                className="text-primary-600 hover:text-primary-700"
+                aria-label="ShareStuff home"
               >
-                <span className="bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-xl font-bold text-transparent sm:text-2xl">
-                  ShareStuff
-                </span>
+                <ShareStuffLogo />
               </Link>
             </div>
 
@@ -216,7 +216,7 @@ export default function Layout({
                     <Form action="/logout" method="post">
                       <button
                         type="submit"
-                        className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-red-600 hover:bg-red-50"
+                        className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-danger-600 hover:bg-danger-50"
                       >
                         Logout
                       </button>

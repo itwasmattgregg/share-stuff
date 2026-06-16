@@ -67,7 +67,7 @@ export default function UserMenu({
             <Form action="/logout" method="post">
               <button
                 type="submit"
-                className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                className="block w-full px-4 py-2 text-left text-sm text-danger-600 hover:bg-danger-50"
               >
                 Logout
               </button>

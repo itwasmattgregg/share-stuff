@@ -65,7 +65,7 @@ export default function AdminUsersPage() {
       <div className="mb-8">
         <Link
           to="/admin"
-          className="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-block"
+          className="text-primary-600 hover:text-primary-800 text-sm mb-4 inline-block"
         >
           ← Back to Admin Dashboard
         </Link>
@@ -111,9 +111,9 @@ export default function AdminUsersPage() {
                   <span
                     className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                       user.role === "SUPER_ADMIN"
-                        ? "bg-red-100 text-red-800"
+                        ? "bg-danger-100 text-danger-800"
                         : user.role === "ADMIN"
-                        ? "bg-blue-100 text-blue-800"
+                        ? "bg-primary-100 text-primary-800"
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
@@ -137,7 +137,7 @@ export default function AdminUsersPage() {
                       <input type="hidden" name="action" value="promote" />
                       <button
                         type="submit"
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-primary-600 hover:text-primary-900"
                       >
                         Promote to Admin
                       </button>
@@ -148,7 +148,7 @@ export default function AdminUsersPage() {
                       <input type="hidden" name="action" value="demote" />
                       <button
                         type="submit"
-                        className="text-red-600 hover:text-red-900"
+                        className="text-danger-600 hover:text-danger-900"
                       >
                         Demote to User
                       </button>

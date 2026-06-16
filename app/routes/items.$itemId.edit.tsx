@@ -157,7 +157,7 @@ export default function EditItemPage() {
               }
             />
             {actionData?.errors?.name ? (
-              <div className="pt-1 text-red-700" id="name-error">
+              <div className="pt-1 text-danger-700" id="name-error">
                 {actionData.errors.name}
               </div>
             ) : null}
@@ -253,7 +253,7 @@ export default function EditItemPage() {
               name="isAvailable"
               value="true"
               defaultChecked={item.isAvailable}
-              className="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
+              className="rounded border-gray-300 text-success-600 shadow-sm focus:border-success-300 focus:ring focus:ring-success-200 focus:ring-opacity-50"
             />
             <span className="ml-2 text-sm text-gray-700">
               Item is available for lending
@@ -270,7 +270,7 @@ export default function EditItemPage() {
           </Link>
           <button
             type="submit"
-            className="w-full sm:w-auto rounded-md bg-green-500 px-6 py-3 text-base font-medium text-white hover:bg-green-600 min-h-[44px]"
+            className="w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px]"
           >
             Update Item
           </button>

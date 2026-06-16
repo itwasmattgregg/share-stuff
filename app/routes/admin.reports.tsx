@@ -45,11 +45,11 @@ export default function AdminReportsPage() {
         <span
           className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
             report.status === "PENDING"
-              ? "bg-yellow-100 text-yellow-800"
+              ? "bg-warning-100 text-warning-800"
               : report.status === "UNDER_REVIEW"
-              ? "bg-blue-100 text-blue-800"
+              ? "bg-primary-100 text-primary-800"
               : report.status === "RESOLVED"
-              ? "bg-green-100 text-green-800"
+              ? "bg-success-100 text-success-800"
               : "bg-gray-100 text-gray-800"
           }`}
         >
@@ -78,10 +78,10 @@ export default function AdminReportsPage() {
 
       <div className="mt-4 pt-4 border-t border-gray-200">
         <div className="flex space-x-2">
-          <button className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+          <button className="text-xs bg-primary-600 text-white px-3 py-1 rounded hover:bg-primary-700">
             Mark Under Review
           </button>
-          <button className="text-xs bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
+          <button className="text-xs bg-success-500 text-white px-3 py-1 rounded hover:bg-success-700">
             Resolve
           </button>
           <button className="text-xs bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600">

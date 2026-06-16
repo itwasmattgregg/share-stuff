@@ -65,7 +65,7 @@ export default function AdminAdminsPage() {
       <div className="mb-8">
         <Link
           to="/admin"
-          className="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-block"
+          className="text-primary-600 hover:text-primary-800 text-sm mb-4 inline-block"
         >
           ← Back to Admin Dashboard
         </Link>
@@ -117,8 +117,8 @@ export default function AdminAdminsPage() {
                     <span
                       className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                         admin.role === "SUPER_ADMIN"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-blue-100 text-blue-800"
+                          ? "bg-danger-100 text-danger-800"
+                          : "bg-primary-100 text-primary-800"
                       }`}
                     >
                       {admin.role}
@@ -135,7 +135,7 @@ export default function AdminAdminsPage() {
                           <input type="hidden" name="action" value="promote-super" />
                           <button
                             type="submit"
-                            className="text-purple-600 hover:text-purple-900"
+                            className="text-secondary-600 hover:text-secondary-900"
                           >
                             Promote to Super Admin
                           </button>
@@ -145,7 +145,7 @@ export default function AdminAdminsPage() {
                           <input type="hidden" name="action" value="demote" />
                           <button
                             type="submit"
-                            className="text-red-600 hover:text-red-900"
+                            className="text-danger-600 hover:text-danger-900"
                           >
                             Demote to User
                           </button>
@@ -206,7 +206,7 @@ export default function AdminAdminsPage() {
                         <input type="hidden" name="action" value="promote-admin" />
                         <button
                           type="submit"
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-primary-600 hover:text-primary-900"
                         >
                           Promote to Admin
                         </button>

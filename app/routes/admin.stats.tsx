@@ -80,7 +80,7 @@ export default function AdminStatsPage() {
       <div className="mb-8">
         <Link
           to="/admin"
-          className="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-block"
+          className="text-primary-600 hover:text-primary-800 text-sm mb-4 inline-block"
         >
           ← Back to Admin Dashboard
         </Link>
