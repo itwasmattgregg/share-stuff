@@ -193,7 +193,7 @@ export default function CommunityItemsPage() {
               <div className="mt-4 flex flex-col sm:flex-row gap-2">
                 <Link
                   to={`/items/${item.id}`}
-                  className="flex-1 rounded-lg bg-primary-500 px-4 py-3 text-center text-base text-white font-medium hover:bg-primary-600 shadow-md transition-colors min-h-[44px] flex items-center justify-center"
+                  className="flex flex-1 items-center justify-center whitespace-nowrap rounded-lg bg-primary-500 px-4 py-3 text-base text-white font-medium hover:bg-primary-600 shadow-md transition-colors min-h-[44px]"
                 >
                   View Details
                 </Link>

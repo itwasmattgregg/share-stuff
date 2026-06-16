@@ -22,7 +22,7 @@ export default function CommunityItemRequestLink({
   userId,
   isAvailable,
   lendingRequests,
-  className = "flex-1 rounded-lg px-4 py-3 text-center text-base font-medium shadow-md transition-colors min-h-[44px] flex items-center justify-center",
+  className = "flex flex-1 items-center justify-center whitespace-nowrap rounded-lg px-4 py-3 text-base font-medium shadow-md transition-colors min-h-[44px]",
 }: CommunityItemRequestLinkProps) {
   if (ownerId === userId) {
     return null;

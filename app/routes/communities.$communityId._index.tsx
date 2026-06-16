@@ -174,10 +174,10 @@ export default function CommunityIndexPage() {
                 )}
               </div>
 
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-col sm:flex-row gap-2">
                 <Link
                   to={`/items/${item.id}`}
-                  className="flex-1 rounded-lg bg-primary-500 px-3 py-2 text-center text-sm text-white font-medium hover:bg-primary-600 shadow-md transition-colors"
+                  className="flex flex-1 items-center justify-center whitespace-nowrap rounded-lg bg-primary-500 px-3 py-2 text-sm text-white font-medium hover:bg-primary-600 shadow-md transition-colors min-h-[44px]"
                 >
                   View Details
                 </Link>
@@ -188,7 +188,7 @@ export default function CommunityIndexPage() {
                   userId={data.userId}
                   isAvailable={item.isAvailable}
                   lendingRequests={item.lendingRequests}
-                  className="flex-1 rounded-lg px-3 py-2 text-center text-sm font-medium shadow-md transition-colors min-h-[44px] flex items-center justify-center"
+                  className="flex flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium shadow-md transition-colors min-h-[44px]"
                 />
               </div>
             </div>

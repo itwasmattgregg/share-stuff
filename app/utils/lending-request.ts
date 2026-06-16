@@ -26,7 +26,7 @@ export function getActiveBorrowerRequestForUser<
 export function getBorrowerRequestStatusLabel(status: string) {
   switch (status) {
     case "PENDING":
-      return "Request pending";
+      return "Pending";
     case "APPROVED":
       return "Approved";
     case "BORROWED":
