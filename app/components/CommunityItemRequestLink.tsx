@@ -3,7 +3,7 @@ import { Link } from "@remix-run/react";
 import {
   getActiveBorrowerRequestForUser,
   getBorrowerRequestStatusLabel,
-} from "~/models/item.server";
+} from "~/utils/lending-request";
 
 type CommunityItemRequestLinkProps = {
   itemId: string;

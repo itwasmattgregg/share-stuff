@@ -3,39 +3,17 @@ import type { User, Item, LendingRequest } from "@prisma/client";
 import { prisma } from "~/db.server";
 import { createNotification } from "~/models/notification.server";
 import { removeItemPhoto } from "~/utils/item-photo.server";
+import {
+  ACTIVE_BORROWER_REQUEST_STATUSES,
+  type LendingStatus,
+} from "~/utils/lending-request";
 
-export type LendingStatus = "PENDING" | "APPROVED" | "REJECTED" | "BORROWED" | "RETURNED";
-
-export const ACTIVE_BORROWER_REQUEST_STATUSES: LendingStatus[] = [
-  "PENDING",
-  "APPROVED",
-  "BORROWED",
-];
-
-export function getActiveBorrowerRequestForUser<
-  T extends { requesterId: string; status: string },
->(lendingRequests: T[], userId: string) {
-  return lendingRequests.find(
-    (request) =>
-      request.requesterId === userId &&
-      ACTIVE_BORROWER_REQUEST_STATUSES.includes(
-        request.status as LendingStatus
-      )
-  );
-}
-
-export function getBorrowerRequestStatusLabel(status: string) {
-  switch (status) {
-    case "PENDING":
-      return "Request pending";
-    case "APPROVED":
-      return "Approved";
-    case "BORROWED":
-      return "Borrowing";
-    default:
-      return "Requested";
-  }
-}
+export type { LendingStatus };
+export {
+  ACTIVE_BORROWER_REQUEST_STATUSES,
+  getActiveBorrowerRequestForUser,
+  getBorrowerRequestStatusLabel,
+} from "~/utils/lending-request";
 
 export type { Item, LendingRequest };
 
