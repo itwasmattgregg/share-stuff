@@ -43,6 +43,63 @@ fly secrets set R2_BUCKET_NAME="share-stuff-photos"
 
 Create an R2 bucket in the Cloudflare dashboard, then create an API token with read/write access to that bucket. Photos are served through authenticated app routes, so the bucket can stay private.
 
+### Email (Resend)
+
+ShareStuff sends transactional email for **signup verification** and **password reset**. The app uses [Resend](https://resend.com) via SMTP (no extra npm packages).
+
+#### 1. Create a Resend account
+
+Sign up at [resend.com](https://resend.com). The free tier includes 3,000 emails/month.
+
+#### 2. Verify your sending domain
+
+In the Resend dashboard, go to **Domains → Add domain** and add the domain you want to send from (e.g. `yourdomain.com`). Resend will give you DNS records (SPF, DKIM, etc.) to add at your DNS provider. Wait until the domain shows as verified.
+
+For early testing only, Resend allows sending from `onboarding@resend.dev` to the email address you signed up with—before your domain is verified.
+
+#### 3. Create an API key
+
+Go to **API Keys → Create API Key**. Name it (e.g. `share-stuff-production`) and give it **Sending access**. Copy the key immediately—it starts with `re_` and is only shown once.
+
+#### 4. Set Fly secrets
+
+Use your verified domain in `EMAIL_FROM`:
+
+```bash
+fly secrets set \
+  RESEND_API_KEY="re_your_api_key_here" \
+  EMAIL_FROM="ShareStuff <noreply@yourdomain.com>"
+```
+
+Fly redeploys automatically after secrets change.
+
+#### 5. Verify it works
+
+1. Sign up on production with a real email address.
+2. Check `fly logs` — you should **not** see `[email] To: ...` console output.
+3. Confirm the verification email arrives (check spam if needed).
+4. Test **Forgot password** as well.
+
+#### Local development
+
+Add the same values to your local `.env` (see `.env.example`). If neither `RESEND_API_KEY` nor `SMTP_HOST` is set, email links are printed to the terminal instead of sent.
+
+#### Alternative: explicit SMTP env vars
+
+If you prefer to set SMTP credentials directly instead of `RESEND_API_KEY`:
+
+```bash
+fly secrets set \
+  SMTP_HOST="smtp.resend.com" \
+  SMTP_PORT="587" \
+  SMTP_SECURE="false" \
+  SMTP_USER="resend" \
+  SMTP_PASS="re_your_api_key_here" \
+  EMAIL_FROM="ShareStuff <noreply@yourdomain.com>"
+```
+
+Use port `465` with `SMTP_SECURE="true"` only if port 587 is blocked by your host.
+
 ### Deployment
 
 1. **First deployment:**

@@ -49,7 +49,7 @@ export async function verifyLogin(
   });
 
   if (!userWithPassword || !userWithPassword.password) {
-    return null;
+    return { status: "invalid" as const };
   }
 
   const isValid = await bcrypt.compare(
@@ -58,10 +58,17 @@ export async function verifyLogin(
   );
 
   if (!isValid) {
-    return null;
+    return { status: "invalid" as const };
+  }
+
+  if (!userWithPassword.emailVerifiedAt) {
+    return {
+      status: "unverified" as const,
+      email: userWithPassword.email,
+    };
   }
 
   const { password: _password, ...userWithoutPassword } = userWithPassword;
 
-  return userWithoutPassword;
+  return { status: "ok" as const, user: userWithoutPassword };
 }

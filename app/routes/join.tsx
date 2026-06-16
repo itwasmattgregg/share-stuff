@@ -4,8 +4,9 @@ import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
 import ShareStuffLogo from "~/components/ShareStuffLogo";
+import { sendEmailVerification } from "~/models/email-verification.server";
 import { createUser, getUserByEmail } from "~/models/user.server";
-import { createUserSession, getUserId } from "~/session.server";
+import { getUserId } from "~/session.server";
 import { safeRedirect, validateEmail } from "~/utils";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -24,7 +25,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const email = formData.get("email");
   const password = formData.get("password");
   const name = formData.get("name");
-  const redirectTo = safeRedirect(formData.get("redirectTo"), "/communities");
 
   if (!validateEmail(email)) {
     return json(
@@ -66,12 +66,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     typeof name === "string" ? name : undefined
   );
 
-  return createUserSession({
-    redirectTo,
-    remember: false,
-    request,
-    userId: user.id,
-  });
+  const origin = new URL(request.url).origin;
+  await sendEmailVerification({ userId: user.id, origin });
+
+  return json({ submitted: true, email, errors: null });
 };
 
 export const meta: MetaFunction = () => [{ title: "Sign Up" }];
@@ -100,6 +98,39 @@ export default function Join() {
             <ShareStuffLogo />
           </Link>
         </div>
+
+        {actionData?.submitted ? (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+              We sent a verification link to{" "}
+              <span className="font-medium">{actionData.email}</span>. Click the
+              link in that email to finish creating your account.
+            </div>
+            <p className="text-center text-sm text-gray-500">
+              Didn&apos;t get it?{" "}
+              <Link
+                className="text-blue-500 underline"
+                to={{
+                  pathname: "/verify-email",
+                  search: `email=${encodeURIComponent(actionData.email)}`,
+                }}
+              >
+                Resend verification email
+              </Link>
+            </p>
+            <p className="text-center text-sm text-gray-500">
+              <Link
+                className="text-blue-500 underline"
+                to={{
+                  pathname: "/login",
+                  search: searchParams.toString(),
+                }}
+              >
+                Back to login
+              </Link>
+            </p>
+          </div>
+        ) : (
         <Form method="post" className="space-y-6">
           <div>
             <label
@@ -198,6 +229,7 @@ export default function Join() {
             </div>
           </div>
         </Form>
+        )}
       </div>
     </div>
   );

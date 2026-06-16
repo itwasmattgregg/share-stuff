@@ -12,12 +12,14 @@ model User {
   email String  @unique
   name  String?
   role  String  @default("USER")
+  emailVerifiedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   password Password?
   passwordResetTokens PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
 
   // Community relationships
   ownedCommunities     Community[]           @relation("CommunityOwner")
@@ -38,6 +40,20 @@ model Password {
 }
 
 model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model EmailVerificationToken {
   id        String   @id @default(cuid())
   token     String   @unique
   expiresAt DateTime

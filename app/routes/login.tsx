@@ -47,11 +47,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     );
   }
 
-  const user = await verifyLogin(email, password);
+  const loginResult = await verifyLogin(email, password);
 
-  if (!user) {
+  if (loginResult.status === "invalid") {
     return json(
       { errors: { email: "Invalid email or password", password: null } },
+      { status: 400 }
+    );
+  }
+
+  if (loginResult.status === "unverified") {
+    return json(
+      {
+        errors: {
+          email:
+            "Please verify your email before logging in. Check your inbox for the verification link.",
+          password: null,
+        },
+        unverifiedEmail: loginResult.email,
+      },
       { status: 400 }
     );
   }
@@ -60,7 +74,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     redirectTo,
     remember: remember === "on" ? true : false,
     request,
-    userId: user.id,
+    userId: loginResult.user.id,
   });
 };
 
@@ -113,6 +127,20 @@ export default function LoginPage() {
               {actionData?.errors?.email ? (
                 <div className="pt-1 text-red-700" id="email-error">
                   {actionData.errors.email}
+                  {actionData.unverifiedEmail ? (
+                    <>
+                      {" "}
+                      <Link
+                        className="underline"
+                        to={{
+                          pathname: "/verify-email",
+                          search: `email=${encodeURIComponent(actionData.unverifiedEmail)}`,
+                        }}
+                      >
+                        Resend verification email
+                      </Link>
+                    </>
+                  ) : null}
                 </div>
               ) : null}
             </div>

@@ -22,6 +22,19 @@ describe("auth", () => {
     cy.findByLabelText(/^password$/i).type(loginForm.password);
     cy.findByRole("button", { name: /create account/i }).click();
 
+    cy.findByText(/verification link/i);
+    cy.get("@user").then((user) => {
+      const userEmail = (user as { email?: string }).email;
+      cy.exec(
+        `npx ts-node --require tsconfig-paths/register ./cypress/support/verify-user-email.ts "${userEmail}"`
+      );
+    });
+
+    cy.visit("/login");
+    cy.findByRole("textbox", { name: /email/i }).type(loginForm.email);
+    cy.findByLabelText(/^password$/i).type(loginForm.password);
+    cy.findByRole("button", { name: /log in/i }).click();
+
     cy.url().should("include", "/communities");
     cy.findByRole("heading", { name: /my communities/i });
 

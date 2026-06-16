@@ -8,6 +8,7 @@ import { installGlobals } from "@remix-run/node";
 import { parse } from "cookie";
 
 import { createUser } from "~/models/user.server";
+import { prisma } from "~/db.server";
 import { createUserSession } from "~/session.server";
 
 installGlobals();
@@ -21,6 +22,11 @@ async function createAndLogin(email: string) {
   }
 
   const user = await createUser(email, "myreallystrongpassword");
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { emailVerifiedAt: new Date() },
+  });
 
   const response = await createUserSession({
     request: new Request("test://test"),
