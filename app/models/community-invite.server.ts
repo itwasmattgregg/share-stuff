@@ -54,6 +54,40 @@ export function isCommunityInviteValid(invite: { expiresAt: Date }) {
   return invite.expiresAt.getTime() > Date.now();
 }
 
+export function parseInviteTokenFromRedirect(redirectTo: string) {
+  const match = redirectTo.match(/^\/invite\/([^/]+)$/);
+  return match?.[1] ?? null;
+}
+
+export async function joinCommunityFromInviteRedirect({
+  userId,
+  redirectTo,
+}: {
+  userId: string;
+  redirectTo: string;
+}) {
+  const inviteToken = parseInviteTokenFromRedirect(redirectTo);
+  if (!inviteToken) {
+    return null;
+  }
+
+  const invite = await getCommunityInviteByToken({ token: inviteToken });
+  if (
+    !invite ||
+    !isCommunityInviteValid(invite) ||
+    invite.community.isArchived
+  ) {
+    return null;
+  }
+
+  await joinCommunityViaInvite({
+    userId,
+    communityId: invite.communityId,
+  });
+
+  return invite.communityId;
+}
+
 export async function joinCommunityViaInvite({
   userId,
   communityId,

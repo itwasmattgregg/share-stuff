@@ -20,7 +20,9 @@ vi.mock("~/db.server", () => ({
 import {
   getInviteExpiryDate,
   isCommunityInviteValid,
+  joinCommunityFromInviteRedirect,
   joinCommunityViaInvite,
+  parseInviteTokenFromRedirect,
 } from "./community-invite.server";
 
 describe("community invite helpers", () => {
@@ -49,6 +51,12 @@ describe("community invite helpers", () => {
         expiresAt: new Date(Date.now() + 60_000),
       })
     ).toBe(true);
+  });
+
+  it("parses invite tokens from redirect paths", () => {
+    expect(parseInviteTokenFromRedirect("/invite/abc123")).toBe("abc123");
+    expect(parseInviteTokenFromRedirect("/communities")).toBeNull();
+    expect(parseInviteTokenFromRedirect("//evil.com/invite/abc123")).toBeNull();
   });
 });
 
@@ -111,5 +119,41 @@ describe("joinCommunityViaInvite", () => {
         communityId: "community-1",
       })
     ).rejects.toThrow("This community has been archived");
+  });
+});
+
+describe("joinCommunityFromInviteRedirect", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("joins the community when redirect points to a valid invite", async () => {
+    prismaMock.communityInvite.findUnique.mockResolvedValue({
+      communityId: "community-1",
+      expiresAt: new Date(Date.now() + 60_000),
+      community: { isArchived: false },
+    });
+    prismaMock.community.findUnique.mockResolvedValue({
+      ownerId: "owner-1",
+      isArchived: false,
+    });
+
+    const communityId = await joinCommunityFromInviteRedirect({
+      userId: "user-1",
+      redirectTo: "/invite/token-1",
+    });
+
+    expect(communityId).toBe("community-1");
+    expect(prismaMock.communityMembership.upsert).toHaveBeenCalled();
+  });
+
+  it("ignores redirects that are not invite links", async () => {
+    const communityId = await joinCommunityFromInviteRedirect({
+      userId: "user-1",
+      redirectTo: "/communities",
+    });
+
+    expect(communityId).toBeNull();
+    expect(prismaMock.communityInvite.findUnique).not.toHaveBeenCalled();
   });
 });

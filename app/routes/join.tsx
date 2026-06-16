@@ -4,6 +4,7 @@ import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
 import ShareStuffLogo from "~/components/ShareStuffLogo";
+import { joinCommunityFromInviteRedirect } from "~/models/community-invite.server";
 import { sendEmailVerification } from "~/models/email-verification.server";
 import { createUser, getUserByEmail } from "~/models/user.server";
 import { getUserId } from "~/session.server";
@@ -25,6 +26,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const email = formData.get("email");
   const password = formData.get("password");
   const name = formData.get("name");
+  const redirectTo = safeRedirect(formData.get("redirectTo"), "/communities");
 
   if (!validateEmail(email)) {
     return json(
@@ -66,10 +68,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     typeof name === "string" ? name : undefined
   );
 
+  const communityId = await joinCommunityFromInviteRedirect({
+    userId: user.id,
+    redirectTo,
+  });
+
   const origin = new URL(request.url).origin;
   await sendEmailVerification({ userId: user.id, origin });
 
-  return json({ submitted: true, email, errors: null });
+  return json({
+    submitted: true,
+    email,
+    communityJoined: Boolean(communityId),
+    errors: null,
+  });
 };
 
 export const meta: MetaFunction = () => [{ title: "Sign Up" }];
@@ -105,6 +117,13 @@ export default function Join() {
               We sent a verification link to{" "}
               <span className="font-medium">{actionData.email}</span>. Click the
               link in that email to finish creating your account.
+              {actionData.communityJoined ? (
+                <>
+                  {" "}
+                  Once verified, the community you were invited to will appear
+                  in My Communities.
+                </>
+              ) : null}
             </div>
             <p className="text-center text-sm text-gray-500">
               Didn&apos;t get it?{" "}
