@@ -4,14 +4,18 @@ import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
 import ItemPhotoField from "~/components/ItemPhotoField";
+import TagInput from "~/components/TagInput";
 import { getItem, updateItem } from "~/models/item.server";
+import { syncItemTags } from "~/models/tag.server";
 import { isStorageConfigured } from "~/models/storage.server";
 import { requireUserId } from "~/session.server";
 import { applyItemPhotoChanges } from "~/utils/item-photo.server";
+import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
 
 type ItemFormErrors = {
   name?: string;
   photo?: string;
+  tags?: string;
 };
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
@@ -64,10 +68,19 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   const isAvailable = formData.get("isAvailable") === "true";
   const photo = formData.get("photo");
   const removePhoto = formData.get("removePhoto") === "true";
+  const tagNames = parseTagsFromForm(formData);
+  const tagError = validateTagNames(tagNames);
 
   if (typeof name !== "string" || name.length === 0) {
     return json<{ errors: ItemFormErrors }>(
       { errors: { name: "Item name is required" } },
+      { status: 400 }
+    );
+  }
+
+  if (tagError) {
+    return json<{ errors: ItemFormErrors }>(
+      { errors: { tags: tagError } },
       { status: 400 }
     );
   }
@@ -97,6 +110,8 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
       ? { photoKey: photoResult.photoKey }
       : {}),
   });
+
+  await syncItemTags(itemId, tagNames);
 
   return redirect(`/items/${itemId}`);
 };
@@ -232,6 +247,11 @@ export default function EditItemPage() {
             </div>
           </div>
         </div>
+
+        <TagInput
+          defaultTags={item.itemTags.map((itemTag) => itemTag.tag.name)}
+          error={actionData?.errors?.tags}
+        />
 
         {photoUploadEnabled ? (
           <ItemPhotoField

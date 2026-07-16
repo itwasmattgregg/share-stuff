@@ -9,6 +9,7 @@ import {
 } from "~/models/item.server";
 import type { LendingStatus } from "~/models/item.server";
 import ItemPhoto from "~/components/ItemPhoto";
+import TagPills from "~/components/TagPills";
 import { requireUserId } from "~/session.server";
 import { formatLendingRequestDateTime } from "~/utils";
 
@@ -148,6 +149,13 @@ export default function ItemDetailPage() {
                 </div>
               )}
             </div>
+
+            <TagPills
+              tags={data.item.itemTags.map((itemTag) => itemTag.tag)}
+              linkable
+              size="md"
+              className="mt-4"
+            />
 
             <div className="mt-4">
               <h4 className="text-sm font-medium text-gray-700">Status</h4>

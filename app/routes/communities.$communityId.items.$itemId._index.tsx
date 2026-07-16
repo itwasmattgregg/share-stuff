@@ -4,6 +4,7 @@ import { Link, useLoaderData } from "@remix-run/react";
 
 import CommunityItemRequestLink from "~/components/CommunityItemRequestLink";
 import ItemPhoto from "~/components/ItemPhoto";
+import TagPills from "~/components/TagPills";
 import { isUserMemberOfCommunity } from "~/models/community.server";
 import { getItem, isItemVisibleInCommunity } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
@@ -118,6 +119,13 @@ export default function CommunityItemDetailPage() {
               </div>
             ) : null}
           </div>
+
+          <TagPills
+            tags={item.itemTags.map((itemTag) => itemTag.tag)}
+            linkable
+            size="md"
+            className="mt-4"
+          />
 
           <div className="mt-4">
             <h4 className="text-sm font-medium text-neutral-700">Status</h4>

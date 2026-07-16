@@ -4,13 +4,24 @@ import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 
 import Layout from "~/components/Layout";
 import ItemPhoto from "~/components/ItemPhoto";
+import TagFilterBar from "~/components/TagFilterBar";
+import TagPills from "~/components/TagPills";
 import { getUserItems } from "~/models/item.server";
+import { getPopularTags } from "~/models/tag.server";
 import { requireUserId } from "~/session.server";
+import { buildTagFilterHref, parseTagSlugsFromSearchParams } from "~/utils/tag";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
-  const items = await getUserItems({ userId });
-  return json({ items });
+  const url = new URL(request.url);
+  const tags = parseTagSlugsFromSearchParams(url.searchParams);
+
+  const [items, popularTags] = await Promise.all([
+    getUserItems({ userId, tags }),
+    getPopularTags({ userId, ownerId: userId }),
+  ]);
+
+  return json({ items, tags, popularTags });
 };
 
 export default function ItemsPage() {
@@ -65,7 +76,12 @@ export default function ItemsPage() {
               <aside className="hidden lg:block w-64 flex-shrink-0">
                 <div className="bg-white border border-neutral-200 rounded-lg p-4">
                   <h2 className="text-sm font-semibold text-neutral-900 mb-3">Items</h2>
-                  <nav className="space-y-1">
+                  <TagFilterBar
+                    tags={data.popularTags}
+                    selectedSlugs={data.tags}
+                    preserveParams={[]}
+                  />
+                  <nav className="mt-4 space-y-1">
                     {data.items.map((item) => {
                       const isActive =
                         !isNewPage && location.pathname.includes(`/items/${item.id}`);
@@ -144,6 +160,18 @@ export default function ItemsPage() {
                           </span>
                         )}
                       </div>
+                      <TagPills
+                        tags={item.itemTags.map((itemTag) => itemTag.tag)}
+                        linkable
+                        className="mt-3"
+                        getTagHref={(slug) =>
+                          buildTagFilterHref({
+                            tagSlug: slug,
+                            selectedSlugs: data.tags,
+                            toggle: false,
+                          })
+                        }
+                      />
                     </Link>
                   ))}
                 </div>

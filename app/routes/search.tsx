@@ -4,6 +4,7 @@ import { Form, Link, useLoaderData } from "@remix-run/react";
 
 import Layout from "~/components/Layout";
 import CommunityItemRequestLink from "~/components/CommunityItemRequestLink";
+import TagPills from "~/components/TagPills";
 import { searchItemsInUserCommunities } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
 
@@ -170,6 +171,11 @@ export default function SearchPage() {
                     </span>
                   )}
                 </div>
+
+                <TagPills
+                  tags={item.itemTags.map((itemTag) => itemTag.tag)}
+                  className="mt-3"
+                />
 
                 <div className="mt-4 flex flex-col sm:flex-row gap-2">
                   <Link

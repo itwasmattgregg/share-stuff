@@ -8,7 +8,15 @@ import {
   isUserMemberOfCommunity,
 } from "~/models/community.server";
 import { createItem } from "~/models/item.server";
+import { syncItemTags } from "~/models/tag.server";
+import TagInput from "~/components/TagInput";
 import { requireUserId } from "~/session.server";
+import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
+
+type ItemFormErrors = {
+  name?: string;
+  tags?: string;
+};
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -51,9 +59,21 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   const description = formData.get("description");
   const category = formData.get("category");
   const condition = formData.get("condition");
+  const tagNames = parseTagsFromForm(formData);
+  const tagError = validateTagNames(tagNames);
 
   if (typeof name !== "string" || name.length === 0) {
-    return json({ errors: { name: "Item name is required" } }, { status: 400 });
+    return json<{ errors: ItemFormErrors }>(
+      { errors: { name: "Item name is required" } },
+      { status: 400 }
+    );
+  }
+
+  if (tagError) {
+    return json<{ errors: ItemFormErrors }>(
+      { errors: { tags: tagError } },
+      { status: 400 }
+    );
   }
 
   const item = await createItem({
@@ -63,6 +83,8 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     condition: typeof condition === "string" ? condition : undefined,
     ownerId: userId,
   });
+
+  await syncItemTags(item.id, tagNames);
 
   return redirect(`/communities/${communityId}/items`);
 };
@@ -202,6 +224,8 @@ export default function NewCommunityItemPage() {
             </div>
           </div>
         </div>
+
+        <TagInput error={actionData?.errors?.tags} />
 
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
           <Link

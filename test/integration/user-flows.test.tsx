@@ -53,6 +53,7 @@ import {
 } from "~/routes/items.$itemId._index";
 import ItemDetailPage from "~/routes/items.$itemId._index";
 import { action as newItemAction } from "~/routes/items.new";
+import { loader as communityItemsLoader } from "~/routes/communities.$communityId._index";
 import { action as joinAction } from "~/routes/join";
 import JoinPage from "~/routes/join";
 import { action as loginAction } from "~/routes/login";
@@ -79,6 +80,12 @@ import {
   prisma,
   readJsonResponse,
 } from "./test-db";
+import { getCommunityItems } from "~/models/item.server";
+import {
+  getItemsByTagSlug,
+  getPopularTags,
+  syncItemTags,
+} from "~/models/tag.server";
 
 vi.mock("@remix-run/react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@remix-run/react")>();
@@ -152,6 +159,133 @@ describe("integration: add item flow", () => {
     );
 
     expect(ownerPageData.item.name).toBe("Cordless Drill");
+  });
+});
+
+describe("integration: item tagging", () => {
+  beforeEach(async () => {
+    await ensureTestDatabase();
+  });
+
+  it("creates items with tags and filters community items by tag", async () => {
+    const owner = await createVerifiedUser({
+      email: "tag-owner@example.com",
+      name: "Tag Owner",
+    });
+    const member = await createVerifiedUser({
+      email: "tag-member@example.com",
+      name: "Tag Member",
+    });
+
+    const community = await createCommunityWithOwner({ ownerId: owner.id });
+    await addApprovedCommunityMember({
+      communityId: community.id,
+      userId: member.id,
+    });
+
+    const formData = new FormData();
+    formData.set("name", "Camping Tent");
+    formData.set("description", "4-person tent");
+    formData.set("category", "Sports Equipment");
+    formData.set("condition", "Good");
+    formData.append("tags", "camping");
+    formData.append("tags", "outdoor");
+
+    const { response } = await invokeRouteHandler(newItemAction, {
+      request: await createAuthenticatedRequest(
+        owner.id,
+        "http://localhost/items/new",
+        {
+          method: "POST",
+          body: formData,
+        }
+      ),
+      params: {},
+      context: {},
+    });
+
+    expect(response.status).toBe(302);
+
+    const item = await prisma.item.findFirst({
+      where: { ownerId: owner.id, name: "Camping Tent" },
+      include: {
+        itemTags: {
+          include: { tag: true },
+        },
+      },
+    });
+
+    expect(item).not.toBeNull();
+    expect(item!.itemTags.map((itemTag) => itemTag.tag.slug).sort()).toEqual([
+      "camping",
+      "outdoor",
+    ]);
+
+    await prisma.item.create({
+      data: {
+        name: "Hammer",
+        ownerId: owner.id,
+        category: "Tool",
+      },
+    });
+
+    const campingItems = await getCommunityItems({
+      communityId: community.id,
+      tags: ["camping"],
+    });
+
+    expect(campingItems).toHaveLength(1);
+    expect(campingItems[0]?.name).toBe("Camping Tent");
+
+    const loaderResult = await invokeRouteHandler(communityItemsLoader, {
+      request: await createAuthenticatedRequest(
+        member.id,
+        `http://localhost/communities/${community.id}?tag=camping`
+      ),
+      params: { communityId: community.id },
+      context: {},
+    });
+
+    expect(loaderResult.response.status).toBe(200);
+  });
+
+  it("returns popular tags and items for a tag slug", async () => {
+    const owner = await createVerifiedUser({
+      email: "tag-popular@example.com",
+      name: "Popular Owner",
+    });
+    const viewer = await createVerifiedUser({
+      email: "tag-viewer@example.com",
+      name: "Viewer",
+    });
+
+    const community = await createCommunityWithOwner({ ownerId: owner.id });
+    await addApprovedCommunityMember({
+      communityId: community.id,
+      userId: viewer.id,
+    });
+
+    const item = await prisma.item.create({
+      data: {
+        name: "Board Game",
+        ownerId: owner.id,
+        category: "Game",
+      },
+    });
+
+    await syncItemTags(item.id, ["family-friendly", "games"]);
+
+    const popularTags = await getPopularTags({ userId: viewer.id });
+    expect(popularTags.some((tag) => tag.slug === "family-friendly")).toBe(true);
+
+    const { tag, items } = await getItemsByTagSlug({
+      slug: "games",
+      userId: viewer.id,
+    });
+
+    expect(tag?.slug).toBe("games");
+    expect(items).toHaveLength(1);
+    expect(items[0]?.name).toBe("Board Game");
   });
 });
 

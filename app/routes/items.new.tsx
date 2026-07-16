@@ -4,7 +4,9 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
 import ItemPhotoField from "~/components/ItemPhotoField";
+import TagInput from "~/components/TagInput";
 import { createItem, updateItem } from "~/models/item.server";
+import { syncItemTags } from "~/models/tag.server";
 import {
   buildItemPhotoKey,
   isStorageConfigured,
@@ -12,10 +14,12 @@ import {
 } from "~/models/storage.server";
 import { requireUserId } from "~/session.server";
 import { parseItemPhotoUpload } from "~/utils/item-photo.server";
+import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
 
 type ItemFormErrors = {
   name?: string;
   photo?: string;
+  tags?: string;
 };
 
 export const loader = async () => {
@@ -31,10 +35,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const category = formData.get("category");
   const condition = formData.get("condition");
   const photo = formData.get("photo");
+  const tagNames = parseTagsFromForm(formData);
+  const tagError = validateTagNames(tagNames);
 
   if (typeof name !== "string" || name.length === 0) {
     return json<{ errors: ItemFormErrors }>(
       { errors: { name: "Item name is required" } },
+      { status: 400 }
+    );
+  }
+
+  if (tagError) {
+    return json<{ errors: ItemFormErrors }>(
+      { errors: { tags: tagError } },
       { status: 400 }
     );
   }
@@ -67,6 +80,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     condition: typeof condition === "string" ? condition : undefined,
     ownerId: userId,
   });
+
+  await syncItemTags(item.id, tagNames);
 
   if (parsedPhoto.data) {
     const photoKey = buildItemPhotoKey(item.id, parsedPhoto.data.extension);
@@ -213,6 +228,8 @@ export default function NewItemPage() {
             </div>
           </div>
         </div>
+
+        <TagInput error={actionData?.errors?.tags} />
 
         {photoUploadEnabled ? (
           <ItemPhotoField error={actionData?.errors?.photo} />

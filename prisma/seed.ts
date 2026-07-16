@@ -42,7 +42,7 @@ async function seed() {
   });
 
   // Create a sample item
-  await prisma.item.create({
+  const item = await prisma.item.create({
     data: {
       name: "Sample Book",
       description: "A great book to share",
@@ -50,6 +50,25 @@ async function seed() {
       condition: "excellent",
       ownerId: user.id,
     },
+  });
+
+  const fictionTag = await prisma.tag.upsert({
+    where: { slug: "fiction" },
+    create: { slug: "fiction", name: "Fiction" },
+    update: {},
+  });
+
+  const bookClubTag = await prisma.tag.upsert({
+    where: { slug: "book-club" },
+    create: { slug: "book-club", name: "Book Club" },
+    update: {},
+  });
+
+  await prisma.itemTag.create({
+    data: { itemId: item.id, tagId: fictionTag.id },
+  });
+  await prisma.itemTag.create({
+    data: { itemId: item.id, tagId: bookClubTag.id },
   });
 
   console.log(`Database has been seeded. 🌱`);

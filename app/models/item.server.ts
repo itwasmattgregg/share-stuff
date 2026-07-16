@@ -4,6 +4,7 @@ import { prisma } from "~/db.server";
 import { getUserCommunities } from "~/models/community.server";
 import { createNotification } from "~/models/notification.server";
 import { removeItemPhoto } from "~/utils/item-photo.server";
+import { normalizeTagSlug } from "~/utils/tag";
 import {
   ACTIVE_BORROWER_REQUEST_STATUSES,
   type LendingStatus,
@@ -40,6 +41,14 @@ export function communityItemOwnerFilter(communityId: string) {
   };
 }
 
+const itemTagsInclude = {
+  itemTags: {
+    include: {
+      tag: true,
+    },
+  },
+};
+
 function itemSearchTextFilter(search?: string) {
   if (!search?.trim()) {
     return undefined;
@@ -52,6 +61,32 @@ function itemSearchTextFilter(search?: string) {
       { description: { contains: searchTerm } },
       { category: { contains: searchTerm } },
     ],
+  };
+}
+
+function buildTagFilter(tagSlugs?: string[]) {
+  if (!tagSlugs || tagSlugs.length === 0) {
+    return undefined;
+  }
+
+  const normalizedSlugs = [
+    ...new Set(tagSlugs.map((slug) => normalizeTagSlug(slug)).filter(Boolean)),
+  ];
+
+  if (normalizedSlugs.length === 0) {
+    return undefined;
+  }
+
+  return {
+    AND: normalizedSlugs.map((slug) => ({
+      itemTags: {
+        some: {
+          tag: {
+            slug,
+          },
+        },
+      },
+    })),
   };
 }
 
@@ -87,6 +122,7 @@ export async function getItem({ id }: { id: string }) {
         },
         orderBy: { createdAt: "desc" },
       },
+      ...itemTagsInclude,
     },
   });
 }
@@ -94,18 +130,45 @@ export async function getItem({ id }: { id: string }) {
 export async function getCommunityItems({
   communityId,
   search,
+  tags,
 }: {
   communityId: string;
   search?: string;
+  tags?: string[];
 }) {
   // Get all items from users who are members of this community
-  const whereClause: any = {
-    ...communityItemOwnerFilter(communityId),
-  };
+  const whereClause: any = communityItemOwnerFilter(communityId);
+  const filters: any[] = [];
+
+  const tagFilter = buildTagFilter(tags);
+  if (tagFilter) {
+    filters.push(tagFilter);
+  }
 
   const textFilter = itemSearchTextFilter(search);
-  if (textFilter) {
-    whereClause.AND = [textFilter];
+  if (textFilter && search?.trim()) {
+    const searchTerm = search.trim();
+    filters.push({
+      OR: [
+        ...textFilter.OR,
+        {
+          itemTags: {
+            some: {
+              tag: {
+                OR: [
+                  { name: { contains: searchTerm } },
+                  { slug: { contains: normalizeTagSlug(searchTerm) } },
+                ],
+              },
+            },
+          },
+        },
+      ],
+    });
+  }
+
+  if (filters.length > 0) {
+    whereClause.AND = filters;
   }
 
   return prisma.item.findMany({
@@ -114,6 +177,7 @@ export async function getCommunityItems({
       owner: {
         select: { id: true, email: true, name: true },
       },
+      ...itemTagsInclude,
       lendingRequests: {
         where: {
           status: {
@@ -145,6 +209,7 @@ const communityItemsInclude = {
       },
     },
   },
+  ...itemTagsInclude,
   lendingRequests: {
     where: {
       status: {
@@ -227,10 +292,24 @@ export async function searchItemsInUserCommunities({
   });
 }
 
-export async function getUserItems({ userId }: { userId: string }) {
+export async function getUserItems({
+  userId,
+  tags,
+}: {
+  userId: string;
+  tags?: string[];
+}) {
+  const whereClause: any = { ownerId: userId };
+  const tagFilter = buildTagFilter(tags);
+
+  if (tagFilter) {
+    whereClause.AND = [tagFilter];
+  }
+
   return prisma.item.findMany({
-    where: { ownerId: userId },
+    where: whereClause,
     include: {
+      ...itemTagsInclude,
       lendingRequests: {
         include: {
           requester: {

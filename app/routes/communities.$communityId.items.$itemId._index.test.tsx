@@ -13,6 +13,7 @@ const baseItem = {
   isAvailable: true,
   photoKey: null,
   ownerId: "owner-1",
+  itemTags: [],
   lendingRequests: [],
   owner: {
     id: "owner-1",

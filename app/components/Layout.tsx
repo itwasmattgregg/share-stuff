@@ -64,6 +64,12 @@ export default function Layout({
                 Communities
               </Link>
               <Link
+                to="/tags"
+                className="flex min-h-[44px] items-center rounded-md px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:text-primary-600"
+              >
+                Explore Tags
+              </Link>
+              <Link
                 to="/items"
                 className="flex min-h-[44px] items-center rounded-md px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:text-primary-600"
               >
@@ -178,6 +184,13 @@ export default function Layout({
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Communities
+              </Link>
+              <Link
+                to="/tags"
+                className="block rounded-md px-3 py-2 text-base font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-600"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Explore Tags
               </Link>
               <Link
                 to="/items"

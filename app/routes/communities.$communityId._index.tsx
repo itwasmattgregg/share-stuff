@@ -3,9 +3,13 @@ import { json } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 
 import { getCommunityItems } from "~/models/item.server";
+import { getPopularTags } from "~/models/tag.server";
 import CommunityItemRequestLink from "~/components/CommunityItemRequestLink";
 import ItemPhoto from "~/components/ItemPhoto";
+import TagFilterBar from "~/components/TagFilterBar";
+import TagPills from "~/components/TagPills";
 import { requireUserId } from "~/session.server";
+import { buildTagFilterHref, parseTagSlugsFromSearchParams } from "~/utils/tag";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -17,9 +21,14 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || undefined;
+  const tags = parseTagSlugsFromSearchParams(url.searchParams);
 
-  const items = await getCommunityItems({ communityId, search });
-  return json({ items, search, communityId, userId });
+  const [items, popularTags] = await Promise.all([
+    getCommunityItems({ communityId, search, tags }),
+    getPopularTags({ userId, communityId }),
+  ]);
+
+  return json({ items, search, tags, popularTags, communityId, userId });
 };
 
 export default function CommunityIndexPage() {
@@ -39,17 +48,20 @@ export default function CommunityIndexPage() {
             <input
               type="text"
               name="search"
-              placeholder="Search items by name, description, or category..."
+              placeholder="Search items by name, description, category, or tags..."
               defaultValue={data.search || ""}
               className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             />
+            {data.tags.map((tag) => (
+              <input key={tag} type="hidden" name="tag" value={tag} />
+            ))}
             <button
               type="submit"
               className="rounded-lg bg-primary-500 px-4 py-2 text-sm text-white font-medium hover:bg-primary-600 shadow-md transition-colors"
             >
               Search
             </button>
-            {data.search && (
+            {(data.search || data.tags.length > 0) && (
               <Link
                 to="."
                 className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 shadow-md transition-colors"
@@ -58,16 +70,21 @@ export default function CommunityIndexPage() {
               </Link>
             )}
           </Form>
+          <TagFilterBar tags={data.popularTags} selectedSlugs={data.tags} />
         </div>
       </div>
 
       {data.items.length === 0 ? (
         <div className="text-center py-12">
-          {data.search ? (
+          {data.search || data.tags.length > 0 ? (
             <>
-              <p className="text-neutral-500 mb-4">No items found matching "{data.search}".</p>
+              <p className="text-neutral-500 mb-4">
+                No items found
+                {data.search ? ` matching "${data.search}"` : ""}
+                {data.tags.length > 0 ? ` with the selected tags` : ""}.
+              </p>
               <p className="text-sm text-neutral-400">
-                Try searching with different keywords or <Link to="." className="text-primary-600 hover:text-primary-800">clear the search</Link> to see all items.
+                Try different keywords or <Link to="." className="text-primary-600 hover:text-primary-800">clear filters</Link> to see all items.
               </p>
             </>
           ) : (
@@ -81,10 +98,12 @@ export default function CommunityIndexPage() {
         </div>
       ) : (
         <div>
-          {data.search && (
+          {data.search || data.tags.length > 0 ? (
             <div className="mb-4 flex items-center justify-between">
               <p className="text-sm text-neutral-600">
-                Found {data.items.length} item{data.items.length !== 1 ? 's' : ''} matching "{data.search}"
+                Found {data.items.length} item{data.items.length !== 1 ? "s" : ""}
+                {data.search ? ` matching "${data.search}"` : ""}
+                {data.tags.length > 0 ? ` with selected tags` : ""}
               </p>
               <Link
                 to="."
@@ -93,7 +112,7 @@ export default function CommunityIndexPage() {
                 Show all items
               </Link>
             </div>
-          )}
+          ) : null}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {data.items.map((item) => (
             <div
@@ -173,6 +192,20 @@ export default function CommunityIndexPage() {
                   </span>
                 )}
               </div>
+
+              <TagPills
+                tags={item.itemTags.map((itemTag) => itemTag.tag)}
+                linkable
+                className="mt-3"
+                getTagHref={(slug) =>
+                  buildTagFilterHref({
+                    tagSlug: slug,
+                    search: data.search,
+                    selectedSlugs: data.tags,
+                    toggle: false,
+                  })
+                }
+              />
 
               <div className="mt-4 flex flex-col sm:flex-row gap-2">
                 <Link

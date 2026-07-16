@@ -15,6 +15,18 @@ const mockItem = {
   ownerId: "user-1",
   createdAt: new Date("2024-01-01"),
   updatedAt: new Date("2024-01-01"),
+  itemTags: [
+    {
+      itemId: "item-1",
+      tagId: "tag-1",
+      tag: {
+        id: "tag-1",
+        name: "DIY",
+        slug: "diy",
+        createdAt: new Date("2024-01-01"),
+      },
+    },
+  ],
 };
 
 vi.mock("@remix-run/react", async (importOriginal) => {
@@ -49,6 +61,7 @@ describe("item edit route", () => {
     expect(
       screen.getByRole("button", { name: /update item/i })
     ).toBeInTheDocument();
+    expect(screen.getByText("DIY")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /cancel/i })).toHaveAttribute(
       "href",
       "/items/item-1"

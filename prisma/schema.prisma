@@ -136,6 +136,25 @@ model Item {
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   lendingRequests LendingRequest[]
+  itemTags        ItemTag[]
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  itemTags  ItemTag[]
+  createdAt DateTime  @default(now())
+}
+
+model ItemTag {
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  tagId  String
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, tagId])
+  @@index([tagId])
 }
 
 model LendingRequest {
