@@ -1,6 +1,7 @@
 import type { User, Item, LendingRequest } from "@prisma/client";
 
 import { prisma } from "~/db.server";
+import { getUserCommunities } from "~/models/community.server";
 import { createNotification } from "~/models/notification.server";
 import { removeItemPhoto } from "~/utils/item-photo.server";
 import {
@@ -17,7 +18,7 @@ export {
 
 export type { Item, LendingRequest };
 
-function communityItemOwnerFilter(communityId: string) {
+export function communityItemOwnerFilter(communityId: string) {
   return {
     owner: {
       OR: [
@@ -36,6 +37,21 @@ function communityItemOwnerFilter(communityId: string) {
         },
       ],
     },
+  };
+}
+
+function itemSearchTextFilter(search?: string) {
+  if (!search?.trim()) {
+    return undefined;
+  }
+
+  const searchTerm = search.trim();
+  return {
+    OR: [
+      { name: { contains: searchTerm } },
+      { description: { contains: searchTerm } },
+      { category: { contains: searchTerm } },
+    ],
   };
 }
 
@@ -83,21 +99,14 @@ export async function getCommunityItems({
   search?: string;
 }) {
   // Get all items from users who are members of this community
-  const whereClause: any = communityItemOwnerFilter(communityId);
+  const whereClause: any = {
+    ...communityItemOwnerFilter(communityId),
+  };
 
-      // Add search functionality if search term is provided
-      if (search && search.trim()) {
-        const searchTerm = search.trim();
-        whereClause.AND = [
-          {
-            OR: [
-              { name: { contains: searchTerm } },
-              { description: { contains: searchTerm } },
-              { category: { contains: searchTerm } },
-            ],
-          },
-        ];
-      }
+  const textFilter = itemSearchTextFilter(search);
+  if (textFilter) {
+    whereClause.AND = [textFilter];
+  }
 
   return prisma.item.findMany({
     where: whereClause,
@@ -120,6 +129,101 @@ export async function getCommunityItems({
       },
     },
     orderBy: { createdAt: "desc" },
+  });
+}
+
+const communityItemsInclude = {
+  owner: {
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      ownedCommunities: { select: { id: true } },
+      communityMemberships: {
+        where: { status: "APPROVED" },
+        select: { communityId: true },
+      },
+    },
+  },
+  lendingRequests: {
+    where: {
+      status: {
+        in: ["PENDING", "APPROVED", "BORROWED"],
+      },
+    },
+    include: {
+      requester: {
+        select: { id: true, email: true, name: true },
+      },
+    },
+    orderBy: { createdAt: "desc" as const },
+  },
+};
+
+function getVisibleCommunitiesForItem(
+  userCommunities: { id: string; name: string }[],
+  owner: {
+    ownedCommunities: { id: string }[];
+    communityMemberships: { communityId: string }[];
+  }
+) {
+  const ownerCommunityIds = new Set<string>();
+  for (const community of owner.ownedCommunities) {
+    ownerCommunityIds.add(community.id);
+  }
+  for (const membership of owner.communityMemberships) {
+    ownerCommunityIds.add(membership.communityId);
+  }
+
+  return userCommunities
+    .filter((community) => ownerCommunityIds.has(community.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function searchItemsInUserCommunities({
+  userId,
+  search,
+}: {
+  userId: string;
+  search?: string;
+}) {
+  if (!search?.trim()) {
+    return [];
+  }
+
+  const userCommunities = await getUserCommunities({ userId });
+  if (userCommunities.length === 0) {
+    return [];
+  }
+
+  const textFilter = itemSearchTextFilter(search);
+  const items = await prisma.item.findMany({
+    where: {
+      OR: userCommunities.map((community) =>
+        communityItemOwnerFilter(community.id)
+      ),
+      AND: textFilter ? [textFilter] : [],
+    },
+    include: communityItemsInclude,
+    orderBy: { createdAt: "desc" },
+  });
+
+  const userCommunitySummaries = userCommunities.map((community) => ({
+    id: community.id,
+    name: community.name,
+  }));
+
+  return items.map((item) => {
+    const visibleCommunities = getVisibleCommunitiesForItem(
+      userCommunitySummaries,
+      item.owner
+    );
+
+    return {
+      ...item,
+      visibleCommunities,
+      primaryCommunityId: visibleCommunities[0]?.id ?? userCommunities[0].id,
+    };
   });
 }
 

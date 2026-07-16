@@ -9,6 +9,7 @@ const prismaMock = vi.hoisted(() => ({
   },
   item: {
     findUnique: vi.fn(),
+    findMany: vi.fn(),
     update: vi.fn(),
     count: vi.fn(),
   },
@@ -18,16 +19,24 @@ vi.mock("~/db.server", () => ({
   prisma: prismaMock,
 }));
 
+vi.mock("~/models/community.server", () => ({
+  getUserCommunities: vi.fn(),
+}));
+
 vi.mock("~/models/notification.server", () => ({
   createNotification: vi.fn(),
 }));
 
+import { getUserCommunities } from "~/models/community.server";
 import {
   getAllowedLendingRequestStatusesForUpdate,
   isItemVisibleInCommunity,
   requestToBorrowItem,
+  searchItemsInUserCommunities,
   updateLendingRequestForItemOwner,
 } from "./item.server";
+
+const getUserCommunitiesMock = vi.mocked(getUserCommunities);
 
 describe("requestToBorrowItem", () => {
   beforeEach(() => {
@@ -182,5 +191,173 @@ describe("isItemVisibleInCommunity", () => {
     await expect(
       isItemVisibleInCommunity({ itemId: "item-1", communityId: "community-1" })
     ).resolves.toBe(false);
+  });
+});
+
+describe("searchItemsInUserCommunities", () => {
+  beforeEach(() => {
+    getUserCommunitiesMock.mockReset();
+    prismaMock.item.findMany.mockReset();
+  });
+
+  it("returns an empty array when the search term is empty", async () => {
+    await expect(
+      searchItemsInUserCommunities({ userId: "user-1", search: "   " })
+    ).resolves.toEqual([]);
+
+    expect(getUserCommunitiesMock).not.toHaveBeenCalled();
+    expect(prismaMock.item.findMany).not.toHaveBeenCalled();
+  });
+
+  it("returns an empty array when the user has no communities", async () => {
+    getUserCommunitiesMock.mockResolvedValue([]);
+
+    await expect(
+      searchItemsInUserCommunities({ userId: "user-1", search: "hammer" })
+    ).resolves.toEqual([]);
+
+    expect(prismaMock.item.findMany).not.toHaveBeenCalled();
+  });
+
+  it("queries across all user communities with a text filter", async () => {
+    getUserCommunitiesMock.mockResolvedValue([
+      {
+        id: "community-1",
+        name: "Alpha Community",
+        ownerId: "user-1",
+        description: null,
+        rules: null,
+        isListed: true,
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        owner: { id: "user-1", email: "a@example.com", name: "A" },
+        _count: { memberships: 1 },
+      },
+      {
+        id: "community-2",
+        name: "Beta Community",
+        ownerId: "user-2",
+        description: null,
+        rules: null,
+        isListed: true,
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        owner: { id: "user-2", email: "b@example.com", name: "B" },
+        _count: { memberships: 2 },
+      },
+    ] as Awaited<ReturnType<typeof getUserCommunities>>);
+    prismaMock.item.findMany.mockResolvedValue([]);
+
+    await searchItemsInUserCommunities({ userId: "user-1", search: "hammer" });
+
+    expect(prismaMock.item.findMany).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          {
+            owner: {
+              OR: [
+                { ownedCommunities: { some: { id: "community-1" } } },
+                {
+                  communityMemberships: {
+                    some: { communityId: "community-1", status: "APPROVED" },
+                  },
+                },
+              ],
+            },
+          },
+          {
+            owner: {
+              OR: [
+                { ownedCommunities: { some: { id: "community-2" } } },
+                {
+                  communityMemberships: {
+                    some: { communityId: "community-2", status: "APPROVED" },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+        AND: [
+          {
+            OR: [
+              { name: { contains: "hammer" } },
+              { description: { contains: "hammer" } },
+              { category: { contains: "hammer" } },
+            ],
+          },
+        ],
+      },
+      include: expect.any(Object),
+      orderBy: { createdAt: "desc" },
+    });
+  });
+
+  it("attaches visible communities sorted by name", async () => {
+    getUserCommunitiesMock.mockResolvedValue([
+      {
+        id: "community-1",
+        name: "Zulu Community",
+        ownerId: "user-1",
+        description: null,
+        rules: null,
+        isListed: true,
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        owner: { id: "user-1", email: "a@example.com", name: "A" },
+        _count: { memberships: 1 },
+      },
+      {
+        id: "community-2",
+        name: "Alpha Community",
+        ownerId: "user-2",
+        description: null,
+        rules: null,
+        isListed: true,
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        owner: { id: "user-2", email: "b@example.com", name: "B" },
+        _count: { memberships: 2 },
+      },
+    ] as Awaited<ReturnType<typeof getUserCommunities>>);
+    prismaMock.item.findMany.mockResolvedValue([
+      {
+        id: "item-1",
+        name: "Hammer",
+        description: "A hammer",
+        category: "tool",
+        condition: "good",
+        photoKey: null,
+        isAvailable: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ownerId: "owner-1",
+        owner: {
+          id: "owner-1",
+          email: "owner@example.com",
+          name: "Owner",
+          ownedCommunities: [{ id: "community-2" }],
+          communityMemberships: [{ communityId: "community-1" }],
+        },
+        itemTags: [],
+        lendingRequests: [],
+      },
+    ]);
+
+    const results = await searchItemsInUserCommunities({
+      userId: "user-1",
+      search: "hammer",
+    });
+
+    expect(results).toHaveLength(1);
+    expect(results[0].visibleCommunities).toEqual([
+      { id: "community-2", name: "Alpha Community" },
+      { id: "community-1", name: "Zulu Community" },
+    ]);
+    expect(results[0].primaryCommunityId).toBe("community-2");
   });
 });

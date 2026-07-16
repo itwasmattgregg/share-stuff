@@ -1,6 +1,7 @@
 import { Link, Form, useLocation } from "@remix-run/react";
 import { useState } from "react";
 import ShareStuffLogo from "~/components/ShareStuffLogo";
+import GlobalSearchBar from "~/components/GlobalSearchBar";
 import UserMenu from "~/components/UserMenu";
 import { useOptionalUser, useMatchesData } from "~/utils";
 
@@ -47,6 +48,12 @@ export default function Layout({
                 <ShareStuffLogo />
               </Link>
             </div>
+
+            {user && (
+              <div className="hidden flex-1 justify-center px-4 md:flex">
+                <GlobalSearchBar />
+              </div>
+            )}
 
             {/* Desktop Navigation */}
             <div className="hidden items-center space-x-4 md:flex">
@@ -160,6 +167,11 @@ export default function Layout({
         {mobileMenuOpen && (
           <div className="border-t border-neutral-200 bg-white md:hidden">
             <div className="space-y-1 px-2 pb-3 pt-2">
+              {user && (
+                <div className="px-1 pb-2">
+                  <GlobalSearchBar className="w-full [&_input]:max-w-none" />
+                </div>
+              )}
               <Link
                 to="/communities"
                 className="block rounded-md px-3 py-2 text-base font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-600"
