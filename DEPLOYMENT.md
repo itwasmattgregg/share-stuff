@@ -156,4 +156,9 @@ The `fly.toml` file includes:
 - If deployment fails, check logs: `fly logs`
 - If database connection fails, verify `DATABASE_URL` secret
 - If health checks fail, ensure the `/healthcheck` route is working
+- For intermittent **"App is not listening to the expected port" / 502** errors:
+  - Confirm `HOST=0.0.0.0` and `PORT=8080` match `internal_port`
+  - Cold starts need time for Prisma migrate (SQLite volume) before bind — grace period is 60s
+  - Keep `min_machines_running = 1` so the Machine is not stopped between requests
+  - Check logs around the failure for swap/migrate errors before `remix-serve` starts
 - For performance issues, consider scaling: `fly scale count 2`
