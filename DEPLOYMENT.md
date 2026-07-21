@@ -132,8 +132,8 @@ The `fly.toml` file includes:
 - **Port**: 8080 (internal)
 - **Memory**: 1GB RAM
 - **CPU**: 1 shared CPU
-- **Auto-scaling**: Enabled (machines start/stop based on traffic)
-- **Health checks**: Configured for `/healthcheck` endpoint
+- **Auto-scaling**: One Machine kept running (`min_machines_running = 1`); extras can stop when idle
+- **Health checks**: `/healthcheck` with a 60s startup grace period (migrate runs on boot because the SQLite volume is only on the app Machine)
 - **HTTPS**: Force enabled
 - **Release command**: Automatically runs database migrations
 

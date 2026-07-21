@@ -1,28 +1,30 @@
 #!/bin/sh -ex
 
-# This file is how Fly starts the server (configured in fly.toml). 
-# The release command in fly.toml handles database migrations.
-# This script only starts the server.
+# Fly entrypoint. Migrations must run here (not only in release_command)
+# because the SQLite volume is attached to the app Machine, not the
+# ephemeral release Machine.
 
-# allocate swap space
-fallocate -l 512M /swapfile
-chmod 0600 /swapfile
-mkswap /swapfile
-echo 10 > /proc/sys/vm/swappiness
-swapon /swapfile
-echo 1 > /proc/sys/vm/overcommit_memory
+# Best-effort swap — never block listening on PORT if this fails.
+(
+  fallocate -l 512M /swapfile
+  chmod 0600 /swapfile
+  mkswap /swapfile
+  echo 10 > /proc/sys/vm/swappiness
+  swapon /swapfile
+  echo 1 > /proc/sys/vm/overcommit_memory
+) || echo "Warning: swap setup failed; continuing without swap"
 
-# If arguments are passed, execute them (for release commands)
-# Otherwise, start the Remix server
+# If arguments are passed, execute them (for release commands / one-offs)
 if [ $# -gt 0 ]; then
   exec "$@"
-else
-  # Ensure migrations are up to date before starting (safety check)
-  echo "Checking database migrations before starting server..."
-  npx prisma migrate deploy || {
-    echo "Warning: Migration check failed. Continuing anyway..."
-  }
-  
-  # Start the Remix server
-  npx remix-serve build/index.js
 fi
+
+echo "Applying database migrations before starting server..."
+npx prisma migrate deploy
+
+# Bind explicitly for Fly's proxy (internal_port 8080)
+export HOST="${HOST:-0.0.0.0}"
+export PORT="${PORT:-8080}"
+
+# exec so remix-serve is PID 1 and receives signals; avoid npx startup delay
+exec ./node_modules/.bin/remix-serve ./build/index.js
