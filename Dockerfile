@@ -45,6 +45,7 @@ RUN npx tsc prisma/seed.ts --outDir prisma --target ES2020 --module commonjs --e
 FROM base
 
 ENV DATABASE_URL=file:/data/sqlite.db
+ENV HOST="0.0.0.0"
 ENV PORT="8080"
 ENV NODE_ENV="production"
 

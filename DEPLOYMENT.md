@@ -132,8 +132,8 @@ The `fly.toml` file includes:
 - **Port**: 8080 (internal)
 - **Memory**: 1GB RAM
 - **CPU**: 1 shared CPU
-- **Auto-scaling**: Enabled (machines start/stop based on traffic)
-- **Health checks**: Configured for `/healthcheck` endpoint
+- **Auto-scaling**: One Machine kept running (`min_machines_running = 1`); extras can stop when idle
+- **Health checks**: `/healthcheck` with a 60s startup grace period (migrate runs on boot because the SQLite volume is only on the app Machine)
 - **HTTPS**: Force enabled
 - **Release command**: Automatically runs database migrations
 
@@ -156,4 +156,9 @@ The `fly.toml` file includes:
 - If deployment fails, check logs: `fly logs`
 - If database connection fails, verify `DATABASE_URL` secret
 - If health checks fail, ensure the `/healthcheck` route is working
+- For intermittent **"App is not listening to the expected port" / 502** errors:
+  - Confirm `HOST=0.0.0.0` and `PORT=8080` match `internal_port`
+  - Cold starts need time for Prisma migrate (SQLite volume) before bind — grace period is 60s
+  - Keep `min_machines_running = 1` so the Machine is not stopped between requests
+  - Check logs around the failure for swap/migrate errors before `remix-serve` starts
 - For performance issues, consider scaling: `fly scale count 2`
