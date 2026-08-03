@@ -11,6 +11,7 @@ import { createItem } from "~/models/item.server";
 import { syncItemTags } from "~/models/tag.server";
 import TagInput from "~/components/TagInput";
 import { requireUserId } from "~/session.server";
+import { ITEM_CATEGORIES, ITEM_CONDITIONS } from "~/utils/item-form";
 import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
 
 type ItemFormErrors = {
@@ -100,19 +101,8 @@ export default function NewCommunityItemPage() {
     }
   }, [actionData]);
 
-  const categories = [
-    "Book",
-    "Tool",
-    "DVD/Blu-ray",
-    "Game",
-    "Kitchen Item",
-    "Electronics",
-    "Sports Equipment",
-    "Clothing",
-    "Other",
-  ];
-
-  const conditions = ["Excellent", "Good", "Fair", "Poor"];
+  const categories = ITEM_CATEGORIES;
+  const conditions = ITEM_CONDITIONS;
 
   return (
     <div className="max-w-2xl">

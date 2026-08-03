@@ -9,6 +9,7 @@ import { getItem, updateItem } from "~/models/item.server";
 import { syncItemTags } from "~/models/tag.server";
 import { isStorageConfigured } from "~/models/storage.server";
 import { requireUserId } from "~/session.server";
+import { ITEM_CATEGORIES, ITEM_CONDITIONS } from "~/utils/item-form";
 import { applyItemPhotoChanges } from "~/utils/item-photo.server";
 import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
 
@@ -127,19 +128,8 @@ export default function EditItemPage() {
     }
   }, [actionData]);
 
-  const categories = [
-    "Book",
-    "Tool",
-    "DVD/Blu-ray",
-    "Game",
-    "Kitchen Item",
-    "Electronics",
-    "Sports Equipment",
-    "Clothing",
-    "Other",
-  ];
-
-  const conditions = ["Excellent", "Good", "Fair", "Poor"];
+  const categories = ITEM_CATEGORIES;
+  const conditions = ITEM_CONDITIONS;
 
   return (
     <div className="max-w-2xl">

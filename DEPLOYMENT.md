@@ -39,9 +39,14 @@ fly secrets set R2_ACCOUNT_ID="your-cloudflare-account-id"
 fly secrets set R2_ACCESS_KEY_ID="your-r2-access-key-id"
 fly secrets set R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
 fly secrets set R2_BUCKET_NAME="share-stuff-photos"
+
+# Optional: TMDB for DVD/Blu-ray title lookup on Quick Add
+fly secrets set TMDB_API_KEY="your-tmdb-api-key"
 ```
 
 Create an R2 bucket in the Cloudflare dashboard, then create an API token with read/write access to that bucket. Photos are served through authenticated app routes, so the bucket can stay private.
+
+Get a free TMDB API key from [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api). Book ISBN lookup uses Open Library and does not need a key.
 
 ### Email (Resend)
 

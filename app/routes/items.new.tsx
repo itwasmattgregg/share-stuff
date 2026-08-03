@@ -1,17 +1,16 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import { useEffect, useRef } from "react";
+import { useActionData, useLoaderData, useSearchParams } from "@remix-run/react";
 
-import ItemPhotoField from "~/components/ItemPhotoField";
-import TagInput from "~/components/TagInput";
+import ItemQuickAddForm from "~/components/ItemQuickAddForm";
 import { createItem, updateItem } from "~/models/item.server";
-import { syncItemTags } from "~/models/tag.server";
+import { isMovieLookupConfigured } from "~/models/lookup.server";
 import {
   buildItemPhotoKey,
   isStorageConfigured,
   uploadObject,
 } from "~/models/storage.server";
+import { syncItemTags } from "~/models/tag.server";
 import { requireUserId } from "~/session.server";
 import { parseItemPhotoUpload } from "~/utils/item-photo.server";
 import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
@@ -22,8 +21,13 @@ type ItemFormErrors = {
   tags?: string;
 };
 
-export const loader = async () => {
-  return json({ photoUploadEnabled: isStorageConfigured() });
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  await requireUserId(request);
+
+  return json({
+    photoUploadEnabled: isStorageConfigured(),
+    movieLookupEnabled: isMovieLookupConfigured(),
+  });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -35,6 +39,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const category = formData.get("category");
   const condition = formData.get("condition");
   const photo = formData.get("photo");
+  const intent = formData.get("intent");
   const tagNames = parseTagsFromForm(formData);
   const tagError = validateTagNames(tagNames);
 
@@ -73,11 +78,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     );
   }
 
+  const normalizedCategory =
+    typeof category === "string" && category.length > 0 ? category : undefined;
+  const normalizedCondition =
+    typeof condition === "string" && condition.length > 0
+      ? condition
+      : undefined;
+  const normalizedDescription =
+    typeof description === "string" && description.trim().length > 0
+      ? description.trim()
+      : undefined;
+
   const item = await createItem({
-    name,
-    description: typeof description === "string" ? description : undefined,
-    category: typeof category === "string" ? category : undefined,
-    condition: typeof condition === "string" ? condition : undefined,
+    name: name.trim(),
+    description: normalizedDescription,
+    category: normalizedCategory,
+    condition: normalizedCondition,
     ownerId: userId,
   });
 
@@ -98,163 +114,34 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
   }
 
+  if (intent === "add-another") {
+    const params = new URLSearchParams({
+      added: name.trim(),
+    });
+    if (normalizedCategory) {
+      params.set("category", normalizedCategory);
+    }
+    return redirect(`/items/new?${params.toString()}`);
+  }
+
   return redirect(`/items/${item.id}`);
 };
 
 export default function NewItemPage() {
-  const { photoUploadEnabled } = useLoaderData<typeof loader>();
+  const { photoUploadEnabled, movieLookupEnabled } =
+    useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
-  const nameRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (actionData?.errors?.name) {
-      nameRef.current?.focus();
-    }
-  }, [actionData]);
-
-  const categories = [
-    "Book",
-    "Tool",
-    "DVD/Blu-ray",
-    "Game",
-    "Kitchen Item",
-    "Electronics",
-    "Sports Equipment",
-    "Clothing",
-    "Other",
-  ];
-
-  const conditions = ["Excellent", "Good", "Fair", "Poor"];
+  const [searchParams] = useSearchParams();
+  const recentlyAddedName = searchParams.get("added");
+  const initialCategory = searchParams.get("category");
 
   return (
-    <div className="max-w-2xl">
-      <h2 className="text-xl sm:text-2xl font-bold">Add New Item</h2>
-      <p className="mt-2 text-sm sm:text-base text-gray-600">
-        Add an item to your collection that you can share with your communities.
-      </p>
-
-      <Form method="post" encType="multipart/form-data" className="mt-6 space-y-6">
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Item Name *
-          </label>
-          <div className="mt-1">
-            <input
-              ref={nameRef}
-              id="name"
-              required
-              autoFocus={true}
-              name="name"
-              type="text"
-              className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
-              aria-invalid={actionData?.errors?.name ? true : undefined}
-              aria-describedby={
-                actionData?.errors?.name ? "name-error" : undefined
-              }
-            />
-            {actionData?.errors?.name ? (
-              <div className="pt-1 text-danger-700" id="name-error">
-                {actionData.errors.name}
-              </div>
-            ) : null}
-          </div>
-        </div>
-
-        <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Description
-          </label>
-          <div className="mt-1">
-            <textarea
-              id="description"
-              name="description"
-              rows={3}
-              className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
-              placeholder="Describe the item, any special instructions, etc."
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div>
-            <label
-              htmlFor="category"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Category
-            </label>
-            <div className="mt-1">
-              <select
-                id="category"
-                name="category"
-                className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
-              >
-                <option value="">Select a category</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="condition"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Condition
-            </label>
-            <div className="mt-1">
-              <select
-                id="condition"
-                name="condition"
-                className="w-full rounded-md border border-gray-300 px-3 py-3 text-base min-h-[44px]"
-              >
-                <option value="">Select condition</option>
-                {conditions.map((condition) => (
-                  <option key={condition} value={condition}>
-                    {condition}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <TagInput error={actionData?.errors?.tags} />
-
-        {photoUploadEnabled ? (
-          <ItemPhotoField error={actionData?.errors?.photo} />
-        ) : (
-          <p className="text-sm text-gray-500">
-            Photo uploads are not configured in this environment yet.
-          </p>
-        )}
-
-        <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            className="w-full sm:w-auto rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 min-h-[44px]"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px]"
-          >
-            Add Item
-          </button>
-        </div>
-      </Form>
-    </div>
+    <ItemQuickAddForm
+      photoUploadEnabled={photoUploadEnabled}
+      movieLookupEnabled={movieLookupEnabled}
+      recentlyAddedName={recentlyAddedName}
+      initialCategory={initialCategory}
+      errors={actionData?.errors}
+    />
   );
 }

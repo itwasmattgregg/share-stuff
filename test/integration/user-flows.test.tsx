@@ -160,6 +160,37 @@ describe("integration: add item flow", () => {
 
     expect(ownerPageData.item.name).toBe("Cordless Drill");
   });
+
+  it("supports add-another by redirecting back to quick add", async () => {
+    const owner = await createVerifiedUser({
+      email: "owner-add-another@example.com",
+      name: "Owner",
+    });
+
+    const { response } = await invokeRouteHandler(newItemAction, {
+      request: await createAuthenticatedFormPost(
+        owner.id,
+        "http://localhost/items/new",
+        {
+          name: "Circular Saw",
+          category: "Tool",
+          intent: "add-another",
+        }
+      ),
+      params: {},
+      context: {},
+    });
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("Location")).toBe(
+      "/items/new?added=Circular+Saw&category=Tool"
+    );
+
+    const item = await prisma.item.findFirst({
+      where: { ownerId: owner.id, name: "Circular Saw" },
+    });
+    expect(item).not.toBeNull();
+  });
 });
 
 describe("integration: item tagging", () => {
