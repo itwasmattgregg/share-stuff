@@ -1,4 +1,4 @@
-import type { User, Item, LendingRequest } from "@prisma/client";
+import type { Item, LendingRequest } from "@prisma/client";
 
 import { prisma } from "~/db.server";
 import { getUserCommunities } from "~/models/community.server";
