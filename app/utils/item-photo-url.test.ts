@@ -15,7 +15,7 @@ describe("normalizeExternalPhotoUrl", () => {
   it("rejects empty and non-http values", () => {
     expect(normalizeExternalPhotoUrl("")).toBeNull();
     expect(normalizeExternalPhotoUrl("   ")).toBeNull();
-    expect(normalizeExternalPhotoUrl("javascript:alert(1)")).toBeNull();
+    expect(normalizeExternalPhotoUrl("ftp://example.com/a.jpg")).toBeNull();
     expect(normalizeExternalPhotoUrl("not-a-url")).toBeNull();
   });
 });
