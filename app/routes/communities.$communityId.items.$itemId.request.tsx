@@ -121,6 +121,7 @@ export default function RequestBorrowPage() {
         <ItemPhoto
           itemId={data.item.id}
           photoKey={data.item.photoKey}
+          photoUrl={data.item.photoUrl}
           alt={data.item.name}
           className="mb-4 h-48 w-full max-w-sm rounded-lg border border-gray-200 object-cover"
         />

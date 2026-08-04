@@ -26,7 +26,7 @@ async function seed() {
   });
 
   // Create a sample community with membership for owner
-  const community = await prisma.community.create({
+  await prisma.community.create({
     data: {
       name: "Sample Community",
       description: "A sample community for testing",

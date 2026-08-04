@@ -85,6 +85,7 @@ export default function CommunityItemDetailPage() {
         <ItemPhoto
           itemId={item.id}
           photoKey={item.photoKey}
+          photoUrl={item.photoUrl}
           alt={item.name}
           className="h-64 w-full rounded-lg border border-neutral-200 object-cover"
         />

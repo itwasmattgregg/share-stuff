@@ -79,10 +79,11 @@ describe("items", () => {
     cy.visitAndCheck("/items/new");
 
     cy.findByRole("textbox", { name: /item name/i }).type("Test Drill");
+    cy.findByRole("button", { name: /add details/i }).click();
     cy.findByRole("textbox", { name: /description/i }).type(
       "Cordless drill for community projects"
     );
-    cy.findByRole("button", { name: /add item/i }).click();
+    cy.findByRole("button", { name: /^add item$/i }).click();
 
     cy.url().should("match", /\/items\/[^/]+$/);
     cy.findByRole("heading", { name: /test drill/i });
@@ -103,7 +104,8 @@ describe("items", () => {
   it("shows the add item form when the user has no items", () => {
     cy.login();
     cy.visitAndCheck("/items/new");
-    cy.findByRole("heading", { name: /add new item/i });
-    cy.findByRole("button", { name: /add item/i });
+    cy.findByRole("heading", { name: /quick add/i });
+    cy.findByRole("button", { name: /^add item$/i });
+    cy.findByRole("button", { name: /add & another/i });
   });
 });

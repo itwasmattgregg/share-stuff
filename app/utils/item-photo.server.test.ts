@@ -21,11 +21,13 @@ vi.mock("~/models/storage.server", () => ({
   getObject: vi.fn(),
 }));
 
+import { isStorageConfigured } from "~/models/storage.server";
 import {
   ALLOWED_ITEM_PHOTO_TYPES,
   MAX_ITEM_PHOTO_BYTES,
   canUserViewItemPhoto,
   parseItemPhotoUpload,
+  saveItemPhoto,
 } from "./item-photo.server";
 
 function createMockFile({
@@ -143,5 +145,37 @@ describe("canUserViewItemPhoto", () => {
     });
 
     expect(item).toBeNull();
+  });
+});
+
+describe("saveItemPhoto", () => {
+  beforeEach(() => {
+    vi.mocked(isStorageConfigured).mockReturnValue(true);
+  });
+
+  it("allows empty photo updates when storage is not configured", async () => {
+    vi.mocked(isStorageConfigured).mockReturnValue(false);
+
+    await expect(
+      saveItemPhoto({ itemId: "item-1", photo: null })
+    ).resolves.toEqual({
+      ok: true,
+      photoKey: null,
+    });
+  });
+
+  it("rejects new uploads when storage is not configured", async () => {
+    vi.mocked(isStorageConfigured).mockReturnValue(false);
+
+    await expect(
+      saveItemPhoto({
+        itemId: "item-1",
+        photo: createMockFile({ type: "image/webp", size: 1024 }),
+      })
+    ).resolves.toEqual({
+      ok: false,
+      error:
+        "Photo uploads are not configured. Ask the site admin to set up object storage.",
+    });
   });
 });

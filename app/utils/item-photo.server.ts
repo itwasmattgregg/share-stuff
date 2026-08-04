@@ -123,22 +123,23 @@ export async function saveItemPhoto({
   itemId: string;
   photo: FormDataEntryValue | null;
 }) {
-  if (!isStorageConfigured()) {
-    return {
-      ok: false as const,
-      error:
-        "Photo uploads are not configured. Ask the site admin to set up object storage.",
-    };
-  }
-
   const parsed = await parseItemPhotoUpload(photo);
 
   if (!parsed.ok) {
     return parsed;
   }
 
+  // No new file uploaded — leave the existing photo alone.
   if (!parsed.data) {
     return { ok: true as const, photoKey: null };
+  }
+
+  if (!isStorageConfigured()) {
+    return {
+      ok: false as const,
+      error:
+        "Photo uploads are not configured. Ask the site admin to set up object storage.",
+    };
   }
 
   const photoKey = buildItemPhotoKey(itemId, parsed.data.extension);

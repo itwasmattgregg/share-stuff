@@ -111,7 +111,7 @@ export default function Join() {
           </Link>
         </div>
 
-        {actionData?.submitted ? (
+        {actionData && "submitted" in actionData && actionData.submitted ? (
           <div className="space-y-4">
             <div className="rounded-lg border border-success-200 bg-success-50 p-4 text-sm text-success-800">
               We sent a verification link to{" "}

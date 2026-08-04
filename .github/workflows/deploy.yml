@@ -75,6 +75,9 @@ jobs:
 
       - name: ⚡ Run vitest
         run: npm run test -- --coverage
+        env:
+          SESSION_SECRET: vitest-session-secret
+          DATABASE_URL: file:./test.db
 
   cypress:
     name: ⚫️ Cypress

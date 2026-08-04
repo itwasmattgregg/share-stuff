@@ -86,6 +86,12 @@ export default function LoginPage() {
   const actionData = useActionData<typeof action>();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const unverifiedEmail =
+    actionData &&
+    "unverifiedEmail" in actionData &&
+    typeof actionData.unverifiedEmail === "string"
+      ? actionData.unverifiedEmail
+      : null;
 
   useEffect(() => {
     if (actionData?.errors?.email) {
@@ -127,14 +133,14 @@ export default function LoginPage() {
               {actionData?.errors?.email ? (
                 <div className="pt-1 text-danger-700" id="email-error">
                   {actionData.errors.email}
-                  {actionData.unverifiedEmail ? (
+                  {unverifiedEmail ? (
                     <>
                       {" "}
                       <Link
                         className="underline"
                         to={{
                           pathname: "/verify-email",
-                          search: `email=${encodeURIComponent(actionData.unverifiedEmail)}`,
+                          search: `email=${encodeURIComponent(unverifiedEmail)}`,
                         }}
                       >
                         Resend verification email

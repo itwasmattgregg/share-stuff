@@ -1,12 +1,11 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react";
+import { Form, Link, useLoaderData } from "@remix-run/react";
 
 import { isUserMemberOfCommunity } from "~/models/community.server";
 import { getCommunityItems } from "~/models/item.server";
 import { getPopularTags } from "~/models/tag.server";
 import CommunityItemRequestLink from "~/components/CommunityItemRequestLink";
-import ItemPhoto from "~/components/ItemPhoto";
 import TagFilterBar from "~/components/TagFilterBar";
 import TagPills from "~/components/TagPills";
 import { requireUserId } from "~/session.server";
@@ -35,7 +34,6 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 
 export default function CommunityItemsPage() {
   const data = useLoaderData<typeof loader>();
-  const [searchParams] = useSearchParams();
 
   return (
     <div>

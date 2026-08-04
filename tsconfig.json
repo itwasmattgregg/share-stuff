@@ -3,6 +3,13 @@
     "**/*.ts",
     "**/*.tsx"
   ],
+  "exclude": [
+    "cypress",
+    "vitest.config.ts",
+    "node_modules",
+    "build",
+    "public/build"
+  ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES6"],
     "isolatedModules": true,

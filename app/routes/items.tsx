@@ -125,6 +125,7 @@ export default function ItemsPage() {
                       <ItemPhoto
                         itemId={item.id}
                         photoKey={item.photoKey}
+                        photoUrl={item.photoUrl}
                         alt={item.name}
                         className="mb-3 h-36 w-full rounded-lg border border-neutral-200 object-cover"
                       />

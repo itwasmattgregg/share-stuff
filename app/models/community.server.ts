@@ -1,5 +1,4 @@
 import type {
-  User,
   Community,
   CommunityMembership,
 } from "@prisma/client";

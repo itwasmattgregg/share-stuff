@@ -19,4 +19,18 @@ module.exports = {
       version: 28,
     },
   },
+  overrides: [
+    {
+      // Vitest needs vi.mock() before imports; keep that hoisting pattern valid.
+      files: [
+        "**/*.{test,spec}.{ts,tsx}",
+        "test/**/*.{ts,tsx}",
+      ],
+      rules: {
+        "import/first": "off",
+        "import/no-duplicates": "off",
+        "@typescript-eslint/consistent-type-imports": "off",
+      },
+    },
+  ],
 };

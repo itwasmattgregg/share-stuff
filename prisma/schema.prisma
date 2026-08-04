@@ -126,6 +126,9 @@ model Item {
   category    String? // e.g., "book", "tool", "dvd", "game"
   condition   String? // e.g., "excellent", "good", "fair"
   photoKey    String?
+  // External cover/poster URL from lookup (Open Library, TMDB). Uploaded
+  // photoKey always takes display precedence when both are set.
+  photoUrl    String?
   isAvailable Boolean @default(true)
 
   createdAt DateTime @default(now())

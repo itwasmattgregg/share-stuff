@@ -19,7 +19,9 @@ ShareStuff lets people create and join private communities where they share thei
 
 ### Items
 
-- Add items to your personal collection with name, description, category, and condition
+- Quick-add items with name only; optional details stay collapsed until needed
+- ISBN lookup for books (Open Library) and movie title search for DVD/Blu-ray (TMDB)
+- Add & another keeps you on the form for fast consecutive adds
 - Optional photo per item (client-side compression, stored in Cloudflare R2)
 - Items are visible to members of any community you belong to
 - Mark items as available or unavailable
