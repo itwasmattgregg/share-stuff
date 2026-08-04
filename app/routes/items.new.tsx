@@ -13,6 +13,7 @@ import {
 import { syncItemTags } from "~/models/tag.server";
 import { requireUserId } from "~/session.server";
 import { parseItemPhotoUpload } from "~/utils/item-photo.server";
+import { normalizeExternalPhotoUrl } from "~/utils/item-photo-url";
 import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
 
 type ItemFormErrors = {
@@ -40,6 +41,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const condition = formData.get("condition");
   const photo = formData.get("photo");
   const intent = formData.get("intent");
+  const photoUrl = normalizeExternalPhotoUrl(formData.get("photoUrl"));
   const tagNames = parseTagsFromForm(formData);
   const tagError = validateTagNames(tagNames);
 
@@ -94,6 +96,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     description: normalizedDescription,
     category: normalizedCategory,
     condition: normalizedCondition,
+    photoUrl,
     ownerId: userId,
   });
 

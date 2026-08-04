@@ -122,6 +122,7 @@ export default function CommunityIndexPage() {
               <ItemPhoto
                 itemId={item.id}
                 photoKey={item.photoKey}
+                photoUrl={item.photoUrl}
                 alt={item.name}
                 className="mb-4 h-40 w-full rounded-lg border border-neutral-200 object-cover"
               />

@@ -191,6 +191,40 @@ describe("integration: add item flow", () => {
     });
     expect(item).not.toBeNull();
   });
+
+  it("stores a lookup cover URL as photoUrl", async () => {
+    const owner = await createVerifiedUser({
+      email: "owner-photo-url@example.com",
+      name: "Owner",
+    });
+
+    const cover =
+      "https://covers.openlibrary.org/b/id/8754499-M.jpg";
+
+    const { response } = await invokeRouteHandler(newItemAction, {
+      request: await createAuthenticatedFormPost(
+        owner.id,
+        "http://localhost/items/new",
+        {
+          name: "Matilda",
+          category: "Book",
+          photoUrl: cover,
+          intent: "add",
+        }
+      ),
+      params: {},
+      context: {},
+    });
+
+    expect(response.status).toBe(302);
+
+    const item = await prisma.item.findFirst({
+      where: { ownerId: owner.id, name: "Matilda" },
+    });
+
+    expect(item?.photoUrl).toBe(cover);
+    expect(item?.photoKey).toBeNull();
+  });
 });
 
 describe("integration: item tagging", () => {

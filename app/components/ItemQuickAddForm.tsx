@@ -62,6 +62,7 @@ export default function ItemQuickAddForm({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isbn, setIsbn] = useState("");
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [lookupResults, setLookupResults] = useState<LookupResult[]>([]);
@@ -91,6 +92,7 @@ export default function ItemQuickAddForm({
       setName("");
       setDescription("");
       setIsbn("");
+      setPhotoUrl(null);
       setLookupResults([]);
       setLookupError(null);
       setShowDetails(false);
@@ -246,6 +248,11 @@ export default function ItemQuickAddForm({
     }
     if (result.isbn) {
       setIsbn(result.isbn);
+    }
+    const cover = result.coverUrl || result.posterUrl || null;
+    setPhotoUrl(cover);
+    if (cover) {
+      setShowDetails(true);
     }
     setLookupResults([]);
     setLookupError(null);
@@ -502,16 +509,24 @@ export default function ItemQuickAddForm({
 
               <TagInput error={errors?.tags} />
 
-              {photoUploadEnabled ? (
-                <ItemPhotoField error={errors?.photo} />
-              ) : (
+              <ItemPhotoField
+                lookupPhotoUrl={photoUrl}
+                onLookupPhotoUrlChange={setPhotoUrl}
+                allowUpload={photoUploadEnabled}
+                error={errors?.photo}
+              />
+              {!photoUploadEnabled ? (
                 <p className="text-sm text-gray-500">
-                  Photo uploads are not configured in this environment yet.
+                  File uploads are not configured here, but lookup covers still
+                  save as a link.
                 </p>
-              )}
+              ) : null}
             </div>
           ) : (
-            <input type="hidden" name="description" value={description} />
+            <>
+              <input type="hidden" name="description" value={description} />
+              <input type="hidden" name="photoUrl" value={photoUrl ?? ""} />
+            </>
           )}
         </div>
 

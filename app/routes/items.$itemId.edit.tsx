@@ -11,6 +11,7 @@ import { isStorageConfigured } from "~/models/storage.server";
 import { requireUserId } from "~/session.server";
 import { ITEM_CATEGORIES, ITEM_CONDITIONS } from "~/utils/item-form";
 import { applyItemPhotoChanges } from "~/utils/item-photo.server";
+import { normalizeExternalPhotoUrl } from "~/utils/item-photo-url";
 import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
 
 type ItemFormErrors = {
@@ -69,6 +70,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   const isAvailable = formData.get("isAvailable") === "true";
   const photo = formData.get("photo");
   const removePhoto = formData.get("removePhoto") === "true";
+  const photoUrl = normalizeExternalPhotoUrl(formData.get("photoUrl"));
   const tagNames = parseTagsFromForm(formData);
   const tagError = validateTagNames(tagNames);
 
@@ -107,6 +109,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     category: typeof category === "string" ? category : undefined,
     condition: typeof condition === "string" ? condition : undefined,
     isAvailable,
+    photoUrl,
     ...(photoResult.photoKey !== undefined
       ? { photoKey: photoResult.photoKey }
       : {}),
@@ -243,18 +246,19 @@ export default function EditItemPage() {
           error={actionData?.errors?.tags}
         />
 
-        {photoUploadEnabled ? (
+        {photoUploadEnabled || item.photoUrl || item.photoKey ? (
           <ItemPhotoField
             itemId={item.id}
             photoKey={item.photoKey}
+            photoUrl={item.photoUrl}
+            allowUpload={photoUploadEnabled}
             error={actionData?.errors?.photo}
           />
-        ) : item.photoKey ? (
+        ) : (
           <p className="text-sm text-gray-500">
-            This item has a photo, but uploads are not configured in this
-            environment.
+            Photo uploads are not configured in this environment yet.
           </p>
-        ) : null}
+        )}
 
         <div>
           <label className="flex items-center">

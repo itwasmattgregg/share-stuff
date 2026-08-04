@@ -329,6 +329,7 @@ export async function createItem({
   category,
   condition,
   photoKey,
+  photoUrl,
   ownerId,
 }: {
   name: string;
@@ -336,6 +337,7 @@ export async function createItem({
   category?: string;
   condition?: string;
   photoKey?: string;
+  photoUrl?: string | null;
   ownerId: string;
 }) {
   return prisma.item.create({
@@ -345,6 +347,7 @@ export async function createItem({
       category,
       condition,
       photoKey,
+      photoUrl,
       ownerId,
     },
   });
@@ -358,6 +361,7 @@ export async function updateItem({
   condition,
   isAvailable,
   photoKey,
+  photoUrl,
 }: {
   id: string;
   name?: string;
@@ -366,6 +370,7 @@ export async function updateItem({
   condition?: string;
   isAvailable?: boolean;
   photoKey?: string | null;
+  photoUrl?: string | null;
 }) {
   return prisma.item.update({
     where: { id },
@@ -376,6 +381,7 @@ export async function updateItem({
       condition,
       isAvailable,
       photoKey,
+      photoUrl,
     },
   });
 }
