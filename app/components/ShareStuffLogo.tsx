@@ -9,7 +9,8 @@ export function ShareStuffMark({
 }: {
   className?: string;
 }) {
-  const gradientId = `sharestuff-mark-${useId()}`;
+  // useId() emits colons, which browsers reject inside url(#…) references.
+  const gradientId = `sharestuff-mark-${useId().replace(/:/g, "")}`;
 
   return (
     <svg
