@@ -61,6 +61,13 @@ import LoginPage from "~/routes/login";
 import { loader as lendingLoader } from "~/routes/lending";
 import LendingDashboardPage from "~/routes/lending";
 import { action as reportAction } from "~/routes/report";
+import {
+  createUserSession,
+  getUserId,
+  redirectWithFlash,
+  takeFlashMessage,
+} from "~/session.server";
+import { successFlash } from "~/utils/flash";
 
 import {
   expectFormattedDateVisible,
@@ -1252,5 +1259,145 @@ describe("integration: report submission", () => {
       where: { reporterId: reporter.id },
     });
     expect(reportCount).toBe(0);
+  });
+});
+
+describe("integration: flash messages", () => {
+  beforeEach(async () => {
+    await ensureTestDatabase();
+  });
+
+  function cookieFrom(response: Response) {
+    const setCookie = response.headers.get("Set-Cookie");
+    expect(setCookie).not.toBeNull();
+    return setCookie!;
+  }
+
+  function cookieHeaderFrom(response: Response) {
+    return cookieFrom(response).split(";")[0];
+  }
+
+  it("delivers a message once and then clears it", async () => {
+    const user = await createVerifiedUser({
+      email: "flash-once@example.com",
+      name: "Flash User",
+    });
+
+    const redirectResponse = await redirectWithFlash(
+      await createAuthenticatedRequest(user.id, "http://localhost/items"),
+      "/items",
+      successFlash("Changes saved.")
+    );
+
+    expect(redirectResponse.status).toBe(302);
+    expect(redirectResponse.headers.get("Location")).toBe("/items");
+
+    const first = await takeFlashMessage(
+      new Request("http://localhost/items", {
+        headers: { Cookie: cookieHeaderFrom(redirectResponse) },
+      })
+    );
+
+    expect(first.flashMessage).toEqual({
+      tone: "success",
+      text: "Changes saved.",
+    });
+    expect(first.headers).toBeDefined();
+
+    // Replaying the cookie the reader handed back must not show the message again.
+    const second = await takeFlashMessage(
+      new Request("http://localhost/items", {
+        headers: { Cookie: first.headers!["Set-Cookie"].split(";")[0] },
+      })
+    );
+
+    expect(second.flashMessage).toBeNull();
+    expect(second.headers).toBeUndefined();
+  });
+
+  it("keeps the user logged in while carrying a message", async () => {
+    const user = await createVerifiedUser({
+      email: "flash-session@example.com",
+    });
+
+    const redirectResponse = await redirectWithFlash(
+      await createAuthenticatedRequest(user.id, "http://localhost/items"),
+      "/items",
+      successFlash("Changes saved.")
+    );
+
+    const { headers } = await takeFlashMessage(
+      new Request("http://localhost/items", {
+        headers: { Cookie: cookieHeaderFrom(redirectResponse) },
+      })
+    );
+
+    const userIdAfterRead = await getUserId(
+      new Request("http://localhost/items", {
+        headers: { Cookie: headers!["Set-Cookie"].split(";")[0] },
+      })
+    );
+
+    expect(userIdAfterRead).toBe(user.id);
+  });
+
+  it("does not downgrade a remembered login to a session cookie", async () => {
+    const user = await createVerifiedUser({
+      email: "flash-remember@example.com",
+    });
+
+    const loginResponse = await createUserSession({
+      request: new Request("http://localhost/login"),
+      userId: user.id,
+      remember: true,
+      redirectTo: "/items",
+    });
+
+    expect(cookieFrom(loginResponse)).toMatch(/Max-Age=/i);
+
+    const flashResponse = await redirectWithFlash(
+      new Request("http://localhost/items", {
+        headers: { Cookie: cookieHeaderFrom(loginResponse) },
+      }),
+      "/items",
+      successFlash("Changes saved.")
+    );
+
+    // Re-committing the session to carry a message must preserve the 7-day
+    // expiry, otherwise "remember me" silently stops working.
+    expect(cookieFrom(flashResponse)).toMatch(/Max-Age=/i);
+
+    const { headers } = await takeFlashMessage(
+      new Request("http://localhost/items", {
+        headers: { Cookie: cookieHeaderFrom(flashResponse) },
+      })
+    );
+
+    expect(headers!["Set-Cookie"]).toMatch(/Max-Age=/i);
+  });
+
+  it("leaves a non-remembered login as a session cookie", async () => {
+    const user = await createVerifiedUser({
+      email: "flash-no-remember@example.com",
+    });
+
+    const loginResponse = await createUserSession({
+      request: new Request("http://localhost/login"),
+      userId: user.id,
+      remember: false,
+      redirectTo: "/items",
+    });
+
+    expect(cookieFrom(loginResponse)).not.toMatch(/Max-Age=/i);
+
+    const flashResponse = await redirectWithFlash(
+      new Request("http://localhost/items", {
+        headers: { Cookie: cookieHeaderFrom(loginResponse) },
+      }),
+      "/items",
+      successFlash("Changes saved.")
+    );
+
+    expect(cookieFrom(flashResponse)).not.toMatch(/Max-Age=/i);
   });
 });

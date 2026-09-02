@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 
 import {
@@ -8,8 +8,10 @@ import {
   updateLendingRequestForItemOwner,
 } from "~/models/item.server";
 import type { LendingStatus } from "~/models/item.server";
-import { requireUserId } from "~/session.server";
+import { redirectWithFlash, requireUserId } from "~/session.server";
 import { formatLendingRequestDateTime } from "~/utils";
+import { successFlash } from "~/utils/flash";
+import { lendingRequestStatusConfirmation } from "~/utils/lending-request";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -76,8 +78,17 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     },
   });
 
-  return redirect(
-    `/communities/${params.communityId}/items/${itemId}/requests`
+  return redirectWithFlash(
+    request,
+    `/communities/${params.communityId}/items/${itemId}/requests`,
+    successFlash(
+      lendingRequestStatusConfirmation({
+        status: status as LendingStatus,
+        requesterName:
+          lendingRequest.requester.name || lendingRequest.requester.email,
+        itemName: lendingRequest.item.name,
+      })
+    )
   );
 };
 

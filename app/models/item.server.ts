@@ -568,7 +568,7 @@ export async function updateLendingRequestForItemOwner({
         select: { id: true, name: true },
       },
       requester: {
-        select: { id: true },
+        select: { id: true, name: true, email: true },
       },
       itemOwner: {
         select: { id: true },

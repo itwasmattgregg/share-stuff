@@ -1,12 +1,13 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 
 import {
   getListedCommunities,
   requestToJoinCommunity,
 } from "~/models/community.server";
-import { requireUserId } from "~/session.server";
+import { redirectWithFlash, requireUserId } from "~/session.server";
+import { successFlash } from "~/utils/flash";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -23,8 +24,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     throw new Response("Invalid request", { status: 400 });
   }
 
-  await requestToJoinCommunity({ userId, communityId });
-  return redirect(`/communities/browse`);
+  const membership = await requestToJoinCommunity({ userId, communityId });
+
+  return redirectWithFlash(
+    request,
+    "/communities/browse",
+    successFlash(
+      `Request sent to ${membership.community.name}. You'll be notified when the owner reviews it.`
+    )
+  );
 };
 
 export default function BrowseCommunitiesPage() {

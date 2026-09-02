@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getActiveBorrowerRequestForUser,
   getBorrowerRequestStatusLabel,
+  lendingRequestStatusConfirmation,
 } from "./lending-request";
 
 describe("getActiveBorrowerRequestForUser", () => {
@@ -39,5 +40,41 @@ describe("getBorrowerRequestStatusLabel", () => {
     expect(getBorrowerRequestStatusLabel("APPROVED")).toBe("Approved");
     expect(getBorrowerRequestStatusLabel("BORROWED")).toBe("Borrowing");
     expect(getBorrowerRequestStatusLabel("RETURNED")).toBe("Requested");
+  });
+});
+
+describe("lendingRequestStatusConfirmation", () => {
+  it("describes each owner action in terms of the requester and item", () => {
+    expect(
+      lendingRequestStatusConfirmation({
+        status: "APPROVED",
+        requesterName: "Sam",
+        itemName: "Cordless Drill",
+      })
+    ).toMatch(/ready to collect/i);
+
+    expect(
+      lendingRequestStatusConfirmation({
+        status: "REJECTED",
+        requesterName: "Sam",
+        itemName: "Cordless Drill",
+      })
+    ).toMatch(/declined sam's request/i);
+
+    expect(
+      lendingRequestStatusConfirmation({
+        status: "BORROWED",
+        requesterName: "Sam",
+        itemName: "Cordless Drill",
+      })
+    ).toMatch(/borrowed by sam/i);
+
+    expect(
+      lendingRequestStatusConfirmation({
+        status: "RETURNED",
+        requesterName: "Sam",
+        itemName: "Cordless Drill",
+      })
+    ).toMatch(/marked as returned/i);
   });
 });
