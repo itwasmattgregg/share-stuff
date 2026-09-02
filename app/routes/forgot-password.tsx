@@ -7,6 +7,7 @@ import ShareStuffLogo from "~/components/ShareStuffLogo";
 import { requestPasswordReset } from "~/models/password.server";
 import { getUserId } from "~/session.server";
 import { safeRedirect, validateEmail } from "~/utils";
+import { submitButtonClassName, useIsSubmitting } from "~/utils/form-submission";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await getUserId(request);
@@ -45,6 +46,7 @@ export const meta: MetaFunction = () => [{ title: "Forgot Password" }];
 export default function ForgotPasswordPage() {
   const [searchParams] = useSearchParams();
   const actionData = useActionData<typeof action>();
+  const isSubmitting = useIsSubmitting();
   const emailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -105,9 +107,12 @@ export default function ForgotPasswordPage() {
 
             <button
               type="submit"
-              className="w-full rounded bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 focus:bg-primary-500"
+              disabled={isSubmitting}
+              className={submitButtonClassName(
+                "w-full rounded bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 focus:bg-primary-500"
+              )}
             >
-              Send reset link
+              {isSubmitting ? "Sending…" : "Send reset link"}
             </button>
           </Form>
         )}

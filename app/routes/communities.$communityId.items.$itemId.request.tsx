@@ -11,6 +11,7 @@ import {
 import { createNotification } from "~/models/notification.server";
 import ItemPhoto from "~/components/ItemPhoto";
 import { requireUserId } from "~/session.server";
+import { submitButtonClassName, useIsSubmitting } from "~/utils/form-submission";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -96,6 +97,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
 export default function RequestBorrowPage() {
   const data = useLoaderData<typeof loader>();
+  const isSubmitting = useIsSubmitting();
   const noteRef = useRef<HTMLTextAreaElement>(null);
 
   return (
@@ -181,9 +183,12 @@ export default function RequestBorrowPage() {
           </Link>
           <button
             type="submit"
-            className="w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px]"
+            disabled={isSubmitting}
+            className={submitButtonClassName(
+              "w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px]"
+            )}
           >
-            Send Request
+            {isSubmitting ? "Sending…" : "Send Request"}
           </button>
         </div>
       </Form>

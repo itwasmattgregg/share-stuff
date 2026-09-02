@@ -97,6 +97,7 @@ vi.mock("@remix-run/react", async (importOriginal) => {
     }: FormHTMLAttributes<HTMLFormElement>) => (
       <form {...props}>{children}</form>
     ),
+    useNavigation: () => ({ state: "idle", formData: undefined }),
   };
 });
 

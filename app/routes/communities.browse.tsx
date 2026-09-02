@@ -1,12 +1,16 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
 
 import {
   getListedCommunities,
   requestToJoinCommunity,
 } from "~/models/community.server";
 import { requireUserId } from "~/session.server";
+import {
+  isNavigationSubmittingFields,
+  submitButtonClassName,
+} from "~/utils/form-submission";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -29,6 +33,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function BrowseCommunitiesPage() {
   const data = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
 
   return (
     <div>
@@ -115,9 +120,18 @@ export default function BrowseCommunitiesPage() {
                       />
                       <button
                         type="submit"
-                        className="rounded-lg bg-secondary-500 px-4 py-2 text-sm text-white font-medium hover:bg-secondary-600 shadow-sm transition-colors"
+                        disabled={isNavigationSubmittingFields(navigation, {
+                          communityId: community.id,
+                        })}
+                        className={submitButtonClassName(
+                          "rounded-lg bg-secondary-500 px-4 py-2 text-sm text-white font-medium hover:bg-secondary-600 shadow-sm transition-colors"
+                        )}
                       >
-                        Request to Join
+                        {isNavigationSubmittingFields(navigation, {
+                          communityId: community.id,
+                        })
+                          ? "Sending…"
+                          : "Request to Join"}
                       </button>
                     </Form>
                   )}

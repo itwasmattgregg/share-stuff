@@ -13,6 +13,7 @@ import { ITEM_CATEGORIES, ITEM_CONDITIONS } from "~/utils/item-form";
 import { applyItemPhotoChanges } from "~/utils/item-photo.server";
 import { normalizeExternalPhotoUrl } from "~/utils/item-photo-url";
 import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
+import { submitButtonClassName, useIsSubmitting } from "~/utils/form-submission";
 
 type ItemFormErrors = {
   name?: string;
@@ -123,6 +124,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 export default function EditItemPage() {
   const { item, photoUploadEnabled } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const isSubmitting = useIsSubmitting();
   const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -284,9 +286,12 @@ export default function EditItemPage() {
           </Link>
           <button
             type="submit"
-            className="w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px]"
+            disabled={isSubmitting}
+            className={submitButtonClassName(
+              "w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px]"
+            )}
           >
-            Update Item
+            {isSubmitting ? "Saving…" : "Update Item"}
           </button>
         </div>
       </Form>

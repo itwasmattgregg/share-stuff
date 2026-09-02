@@ -38,6 +38,7 @@ vi.mock("@remix-run/react", async (importOriginal) => {
     ),
     useLoaderData: () => ({ item: mockItem, photoUploadEnabled: false }),
     useActionData: () => undefined,
+    useNavigation: () => ({ state: "idle", formData: undefined }),
   };
 });
 

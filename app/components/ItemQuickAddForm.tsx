@@ -11,6 +11,7 @@ import {
   isValidIsbn,
   normalizeIsbn,
 } from "~/utils/item-form";
+import { submitButtonClassName } from "~/utils/form-submission";
 
 type LookupResult = {
   title: string;
@@ -70,6 +71,9 @@ export default function ItemQuickAddForm({
   const [formKey, setFormKey] = useState(0);
 
   const isSubmitting = navigation.state === "submitting";
+  const submittingIntent = navigation.formData?.get("intent");
+  const isAdding = isSubmitting && submittingIntent === "add";
+  const isAddingAnother = isSubmitting && submittingIntent === "add-another";
   const showBookTools = isBookCategory(category);
   const showMovieTools = isMovieCategory(category);
 
@@ -543,18 +547,22 @@ export default function ItemQuickAddForm({
             name="intent"
             value="add"
             disabled={isSubmitting}
-            className="w-full sm:w-auto rounded-md border border-success-600 bg-white px-6 py-3 text-base font-medium text-success-700 hover:bg-success-50 min-h-[44px] disabled:opacity-60"
+            className={submitButtonClassName(
+              "w-full sm:w-auto rounded-md border border-success-600 bg-white px-6 py-3 text-base font-medium text-success-700 hover:bg-success-50 min-h-[44px]"
+            )}
           >
-            Add item
+            {isAdding ? "Adding…" : "Add item"}
           </button>
           <button
             type="submit"
             name="intent"
             value="add-another"
             disabled={isSubmitting}
-            className="w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px] disabled:opacity-60"
+            className={submitButtonClassName(
+              "w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px]"
+            )}
           >
-            {isSubmitting ? "Adding…" : "Add & another"}
+            {isAddingAnother ? "Adding…" : "Add & another"}
           </button>
         </div>
       </Form>

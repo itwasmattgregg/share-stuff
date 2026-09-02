@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
 
 import {
   getCommunity,
@@ -14,6 +14,10 @@ import ToggleSwitch from "~/components/ToggleSwitch";
 import { createNotification } from "~/models/notification.server";
 import { requireUserId } from "~/session.server";
 import { prisma } from "~/db.server";
+import {
+  isNavigationSubmittingFields,
+  submitButtonClassName,
+} from "~/utils/form-submission";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -115,6 +119,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
 export default function CommunityManagePage() {
   const data = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
 
   return (
     <div className="max-w-4xl">
@@ -139,9 +144,20 @@ export default function CommunityManagePage() {
             <input type="hidden" name="isArchived" value="false" />
             <button
               type="submit"
-              className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600"
+              disabled={isNavigationSubmittingFields(navigation, {
+                intent: "set-archived",
+                isArchived: "false",
+              })}
+              className={submitButtonClassName(
+                "rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600"
+              )}
             >
-              Restore Community
+              {isNavigationSubmittingFields(navigation, {
+                intent: "set-archived",
+                isArchived: "false",
+              })
+                ? "Restoring…"
+                : "Restore Community"}
             </button>
           </Form>
         </div>
@@ -216,6 +232,9 @@ export default function CommunityManagePage() {
                         checked={data.community.isListed}
                         label="List in Discover"
                         type="submit"
+                        disabled={isNavigationSubmittingFields(navigation, {
+                          intent: "update-listing",
+                        })}
                         className="mt-0.5"
                       />
                     </div>
@@ -262,9 +281,20 @@ export default function CommunityManagePage() {
                         <input type="hidden" name="status" value="APPROVED" />
                         <button
                           type="submit"
-                          className="rounded-md bg-success-500 px-3 py-1 text-sm text-white hover:bg-success-700"
+                          disabled={isNavigationSubmittingFields(navigation, {
+                            membershipId: membership.id,
+                            status: "APPROVED",
+                          })}
+                          className={submitButtonClassName(
+                            "rounded-md bg-success-500 px-3 py-1 text-sm text-white hover:bg-success-700"
+                          )}
                         >
-                          Approve
+                          {isNavigationSubmittingFields(navigation, {
+                            membershipId: membership.id,
+                            status: "APPROVED",
+                          })
+                            ? "Approving…"
+                            : "Approve"}
                         </button>
                       </Form>
                       <Form method="post" className="inline">
@@ -276,7 +306,13 @@ export default function CommunityManagePage() {
                         <input type="hidden" name="status" value="REJECTED" />
                         <button
                           type="submit"
-                          className="rounded-md bg-danger-500 px-3 py-1 text-sm text-white hover:bg-danger-700"
+                          disabled={isNavigationSubmittingFields(navigation, {
+                            membershipId: membership.id,
+                            status: "REJECTED",
+                          })}
+                          className={submitButtonClassName(
+                            "rounded-md bg-danger-500 px-3 py-1 text-sm text-white hover:bg-danger-700"
+                          )}
                           onClick={(e) => {
                             if (
                               !confirm(
@@ -287,7 +323,12 @@ export default function CommunityManagePage() {
                             }
                           }}
                         >
-                          Reject
+                          {isNavigationSubmittingFields(navigation, {
+                            membershipId: membership.id,
+                            status: "REJECTED",
+                          })
+                            ? "Declining…"
+                            : "Reject"}
                         </button>
                       </Form>
                     </div>
@@ -362,7 +403,13 @@ export default function CommunityManagePage() {
             <input type="hidden" name="isArchived" value="true" />
             <button
               type="submit"
-              className="rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              disabled={isNavigationSubmittingFields(navigation, {
+                intent: "set-archived",
+                isArchived: "true",
+              })}
+              className={submitButtonClassName(
+                "rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              )}
               onClick={(event) => {
                 if (
                   !confirm(
@@ -373,7 +420,12 @@ export default function CommunityManagePage() {
                 }
               }}
             >
-              Archive Community
+              {isNavigationSubmittingFields(navigation, {
+                intent: "set-archived",
+                isArchived: "true",
+              })
+                ? "Archiving…"
+                : "Archive Community"}
             </button>
           </Form>
         </div>

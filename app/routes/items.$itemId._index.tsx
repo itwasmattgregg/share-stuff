@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
 
 import {
   getItem,
@@ -12,6 +12,10 @@ import ItemPhoto from "~/components/ItemPhoto";
 import TagPills from "~/components/TagPills";
 import { requireUserId } from "~/session.server";
 import { formatLendingRequestDateTime } from "~/utils";
+import {
+  isNavigationSubmittingFields,
+  submitButtonClassName,
+} from "~/utils/form-submission";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -79,6 +83,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
 export default function ItemDetailPage() {
   const data = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
 
   const borrowedRequest = data.item.lendingRequests.find(
     (request) => request.status === "BORROWED"
@@ -211,7 +216,13 @@ export default function ItemDetailPage() {
                         <input type="hidden" name="status" value="RETURNED" />
                         <button
                           type="submit"
-                          className="rounded-md bg-success-500 px-3 py-2 text-sm text-white hover:bg-success-700"
+                          disabled={isNavigationSubmittingFields(navigation, {
+                            requestId: borrowedRequest.id,
+                            status: "RETURNED",
+                          })}
+                          className={submitButtonClassName(
+                            "rounded-md bg-success-500 px-3 py-2 text-sm text-white hover:bg-success-700"
+                          )}
                           onClick={(event) => {
                             if (
                               !confirm(
@@ -225,7 +236,12 @@ export default function ItemDetailPage() {
                             }
                           }}
                         >
-                          Mark as Returned
+                          {isNavigationSubmittingFields(navigation, {
+                            requestId: borrowedRequest.id,
+                            status: "RETURNED",
+                          })
+                            ? "Saving…"
+                            : "Mark as Returned"}
                         </button>
                       </Form>
                     </div>
@@ -273,7 +289,13 @@ export default function ItemDetailPage() {
                               />
                               <button
                                 type="submit"
-                                className="rounded-md bg-danger-500 px-3 py-2 text-sm text-white hover:bg-danger-700"
+                                disabled={isNavigationSubmittingFields(navigation, {
+                                  requestId: request.id,
+                                  status: "REJECTED",
+                                })}
+                                className={submitButtonClassName(
+                                  "rounded-md bg-danger-500 px-3 py-2 text-sm text-white hover:bg-danger-700"
+                                )}
                                 onClick={(event) => {
                                   if (
                                     !confirm(
@@ -287,7 +309,12 @@ export default function ItemDetailPage() {
                                   }
                                 }}
                               >
-                                Reject
+                                {isNavigationSubmittingFields(navigation, {
+                                  requestId: request.id,
+                                  status: "REJECTED",
+                                })
+                                  ? "Declining…"
+                                  : "Reject"}
                               </button>
                             </Form>
                           </div>

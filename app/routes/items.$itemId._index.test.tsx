@@ -56,6 +56,7 @@ vi.mock("@remix-run/react", async (importOriginal) => {
       <form {...props}>{children}</form>
     ),
     useLoaderData: () => ({ item: mockItem }),
+    useNavigation: () => ({ state: "idle", formData: undefined }),
   };
 });
 

@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 
 import { createReport } from "~/models/report.server";
 import { requireUserId } from "~/session.server";
+import { submitButtonClassName, useIsSubmitting } from "~/utils/form-submission";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await requireUserId(request);
@@ -45,6 +46,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function ReportPage() {
   const actionData = useActionData<typeof action>();
+  const isSubmitting = useIsSubmitting();
   const reasonRef = useRef<HTMLSelectElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
@@ -195,9 +197,12 @@ export default function ReportPage() {
           </Link>
           <button
             type="submit"
-            className="rounded-md bg-danger-600 px-4 py-2 text-sm font-medium text-white hover:bg-danger-700"
+            disabled={isSubmitting}
+            className={submitButtonClassName(
+              "rounded-md bg-danger-600 px-4 py-2 text-sm font-medium text-white hover:bg-danger-700"
+            )}
           >
-            Submit Report
+            {isSubmitting ? "Submitting…" : "Submit Report"}
           </button>
         </div>
       </Form>

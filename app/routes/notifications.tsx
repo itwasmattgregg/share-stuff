@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
 
 import Layout from "~/components/Layout";
 import {
@@ -10,6 +10,10 @@ import {
   deleteNotification,
 } from "~/models/notification.server";
 import { requireUserId } from "~/session.server";
+import {
+  isNavigationSubmittingFields,
+  submitButtonClassName,
+} from "~/utils/form-submission";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -36,6 +40,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function NotificationsPage() {
   const data = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
   const unreadCount = data.notifications.filter((n) => !n.read).length;
 
   return (
@@ -55,9 +60,18 @@ export default function NotificationsPage() {
             <input type="hidden" name="action" value="mark-all-read" />
             <button
               type="submit"
-              className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 shadow-md transition-colors"
+              disabled={isNavigationSubmittingFields(navigation, {
+                action: "mark-all-read",
+              })}
+              className={submitButtonClassName(
+                "rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 shadow-md transition-colors"
+              )}
             >
-              Mark All as Read
+              {isNavigationSubmittingFields(navigation, {
+                action: "mark-all-read",
+              })
+                ? "Updating…"
+                : "Mark All as Read"}
             </button>
           </Form>
         </div>
@@ -114,9 +128,20 @@ export default function NotificationsPage() {
                       />
                       <button
                         type="submit"
-                        className="text-xs text-primary-600 hover:text-primary-800"
+                        disabled={isNavigationSubmittingFields(navigation, {
+                          action: "mark-read",
+                          notificationId: notification.id,
+                        })}
+                        className={submitButtonClassName(
+                          "text-xs text-primary-600 hover:text-primary-800"
+                        )}
                       >
-                        Mark Read
+                        {isNavigationSubmittingFields(navigation, {
+                          action: "mark-read",
+                          notificationId: notification.id,
+                        })
+                          ? "Saving…"
+                          : "Mark Read"}
                       </button>
                     </Form>
                   )}
@@ -129,9 +154,20 @@ export default function NotificationsPage() {
                     />
                     <button
                       type="submit"
-                      className="text-xs text-danger-600 hover:text-danger-700"
+                      disabled={isNavigationSubmittingFields(navigation, {
+                        action: "delete",
+                        notificationId: notification.id,
+                      })}
+                      className={submitButtonClassName(
+                        "text-xs text-danger-600 hover:text-danger-700"
+                      )}
                     >
-                      Delete
+                      {isNavigationSubmittingFields(navigation, {
+                        action: "delete",
+                        notificationId: notification.id,
+                      })
+                        ? "Deleting…"
+                        : "Delete"}
                     </button>
                   </Form>
                 </div>
