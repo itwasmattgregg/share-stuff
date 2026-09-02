@@ -36,8 +36,7 @@ This directory contains all application routes organized by feature area using c
 - `communities.$communityId.manage.tsx` - Manage community (`/communities/:id/manage`)
 
 ### Item Routes (items prefix)
-- `items.tsx` - User's items list (`/items`)
-- `items._index.tsx` - Items index - redirects to first (`/items`)
+- `items.tsx` - User's items (`/items`) - grid on its own, list + detail side by side on large screens
 - `items.new.tsx` - Create new item (`/items/new`)
 - `items.$itemId.tsx` - Item detail page (`/items/:id`)
 - `items.$itemId.edit.tsx` - Edit item (`/items/:id/edit`)
