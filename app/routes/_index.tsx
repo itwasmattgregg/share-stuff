@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link } from "@remix-run/react";
 
-import ShareStuffLogo from "~/components/ShareStuffLogo";
+import ShareStuffLogo, { ShareStuffMark } from "~/components/ShareStuffLogo";
 import UserMenu from "~/components/UserMenu";
 import { useOptionalUser } from "~/utils";
 
@@ -312,11 +312,7 @@ export default function Index() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-              </div>
+              <ShareStuffMark className="w-8 h-8" />
               <span className="text-xl font-bold">ShareStuff</span>
             </div>
             <p className="text-gray-400 mb-4">
