@@ -352,6 +352,48 @@ describe("integration: item tagging", () => {
     expect(items).toHaveLength(1);
     expect(items[0]?.name).toBe("Board Game");
   });
+
+  it("resolves a tagged item to a community the viewer can actually open", async () => {
+    const owner = await createVerifiedUser({
+      email: "tag-link-owner@example.com",
+      name: "Tag Link Owner",
+    });
+    const viewer = await createVerifiedUser({
+      email: "tag-link-viewer@example.com",
+      name: "Tag Link Viewer",
+    });
+
+    const community = await createCommunityWithOwner({ ownerId: owner.id });
+    await addApprovedCommunityMember({
+      communityId: community.id,
+      userId: viewer.id,
+    });
+
+    const item = await prisma.item.create({
+      data: { name: "Tagged Drill", ownerId: owner.id },
+    });
+    await syncItemTags(item.id, ["power-tools"]);
+
+    const { items } = await getItemsByTagSlug({
+      slug: "power-tools",
+      userId: viewer.id,
+    });
+
+    expect(items[0]?.primaryCommunityId).toBe(community.id);
+
+    // The community route is the one the tag page links to, so opening it as a
+    // non-owner must succeed rather than throw the owner-only 403.
+    const { response } = await invokeRouteHandler(communityItemLoader, {
+      request: await createAuthenticatedRequest(
+        viewer.id,
+        `http://localhost/communities/${community.id}/items/${item.id}`
+      ),
+      params: { communityId: community.id, itemId: item.id },
+      context: {},
+    });
+
+    expect(response.status).toBe(200);
+  });
 });
 
 describe("integration: community item access", () => {
