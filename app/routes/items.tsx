@@ -30,10 +30,7 @@ export default function ItemsPage() {
   const isIndexPage =
     location.pathname === "/items" || location.pathname === "/items/";
   const isNewPage = location.pathname === "/items/new";
-  const isItemPage =
-    location.pathname.startsWith("/items/") && !isNewPage;
   const hasItems = data.items.length > 0;
-  const showDetailPanel = isNewPage || isItemPage || isIndexPage;
 
   return (
     <Layout>
@@ -69,10 +66,87 @@ export default function ItemsPage() {
             Add Your First Item
           </Link>
         </div>
+      ) : isIndexPage ? (
+        <>
+          <div className="mb-6">
+            <TagFilterBar
+              tags={data.popularTags}
+              selectedSlugs={data.tags}
+              preserveParams={[]}
+            />
+          </div>
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full">
+            {data.items.map((item) => (
+              <Link
+                key={item.id}
+                to={item.id}
+                className="block bg-white border border-neutral-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow"
+              >
+                <ItemPhoto
+                  itemId={item.id}
+                  photoKey={item.photoKey}
+                  photoUrl={item.photoUrl}
+                  alt={item.name}
+                  className="mb-3 h-36 w-full rounded-lg border border-neutral-200 object-cover"
+                />
+
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-neutral-900 flex-1">
+                    {item.name}
+                  </h3>
+                  <span
+                    className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                      item.isAvailable
+                        ? "bg-success-100 text-success-800"
+                        : "bg-danger-100 text-danger-800"
+                    }`}
+                  >
+                    {item.isAvailable ? "Available" : "Borrowed"}
+                  </span>
+                </div>
+                {item.description && (
+                  <p className="text-sm text-neutral-600 mb-3 line-clamp-2">
+                    {item.description}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {item.category && (
+                    <span className="inline-flex rounded-full bg-primary-100 px-2 py-1 text-xs text-primary-800">
+                      {item.category}
+                    </span>
+                  )}
+                  {item.condition && (
+                    <span className="inline-flex rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-800">
+                      {item.condition}
+                    </span>
+                  )}
+                </div>
+                <TagPills
+                  tags={item.itemTags.map((itemTag) => itemTag.tag)}
+                  linkable
+                  className="mt-3"
+                  getTagHref={(slug) =>
+                    buildTagFilterHref({
+                      tagSlug: slug,
+                      selectedSlugs: data.tags,
+                      toggle: false,
+                    })
+                  }
+                />
+              </Link>
+            ))}
+          </div>
+        </>
       ) : (
-        <div className="flex gap-6">
-          {hasItems && (
-            <>
+        <>
+          <Link
+            to={{ pathname: "/items", search: location.search }}
+            className="mb-4 inline-flex min-h-[44px] items-center text-sm font-medium text-primary-600 hover:text-primary-800 lg:hidden"
+          >
+            ← All items
+          </Link>
+          <div className="flex gap-6">
+            {hasItems && (
               <aside className="hidden lg:block w-64 flex-shrink-0">
                 <div className="bg-white border border-neutral-200 rounded-lg p-4">
                   <h2 className="text-sm font-semibold text-neutral-900 mb-3">Items</h2>
@@ -113,83 +187,13 @@ export default function ItemsPage() {
                   </nav>
                 </div>
               </aside>
+            )}
 
-              {isIndexPage && !isNewPage && (
-                <div className="lg:hidden grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 w-full">
-                  {data.items.map((item) => (
-                    <Link
-                      key={item.id}
-                      to={item.id}
-                      className="block bg-white border border-neutral-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow"
-                    >
-                      <ItemPhoto
-                        itemId={item.id}
-                        photoKey={item.photoKey}
-                        photoUrl={item.photoUrl}
-                        alt={item.name}
-                        className="mb-3 h-36 w-full rounded-lg border border-neutral-200 object-cover"
-                      />
-
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-neutral-900 flex-1">
-                          {item.name}
-                        </h3>
-                        <span
-                          className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                            item.isAvailable
-                              ? "bg-success-100 text-success-800"
-                              : "bg-danger-100 text-danger-800"
-                          }`}
-                        >
-                          {item.isAvailable ? "Available" : "Borrowed"}
-                        </span>
-                      </div>
-                      {item.description && (
-                        <p className="text-sm text-neutral-600 mb-3 line-clamp-2">
-                          {item.description}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {item.category && (
-                          <span className="inline-flex rounded-full bg-primary-100 px-2 py-1 text-xs text-primary-800">
-                            {item.category}
-                          </span>
-                        )}
-                        {item.condition && (
-                          <span className="inline-flex rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-800">
-                            {item.condition}
-                          </span>
-                        )}
-                      </div>
-                      <TagPills
-                        tags={item.itemTags.map((itemTag) => itemTag.tag)}
-                        linkable
-                        className="mt-3"
-                        getTagHref={(slug) =>
-                          buildTagFilterHref({
-                            tagSlug: slug,
-                            selectedSlugs: data.tags,
-                            toggle: false,
-                          })
-                        }
-                      />
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-
-          {showDetailPanel && (
-            <div
-              className={`flex-1 min-w-0 ${
-                isItemPage || isNewPage ? "" : "hidden lg:block"
-              }`}
-            >
+            <div className="flex-1 min-w-0">
               <Outlet />
             </div>
-          )}
-        </div>
+          </div>
+        </>
       )}
     </Layout>
   );

@@ -1,7 +1,11 @@
 import type { Tag } from "@prisma/client";
 
 import { prisma } from "~/db.server";
-import { communityItemOwnerFilter } from "~/models/item.server";
+import { getUserCommunities } from "~/models/community.server";
+import {
+  communityItemOwnerFilter,
+  getVisibleCommunitiesForItem,
+} from "~/models/item.server";
 import {
   formatTagDisplayName,
   normalizeTagSlug,
@@ -211,7 +215,16 @@ export async function getPopularTags({
 
 const itemIncludeWithTags = {
   owner: {
-    select: { id: true, email: true, name: true },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      ownedCommunities: { select: { id: true } },
+      communityMemberships: {
+        where: { status: "APPROVED" },
+        select: { communityId: true },
+      },
+    },
   },
   itemTags: {
     include: {
@@ -268,7 +281,28 @@ export async function getItemsByTagSlug({
     orderBy: { createdAt: "desc" },
   });
 
-  return { tag, items };
+  const userCommunities = await getUserCommunities({ userId });
+  const userCommunitySummaries = userCommunities.map((community) => ({
+    id: community.id,
+    name: community.name,
+  }));
+
+  return {
+    tag,
+    items: items.map((item) => {
+      const visibleCommunities = communityId
+        ? userCommunitySummaries.filter(
+            (community) => community.id === communityId
+          )
+        : getVisibleCommunitiesForItem(userCommunitySummaries, item.owner);
+
+      return {
+        ...item,
+        visibleCommunities,
+        primaryCommunityId: visibleCommunities[0]?.id ?? null,
+      };
+    }),
+  };
 }
 
 export async function getTagBySlug(slug: string) {

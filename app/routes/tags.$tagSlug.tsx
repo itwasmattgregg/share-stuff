@@ -83,12 +83,14 @@ export default function TagDetailPage() {
                 linkable
                 className="mt-3"
               />
-              <Link
-                to={`/items/${item.id}`}
-                className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600"
-              >
-                View Item
-              </Link>
+              {item.primaryCommunityId ? (
+                <Link
+                  to={`/communities/${item.primaryCommunityId}/items/${item.id}`}
+                  className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600"
+                >
+                  View Item
+                </Link>
+              ) : null}
             </div>
           ))}
         </div>

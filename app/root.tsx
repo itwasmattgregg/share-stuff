@@ -8,11 +8,15 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  isRouteErrorResponse,
+  useRouteError,
 } from "@remix-run/react";
 
+import ErrorPage from "~/components/ErrorPage";
 import { getUser } from "~/session.server";
 import { getUnreadNotificationCount } from "~/models/notification.server";
 import stylesheet from "~/tailwind.css";
+import { UNEXPECTED_ERROR_COPY, routeErrorCopy } from "~/utils/error-copy";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -72,7 +76,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
-export default function App() {
+function Document({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
       <head>
@@ -83,11 +87,36 @@ export default function App() {
         <Links />
       </head>
       <body className="h-full">
-        <Outlet />
+        {children}
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
       </body>
     </html>
+  );
+}
+
+export default function App() {
+  return (
+    <Document>
+      <Outlet />
+    </Document>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const copy = isRouteErrorResponse(error)
+    ? routeErrorCopy(error.status)
+    : UNEXPECTED_ERROR_COPY;
+
+  return (
+    <Document>
+      <ErrorPage
+        title={copy.title}
+        message={copy.message}
+        detail={copy.detail}
+      />
+    </Document>
   );
 }

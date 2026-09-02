@@ -225,7 +225,7 @@ const communityItemsInclude = {
   },
 };
 
-function getVisibleCommunitiesForItem(
+export function getVisibleCommunitiesForItem(
   userCommunities: { id: string; name: string }[],
   owner: {
     ownedCommunities: { id: string }[];
