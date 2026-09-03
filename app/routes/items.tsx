@@ -9,6 +9,10 @@ import TagPills from "~/components/TagPills";
 import { getUserItems } from "~/models/item.server";
 import { getPopularTags } from "~/models/tag.server";
 import { requireUserId } from "~/session.server";
+import {
+  getItemLendingDisplay,
+  itemLendingBadgeClassName,
+} from "~/utils/lending-request";
 import { buildTagFilterHref, parseTagSlugsFromSearchParams } from "~/utils/tag";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -76,7 +80,13 @@ export default function ItemsPage() {
             />
           </div>
           <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full">
-            {data.items.map((item) => (
+            {data.items.map((item) => {
+              const display = getItemLendingDisplay(
+                item.lendingRequests,
+                item.isAvailable
+              );
+
+              return (
               <Link
                 key={item.id}
                 to={item.id}
@@ -95,13 +105,11 @@ export default function ItemsPage() {
                     {item.name}
                   </h3>
                   <span
-                    className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                      item.isAvailable
-                        ? "bg-success-100 text-success-800"
-                        : "bg-danger-100 text-danger-800"
-                    }`}
+                    className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${itemLendingBadgeClassName(
+                      display.tone
+                    )}`}
                   >
-                    {item.isAvailable ? "Available" : "Borrowed"}
+                    {display.label}
                   </span>
                 </div>
                 {item.description && (
@@ -134,7 +142,8 @@ export default function ItemsPage() {
                   }
                 />
               </Link>
-            ))}
+              );
+            })}
           </div>
         </>
       ) : (
@@ -159,6 +168,10 @@ export default function ItemsPage() {
                     {data.items.map((item) => {
                       const isActive =
                         !isNewPage && location.pathname.includes(`/items/${item.id}`);
+                      const display = getItemLendingDisplay(
+                        item.lendingRequests,
+                        item.isAvailable
+                      );
                       return (
                         <Link
                           key={item.id}
@@ -172,13 +185,11 @@ export default function ItemsPage() {
                           <div className="flex items-center justify-between">
                             <span className="font-medium truncate">{item.name}</span>
                             <span
-                              className={`ml-2 inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium flex-shrink-0 ${
-                                item.isAvailable
-                                  ? "bg-success-100 text-success-800"
-                                  : "bg-danger-100 text-danger-800"
-                              }`}
+                              className={`ml-2 inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium flex-shrink-0 ${itemLendingBadgeClassName(
+                                display.tone
+                              )}`}
                             >
-                              {item.isAvailable ? "Available" : "Borrowed"}
+                              {display.label}
                             </span>
                           </div>
                         </Link>

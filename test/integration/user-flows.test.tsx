@@ -595,6 +595,11 @@ describe("integration: lending lifecycle", () => {
 
     expect(borrowAction.response.status).toBe(302);
 
+    const borrowedRequest = await prisma.lendingRequest.findUniqueOrThrow({
+      where: { id: lendingRequest.id },
+    });
+    expect(borrowedRequest.borrowedAt).toBeTruthy();
+
     const ownerRequestsPage = await invokeRouteHandler(communityRequestsLoader, {
       request: await createAuthenticatedRequest(
         owner.id,
@@ -615,7 +620,7 @@ describe("integration: lending lifecycle", () => {
 
     renderWithLoaderData(<ItemRequestsPage />, ownerRequestsData);
     expect(screen.getByText(/currently borrowed/i)).toBeInTheDocument();
-    expectFormattedDateVisible(requestCreatedAt);
+    expectFormattedDateVisible(borrowedRequest.borrowedAt!);
     expect(screen.getByText(/need it for a weekend trip/i)).toBeInTheDocument();
 
     const returnAction = await invokeRouteHandler(ownerItemAction, {
@@ -640,6 +645,7 @@ describe("integration: lending lifecycle", () => {
       where: { id: lendingRequest.id },
     });
     expect(returnedRequest.status).toBe("RETURNED");
+    expect(returnedRequest.returnedAt).toBeTruthy();
 
     const completedRequestsPage = await invokeRouteHandler(
       communityRequestsLoader,
@@ -659,7 +665,7 @@ describe("integration: lending lifecycle", () => {
     renderWithLoaderData(<ItemRequestsPage />, completedRequestsData);
     expect(screen.getByText(/completed requests/i)).toBeInTheDocument();
     expect(screen.getByText(/returned on/i)).toBeInTheDocument();
-    expectFormattedDateVisible(requestCreatedAt);
+    expectFormattedDateVisible(returnedRequest.returnedAt!);
 
     const ownerItemPage = await invokeRouteHandler(ownerItemLoader, {
       request: await createAuthenticatedRequest(
@@ -1034,7 +1040,7 @@ describe("integration: reject lending request", () => {
     }>(borrowerDashboard.response);
 
     renderWithLoaderData(<LendingDashboardPage />, borrowerDashboardData);
-    expect(screen.getByText(/^rejected$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^declined$/i)).toBeInTheDocument();
     expect(screen.getByText(/owner response/i)).toBeInTheDocument();
     expect(screen.getByText(/not available this month/i)).toBeInTheDocument();
   });
@@ -1140,7 +1146,7 @@ describe("integration: lending queue", () => {
     });
 
     itemRecord = await prisma.item.findUniqueOrThrow({ where: { id: item.id } });
-    expect(itemRecord.isAvailable).toBe(true);
+    expect(itemRecord.isAvailable).toBe(false);
 
     const approveQueuedAction = await invokeRouteHandler(communityRequestsAction, {
       request: await createAuthenticatedFormPost(
@@ -1182,7 +1188,7 @@ describe("integration: lending queue", () => {
 
     renderWithLoaderData(<LendingDashboardPage />, queuedBorrowerData);
     expect(screen.getByText(/queued blender/i)).toBeInTheDocument();
-    expect(screen.getByText(/^approved$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^ready for pickup$/i)).toBeInTheDocument();
     expectFormattedDateVisible(queueCreatedAt);
     expect(screen.getByText(/happy to wait in line/i)).toBeInTheDocument();
   });

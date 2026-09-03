@@ -10,6 +10,10 @@ import { requireUserId, logout } from "~/session.server";
 import { getUserById, deleteUserByEmail } from "~/models/user.server";
 import { changeUserPassword } from "~/models/password.server";
 import { prisma } from "~/db.server";
+import {
+  getItemLendingDisplay,
+  itemLendingBadgeClassName,
+} from "~/utils/lending-request";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -364,7 +368,13 @@ export default function ProfilePage() {
             </p>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {data.items.map((item) => (
+              {data.items.map((item) => {
+                const display = getItemLendingDisplay(
+                  item.lendingRequests,
+                  item.isAvailable
+                );
+
+                return (
                 <Link
                   key={item.id}
                   to={`/items/${item.id}`}
@@ -383,17 +393,16 @@ export default function ProfilePage() {
                       </span>
                     )}
                     <span
-                      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                        item.isAvailable
-                          ? "bg-success-100 text-success-800"
-                          : "bg-danger-100 text-danger-800"
-                      }`}
+                      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${itemLendingBadgeClassName(
+                        display.tone
+                      )}`}
                     >
-                      {item.isAvailable ? "Available" : "Borrowed"}
+                      {display.label}
                     </span>
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           )}
           {data.items.length > 6 && (

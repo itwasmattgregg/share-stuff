@@ -13,6 +13,10 @@ import { successFlash } from "~/utils/flash";
 import { ITEM_CATEGORIES, ITEM_CONDITIONS } from "~/utils/item-form";
 import { applyItemPhotoChanges } from "~/utils/item-photo.server";
 import { normalizeExternalPhotoUrl } from "~/utils/item-photo-url";
+import {
+  UNAVAILABLE_LENDING_STATUSES,
+  type LendingStatus,
+} from "~/utils/lending-request";
 import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
 
 type ItemFormErrors = {
@@ -20,6 +24,14 @@ type ItemFormErrors = {
   photo?: string;
   tags?: string;
 };
+
+function itemHasActiveLendingQueue(
+  lendingRequests: Array<{ status: string }> | undefined
+) {
+  return (lendingRequests ?? []).some((request) =>
+    UNAVAILABLE_LENDING_STATUSES.includes(request.status as LendingStatus)
+  );
+}
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -68,7 +80,11 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   const description = formData.get("description");
   const category = formData.get("category");
   const condition = formData.get("condition");
-  const isAvailable = formData.get("isAvailable") === "true";
+  const isAvailableSubmitted = formData.get("isAvailable") === "true";
+  const availabilityLocked = itemHasActiveLendingQueue(item.lendingRequests);
+  const isAvailable = availabilityLocked
+    ? item.isAvailable
+    : isAvailableSubmitted;
   const photo = formData.get("photo");
   const removePhoto = formData.get("removePhoto") === "true";
   const photoUrl = normalizeExternalPhotoUrl(formData.get("photoUrl"));
@@ -138,6 +154,7 @@ export default function EditItemPage() {
 
   const categories = ITEM_CATEGORIES;
   const conditions = ITEM_CONDITIONS;
+  const availabilityLocked = itemHasActiveLendingQueue(item.lendingRequests);
 
   return (
     <div className="max-w-2xl">
@@ -272,12 +289,19 @@ export default function EditItemPage() {
               name="isAvailable"
               value="true"
               defaultChecked={item.isAvailable}
-              className="rounded border-gray-300 text-success-600 shadow-sm focus:border-success-300 focus:ring focus:ring-success-200 focus:ring-opacity-50"
+              disabled={availabilityLocked}
+              className="rounded border-gray-300 text-success-600 shadow-sm focus:border-success-300 focus:ring focus:ring-success-200 focus:ring-opacity-50 disabled:cursor-not-allowed disabled:opacity-50"
             />
             <span className="ml-2 text-sm text-gray-700">
               Item is available for lending
             </span>
           </label>
+          {availabilityLocked ? (
+            <p className="mt-2 text-sm text-gray-500">
+              Availability is driven by the lending queue until pending,
+              ready-for-pickup, and borrowed requests are cleared.
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
