@@ -131,4 +131,31 @@ describe("partitionLendingRequests", () => {
     const correct = partitionLendingRequests(requests, ownerId);
     expect(correct.requestsForMyItems).toHaveLength(1);
   });
+
+  it("excludes cancelled requests from the active incoming owner list", () => {
+    const ownerId = "owner";
+    const borrowerId = "borrower";
+
+    const { requestsForMyItems } = partitionLendingRequests(
+      [
+        {
+          id: "cancelled",
+          requesterId: borrowerId,
+          itemOwnerId: ownerId,
+          status: "CANCELLED",
+          createdAt: "2024-01-01",
+        },
+        {
+          id: "pending",
+          requesterId: borrowerId,
+          itemOwnerId: ownerId,
+          status: "PENDING",
+          createdAt: "2024-01-02",
+        },
+      ],
+      ownerId
+    );
+
+    expect(requestsForMyItems.map((request) => request.id)).toEqual(["pending"]);
+  });
 });

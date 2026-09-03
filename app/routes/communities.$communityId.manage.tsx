@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
 
 import {
@@ -12,7 +12,8 @@ import {
 } from "~/models/community.server";
 import ToggleSwitch from "~/components/ToggleSwitch";
 import { createNotification } from "~/models/notification.server";
-import { requireUserId } from "~/session.server";
+import { redirectWithFlash, requireUserId } from "~/session.server";
+import { successFlash } from "~/utils/flash";
 import { prisma } from "~/db.server";
 import {
   isNavigationSubmittingFields,
@@ -65,13 +66,27 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   if (intent === "update-listing") {
     const isListed = formData.get("isListed") === "true";
     await updateCommunity({ id: communityId, isListed });
-    return redirect(`/communities/${communityId}/manage`);
+    return redirectWithFlash(
+      request,
+      `/communities/${communityId}/manage`,
+      successFlash(
+        isListed
+          ? "This community now appears on the Discover page."
+          : "This community is now hidden from the Discover page."
+      )
+    );
   }
 
   if (intent === "set-archived") {
     const isArchived = formData.get("isArchived") === "true";
     await setCommunityArchived({ id: communityId, isArchived });
-    return redirect(`/communities/${communityId}/manage`);
+    return redirectWithFlash(
+      request,
+      `/communities/${communityId}/manage`,
+      successFlash(
+        isArchived ? "Community archived." : "Community restored."
+      )
+    );
   }
 
   const membershipId = formData.get("membershipId");
@@ -92,6 +107,9 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     include: {
       community: {
         select: { id: true, name: true },
+      },
+      user: {
+        select: { name: true, email: true },
       },
     },
   });
@@ -114,7 +132,17 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     });
   }
 
-  return redirect(`/communities/${communityId}/manage`);
+  const memberName = membership?.user.name || membership?.user.email || "member";
+
+  return redirectWithFlash(
+    request,
+    `/communities/${communityId}/manage`,
+    successFlash(
+      status === "APPROVED"
+        ? `${memberName} is now a member.`
+        : `Declined the request from ${memberName}.`
+    )
+  );
 };
 
 export default function CommunityManagePage() {

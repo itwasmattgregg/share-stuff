@@ -7,6 +7,8 @@ import { removeItemPhoto } from "~/utils/item-photo.server";
 import { normalizeTagSlug } from "~/utils/tag";
 import {
   ACTIVE_BORROWER_REQUEST_STATUSES,
+  HOLDER_LENDING_STATUSES,
+  UNAVAILABLE_LENDING_STATUSES,
   type LendingStatus,
 } from "~/utils/lending-request";
 
@@ -15,6 +17,9 @@ export {
   ACTIVE_BORROWER_REQUEST_STATUSES,
   getActiveBorrowerRequestForUser,
   getBorrowerRequestStatusLabel,
+  getItemLendingDisplay,
+  getPendingRequestsOldestFirst,
+  getQueuePositionForUser,
 } from "~/utils/lending-request";
 
 export type { Item, LendingRequest };
@@ -120,7 +125,7 @@ export async function getItem({ id }: { id: string }) {
             select: { id: true, email: true, name: true },
           },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: "asc" },
       },
       ...itemTagsInclude,
     },
@@ -221,7 +226,7 @@ const communityItemsInclude = {
         select: { id: true, email: true, name: true },
       },
     },
-    orderBy: { createdAt: "desc" as const },
+    orderBy: { createdAt: "asc" as const },
   },
 };
 
@@ -405,10 +410,12 @@ export async function requestToBorrowItem({
   requesterId,
   itemId,
   requestNote,
+  dueDate,
 }: {
   requesterId: string;
   itemId: string;
   requestNote?: string;
+  dueDate?: Date | null;
 }) {
   // Check if user already has a pending or approved request for this item
   const existingRequest = await prisma.lendingRequest.findFirst({
@@ -441,13 +448,36 @@ export async function requestToBorrowItem({
     throw new Error("You cannot request your own item");
   }
 
-  return prisma.lendingRequest.create({
+  const request = await prisma.lendingRequest.create({
     data: {
       requesterId,
       itemId,
       itemOwnerId: item.ownerId,
       requestNote,
+      ...(dueDate ? { dueDate } : {}),
     },
+  });
+
+  await syncItemAvailability(itemId);
+
+  return request;
+}
+
+/**
+ * An item is Available only when nobody is pending, approved, or borrowing it.
+ * Pending requests keep it off the shelf so later borrowers join the queue.
+ */
+export async function syncItemAvailability(itemId: string) {
+  const blockingCount = await prisma.lendingRequest.count({
+    where: {
+      itemId,
+      status: { in: UNAVAILABLE_LENDING_STATUSES },
+    },
+  });
+
+  return prisma.item.update({
+    where: { id: itemId },
+    data: { isAvailable: blockingCount === 0 },
   });
 }
 
@@ -468,7 +498,18 @@ export async function getLendingRequestsForUser({
         select: { id: true, email: true, name: true },
       },
       item: {
-        select: { id: true, name: true, description: true },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          lendingRequests: {
+            select: {
+              requesterId: true,
+              status: true,
+              createdAt: true,
+            },
+          },
+        },
       },
     },
     orderBy: { createdAt: "desc" },
@@ -479,36 +520,25 @@ export async function updateLendingRequestStatus({
   requestId,
   status,
   responseNote,
+  dueDate,
 }: {
   requestId: string;
   status: LendingStatus;
   responseNote?: string;
+  dueDate?: Date | null;
 }) {
   const request = await prisma.lendingRequest.update({
     where: { id: requestId },
     data: {
       status,
       responseNote,
+      ...(dueDate !== undefined ? { dueDate } : {}),
       ...(status === "BORROWED" ? { borrowedAt: new Date() } : {}),
       ...(status === "RETURNED" ? { returnedAt: new Date() } : {}),
     },
   });
 
-  // If approved, mark item as unavailable
-  if (status === "APPROVED") {
-    await prisma.item.update({
-      where: { id: request.itemId },
-      data: { isAvailable: false },
-    });
-  }
-
-  // If returned, mark item as available
-  if (status === "RETURNED") {
-    await prisma.item.update({
-      where: { id: request.itemId },
-      data: { isAvailable: true },
-    });
-  }
+  await syncItemAvailability(request.itemId);
 
   return request;
 }
@@ -524,6 +554,8 @@ export function getAllowedLendingRequestStatusesForUpdate(
       return ["APPROVED"];
     case "RETURNED":
       return ["BORROWED"];
+    case "CANCELLED":
+      return ["PENDING"];
     default:
       return [];
   }
@@ -535,12 +567,14 @@ export async function updateLendingRequestForItemOwner({
   requestId,
   status,
   responseNote,
+  dueDate,
 }: {
   userId: string;
   itemId: string;
   requestId: string;
   status: LendingStatus;
   responseNote?: string;
+  dueDate?: Date | null;
 }) {
   const allowedFromStatuses = getAllowedLendingRequestStatusesForUpdate(status);
 
@@ -568,7 +602,7 @@ export async function updateLendingRequestForItemOwner({
         select: { id: true, name: true },
       },
       requester: {
-        select: { id: true },
+        select: { id: true, name: true, email: true },
       },
       itemOwner: {
         select: { id: true },
@@ -586,10 +620,120 @@ export async function updateLendingRequestForItemOwner({
     throw new Error("Invalid request status transition");
   }
 
+  if (status === "APPROVED") {
+    const existingHolder = await prisma.lendingRequest.findFirst({
+      where: {
+        itemId,
+        id: { not: requestId },
+        status: { in: HOLDER_LENDING_STATUSES },
+      },
+    });
+
+    if (existingHolder) {
+      throw new Error(
+        "Another request is already approved or borrowed for this item"
+      );
+    }
+  }
+
   await updateLendingRequestStatus({
     requestId,
     status,
     responseNote,
+    dueDate,
+  });
+
+  return lendingRequest;
+}
+
+/**
+ * Either the owner or the approved borrower can mark the item as picked up.
+ */
+export async function markLendingRequestBorrowed({
+  userId,
+  requestId,
+}: {
+  userId: string;
+  requestId: string;
+}) {
+  const lendingRequest = await prisma.lendingRequest.findUnique({
+    where: { id: requestId },
+    include: {
+      item: {
+        select: { id: true, name: true },
+      },
+      requester: {
+        select: { id: true, name: true, email: true },
+      },
+      itemOwner: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (!lendingRequest) {
+    throw new Error("Invalid request");
+  }
+
+  if (
+    lendingRequest.requesterId !== userId &&
+    lendingRequest.itemOwnerId !== userId
+  ) {
+    throw new Error("Unauthorized");
+  }
+
+  if (lendingRequest.status !== "APPROVED") {
+    throw new Error("Invalid request status transition");
+  }
+
+  await updateLendingRequestStatus({
+    requestId,
+    status: "BORROWED",
+  });
+
+  return lendingRequest;
+}
+
+/**
+ * A borrower can withdraw their own pending request; history is kept as CANCELLED.
+ */
+export async function cancelLendingRequest({
+  userId,
+  requestId,
+}: {
+  userId: string;
+  requestId: string;
+}) {
+  const lendingRequest = await prisma.lendingRequest.findUnique({
+    where: { id: requestId },
+    include: {
+      item: {
+        select: { id: true, name: true },
+      },
+      requester: {
+        select: { id: true },
+      },
+      itemOwner: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (!lendingRequest) {
+    throw new Error("Invalid request");
+  }
+
+  if (lendingRequest.requesterId !== userId) {
+    throw new Error("Unauthorized");
+  }
+
+  if (lendingRequest.status !== "PENDING") {
+    throw new Error("Only pending requests can be cancelled");
+  }
+
+  await updateLendingRequestStatus({
+    requestId,
+    status: "CANCELLED",
   });
 
   return lendingRequest;
@@ -617,8 +761,8 @@ export async function notifyLendingRequestStatusChange({
     await createNotification({
       userId: lendingRequest.requesterId,
       type: "LENDING_APPROVED",
-      title: "Lending Request Approved",
-      message: `Your request to borrow "${itemName}" has been approved!`,
+      title: "Ready for Pickup",
+      message: `Your request to borrow "${itemName}" was approved. It's ready to collect.`,
       link: links.requester,
     });
   } else if (status === "REJECTED") {
@@ -657,6 +801,14 @@ export async function notifyLendingRequestStatusChange({
       type: "ITEM_RETURNED",
       title: "Item Returned",
       message: `"${itemName}" has been returned.`,
+      link: links.owner,
+    });
+  } else if (status === "CANCELLED") {
+    await createNotification({
+      userId: lendingRequest.itemOwnerId,
+      type: "LENDING_CANCELLED",
+      title: "Borrow Request Cancelled",
+      message: `A borrow request for "${itemName}" was cancelled.`,
       link: links.owner,
     });
   }

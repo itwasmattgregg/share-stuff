@@ -1,8 +1,10 @@
 import { Link, Form, useLocation } from "@remix-run/react";
 import { useState } from "react";
 import ShareStuffLogo from "~/components/ShareStuffLogo";
+import FlashBanner from "~/components/FlashBanner";
 import GlobalSearchBar from "~/components/GlobalSearchBar";
 import UserMenu from "~/components/UserMenu";
+import type { FlashMessage } from "~/utils/flash";
 import { useOptionalUser, useMatchesData } from "~/utils";
 
 interface LayoutProps {
@@ -17,9 +19,10 @@ export default function Layout({
   const user = useOptionalUser();
   const location = useLocation();
   const rootData = useMatchesData("root") as
-    | { notificationCount?: number }
+    | { notificationCount?: number; flashMessage?: FlashMessage | null }
     | undefined;
   const notificationCount = rootData?.notificationCount || 0;
+  const flashMessage = rootData?.flashMessage ?? null;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Don't show navigation on public pages
@@ -301,7 +304,10 @@ export default function Layout({
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto bg-neutral-50">
-          <div className="p-4 sm:p-6">{children}</div>
+          <div className="p-4 sm:p-6">
+            <FlashBanner flashMessage={flashMessage} />
+            {children}
+          </div>
         </main>
 
         {/* Footer */}

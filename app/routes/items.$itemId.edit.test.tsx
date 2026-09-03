@@ -15,6 +15,7 @@ const mockItem = {
   ownerId: "user-1",
   createdAt: new Date("2024-01-01"),
   updatedAt: new Date("2024-01-01"),
+  lendingRequests: [],
   itemTags: [
     {
       itemId: "item-1",

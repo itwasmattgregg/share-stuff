@@ -7,6 +7,10 @@ import CommunityItemRequestLink from "~/components/CommunityItemRequestLink";
 import TagPills from "~/components/TagPills";
 import { searchItemsInUserCommunities } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
+import {
+  getItemLendingDisplay,
+  itemLendingBadgeClassName,
+} from "~/utils/lending-request";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -89,7 +93,13 @@ export default function SearchPage() {
             </Link>
           </div>
           <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {data.items.map((item) => (
+            {data.items.map((item) => {
+              const display = getItemLendingDisplay(
+                item.lendingRequests,
+                item.isAvailable
+              );
+
+              return (
               <div
                 key={item.id}
                 className="rounded-lg border border-neutral-200 bg-white p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
@@ -112,45 +122,14 @@ export default function SearchPage() {
                         </span>
                       ))}
                     </div>
-
-                    {item.lendingRequests.length > 0 && (
-                      <div className="mt-2 flex gap-2 text-xs">
-                        {item.lendingRequests.filter(
-                          (request) => request.status === "PENDING"
-                        ).length > 0 && (
-                          <span className="inline-flex items-center rounded-full bg-warning-100 px-2 py-1 text-warning-800">
-                            {
-                              item.lendingRequests.filter(
-                                (request) => request.status === "PENDING"
-                              ).length
-                            }{" "}
-                            in queue
-                          </span>
-                        )}
-                        {item.lendingRequests.filter(
-                          (request) => request.status === "APPROVED"
-                        ).length > 0 && (
-                          <span className="inline-flex items-center rounded-full bg-success-100 px-2 py-1 text-success-800">
-                            {
-                              item.lendingRequests.filter(
-                                (request) => request.status === "APPROVED"
-                              ).length
-                            }{" "}
-                            ready
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </div>
                   <div className="ml-4">
                     <span
-                      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                        item.isAvailable
-                          ? "bg-success-100 text-success-800"
-                          : "bg-danger-100 text-danger-800"
-                      }`}
+                      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${itemLendingBadgeClassName(
+                        display.tone
+                      )}`}
                     >
-                      {item.isAvailable ? "Available" : "Borrowed"}
+                      {display.label}
                     </span>
                   </div>
                 </div>
@@ -189,12 +168,13 @@ export default function SearchPage() {
                     communityId={item.primaryCommunityId}
                     ownerId={item.ownerId}
                     userId={data.userId}
-                    isAvailable={item.isAvailable}
+                    isAvailable={display.tone === "available"}
                     lendingRequests={item.lendingRequests}
                   />
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

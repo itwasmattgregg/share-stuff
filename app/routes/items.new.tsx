@@ -11,7 +11,8 @@ import {
   uploadObject,
 } from "~/models/storage.server";
 import { syncItemTags } from "~/models/tag.server";
-import { requireUserId } from "~/session.server";
+import { redirectWithFlash, requireUserId } from "~/session.server";
+import { successFlash } from "~/utils/flash";
 import { parseItemPhotoUpload } from "~/utils/item-photo.server";
 import { normalizeExternalPhotoUrl } from "~/utils/item-photo-url";
 import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
@@ -127,7 +128,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return redirect(`/items/new?${params.toString()}`);
   }
 
-  return redirect(`/items/${item.id}`);
+  return redirectWithFlash(
+    request,
+    `/items/${item.id}`,
+    successFlash(
+      `${item.name} is now shared with your communities.`
+    )
+  );
 };
 
 export default function NewItemPage() {

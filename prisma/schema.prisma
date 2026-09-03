@@ -165,6 +165,9 @@ model LendingRequest {
   status       String  @default("PENDING")
   requestNote  String?
   responseNote String?
+  // Suggested return date — set by the borrower and/or owner as an expectation,
+  // not an enforced deadline.
+  dueDate      DateTime?
   borrowedAt   DateTime?
   returnedAt   DateTime?
 

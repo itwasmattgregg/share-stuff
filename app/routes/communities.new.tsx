@@ -1,11 +1,12 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 
 import { createCommunity } from "~/models/community.server";
 import ToggleSwitch from "~/components/ToggleSwitch";
-import { requireUserId } from "~/session.server";
+import { redirectWithFlash, requireUserId } from "~/session.server";
+import { successFlash } from "~/utils/flash";
 import { submitButtonClassName, useIsSubmitting } from "~/utils/form-submission";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -32,7 +33,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     ownerId: userId,
   });
 
-  return redirect(`/communities/${community.id}`);
+  return redirectWithFlash(
+    request,
+    `/communities/${community.id}`,
+    successFlash(`${community.name} is ready. Add an item or invite members.`)
+  );
 };
 
 export default function NewCommunityPage() {
