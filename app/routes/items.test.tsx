@@ -18,6 +18,7 @@ const loaderData = {
       photoKey: null,
       photoUrl: null,
       itemTags: [],
+      lendingRequests: [],
     },
     {
       id: "item-2",
@@ -29,6 +30,7 @@ const loaderData = {
       photoKey: null,
       photoUrl: null,
       itemTags: [],
+      lendingRequests: [],
     },
   ],
 };

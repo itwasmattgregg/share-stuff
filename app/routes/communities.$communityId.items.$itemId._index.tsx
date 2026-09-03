@@ -8,6 +8,10 @@ import TagPills from "~/components/TagPills";
 import { isUserMemberOfCommunity } from "~/models/community.server";
 import { getItem, isItemVisibleInCommunity } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
+import {
+  getItemLendingDisplay,
+  itemLendingBadgeClassName,
+} from "~/utils/lending-request";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -44,6 +48,7 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 export default function CommunityItemDetailPage() {
   const data = useLoaderData<typeof loader>();
   const { item, communityId, userId, isOwner } = data;
+  const display = getItemLendingDisplay(item.lendingRequests, item.isAvailable);
 
   return (
     <div className="max-w-3xl">
@@ -131,13 +136,11 @@ export default function CommunityItemDetailPage() {
           <div className="mt-4">
             <h4 className="text-sm font-medium text-neutral-700">Status</h4>
             <span
-              className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                item.isAvailable
-                  ? "bg-success-100 text-success-800"
-                  : "bg-danger-100 text-danger-800"
-              }`}
+              className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium ${itemLendingBadgeClassName(
+                display.tone
+              )}`}
             >
-              {item.isAvailable ? "Available" : "Borrowed"}
+              {display.label}
             </span>
           </div>
         </div>
@@ -149,7 +152,7 @@ export default function CommunityItemDetailPage() {
               communityId={communityId}
               ownerId={item.ownerId}
               userId={userId}
-              isAvailable={item.isAvailable}
+              isAvailable={display.tone === "available"}
               lendingRequests={item.lendingRequests}
               className="flex flex-1 items-center justify-center whitespace-nowrap rounded-lg px-4 py-3 text-base font-medium shadow-md transition-colors min-h-[44px]"
             />

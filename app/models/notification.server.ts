@@ -6,6 +6,7 @@ export type NotificationType =
   | "LENDING_REQUEST"
   | "LENDING_APPROVED"
   | "LENDING_REJECTED"
+  | "LENDING_CANCELLED"
   | "ITEM_BORROWED"
   | "ITEM_RETURNED";
 

@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { useRef } from "react";
 
 import {
@@ -11,6 +11,10 @@ import {
 import { createNotification } from "~/models/notification.server";
 import ItemPhoto from "~/components/ItemPhoto";
 import { requireUserId } from "~/session.server";
+import {
+  getItemLendingDisplay,
+  parseOptionalDueDate,
+} from "~/utils/lending-request";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -52,6 +56,14 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
   const formData = await request.formData();
   const requestNote = formData.get("requestNote");
+  const dueDate = parseOptionalDueDate(formData.get("dueDate"));
+
+  if (dueDate === "invalid") {
+    return json(
+      { errors: { dueDate: "Enter a valid suggested return date." } },
+      { status: 400 }
+    );
+  }
 
   const item = await getItem({ id: itemId });
 
@@ -68,6 +80,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
       requesterId: userId,
       itemId,
       requestNote: typeof requestNote === "string" ? requestNote : undefined,
+      dueDate,
     });
   } catch (error) {
     if (
@@ -96,7 +109,14 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
 export default function RequestBorrowPage() {
   const data = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
   const noteRef = useRef<HTMLTextAreaElement>(null);
+  const lendingDisplay = getItemLendingDisplay(
+    data.item.lendingRequests,
+    data.item.isAvailable
+  );
+  const dueDateError =
+    actionData && "errors" in actionData ? actionData.errors.dueDate : undefined;
 
   return (
     <div className="max-w-2xl">
@@ -106,12 +126,15 @@ export default function RequestBorrowPage() {
           You're requesting to borrow "{data.item.name}" from{" "}
           {data.item.owner.name || data.item.owner.email}
         </p>
-        {!data.item.isAvailable && (
+        {lendingDisplay.tone !== "available" && (
           <div className="mt-3 rounded-md bg-warning-50 border border-warning-200 p-3">
             <p className="text-sm text-warning-800">
-              <strong>Note:</strong> This item is currently borrowed, but you
-              can still request it. You'll be added to the queue and notified
-              when it becomes available.
+              <strong>Note:</strong> This item is currently{" "}
+              {lendingDisplay.tone === "queued"
+                ? "in a queue"
+                : lendingDisplay.label.toLowerCase()}
+              , but you can still request it. You'll be added to the queue and
+              notified when it becomes available.
             </p>
           </div>
         )}
@@ -170,6 +193,35 @@ export default function RequestBorrowPage() {
           <p className="mt-1 text-sm text-gray-500">
             This message will be sent to the item owner along with your request.
           </p>
+        </div>
+
+        <div>
+          <label
+            htmlFor="dueDate"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Suggested return date (optional)
+          </label>
+          <div className="mt-1">
+            <input
+              id="dueDate"
+              name="dueDate"
+              type="date"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-lg"
+              aria-invalid={dueDateError ? true : undefined}
+              aria-describedby={dueDateError ? "dueDate-error" : "dueDate-help"}
+            />
+          </div>
+          {dueDateError ? (
+            <p className="mt-1 text-sm text-danger-700" id="dueDate-error">
+              {dueDateError}
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-gray-500" id="dueDate-help">
+              A suggestion only — owners can change this when they approve, and
+              it is not enforced.
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3">

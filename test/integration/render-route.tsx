@@ -7,10 +7,13 @@ import { afterEach, expect, vi } from "vitest";
 import { formatLendingRequestDateTime } from "~/utils";
 
 let useLoaderDataSpy: ReturnType<typeof vi.spyOn> | undefined;
+let useActionDataSpy: ReturnType<typeof vi.spyOn> | undefined;
 
 afterEach(() => {
   useLoaderDataSpy?.mockRestore();
   useLoaderDataSpy = undefined;
+  useActionDataSpy?.mockRestore();
+  useActionDataSpy = undefined;
   cleanup();
 });
 
@@ -39,6 +42,9 @@ export function renderWithLoaderData(
   useLoaderDataSpy = vi
     .spyOn(remixReact, "useLoaderData")
     .mockReturnValue(loaderData);
+  useActionDataSpy = vi
+    .spyOn(remixReact, "useActionData")
+    .mockReturnValue(undefined);
 
   return render(<MemoryRouter>{ui}</MemoryRouter>);
 }
