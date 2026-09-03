@@ -6,6 +6,7 @@ const prismaMock = vi.hoisted(() => ({
     create: vi.fn(),
     findUnique: vi.fn(),
     update: vi.fn(),
+    count: vi.fn(),
   },
   item: {
     findUnique: vi.fn(),
@@ -43,6 +44,10 @@ describe("requestToBorrowItem", () => {
     prismaMock.lendingRequest.findFirst.mockReset();
     prismaMock.item.findUnique.mockReset();
     prismaMock.lendingRequest.create.mockReset();
+    prismaMock.lendingRequest.count.mockReset();
+    prismaMock.item.update.mockReset();
+    prismaMock.lendingRequest.count.mockResolvedValue(1);
+    prismaMock.item.update.mockResolvedValue({ id: "item-1", isAvailable: false });
   });
 
   it("rejects requesting your own item", async () => {
@@ -77,6 +82,39 @@ describe("requestToBorrowItem", () => {
         requestNote: undefined,
       },
     });
+    expect(prismaMock.lendingRequest.count).toHaveBeenCalledWith({
+      where: {
+        itemId: "item-1",
+        status: { in: ["PENDING", "APPROVED", "BORROWED"] },
+      },
+    });
+    expect(prismaMock.item.update).toHaveBeenCalledWith({
+      where: { id: "item-1" },
+      data: { isAvailable: false },
+    });
+  });
+
+  it("stores an optional due date on the request", async () => {
+    prismaMock.lendingRequest.findFirst.mockResolvedValue(null);
+    prismaMock.item.findUnique.mockResolvedValue({ ownerId: "owner-1" });
+    prismaMock.lendingRequest.create.mockResolvedValue({ id: "request-1" });
+    const dueDate = new Date("2026-09-10T12:00:00.000Z");
+
+    await requestToBorrowItem({
+      requesterId: "borrower-1",
+      itemId: "item-1",
+      dueDate,
+    });
+
+    expect(prismaMock.lendingRequest.create).toHaveBeenCalledWith({
+      data: {
+        requesterId: "borrower-1",
+        itemId: "item-1",
+        itemOwnerId: "owner-1",
+        requestNote: undefined,
+        dueDate,
+      },
+    });
   });
 });
 
@@ -103,6 +141,9 @@ describe("updateLendingRequestForItemOwner", () => {
     prismaMock.lendingRequest.findUnique.mockReset();
     prismaMock.lendingRequest.update.mockReset();
     prismaMock.item.update.mockReset();
+    prismaMock.lendingRequest.count.mockReset();
+    prismaMock.lendingRequest.count.mockResolvedValue(0);
+    prismaMock.item.update.mockResolvedValue({ id: "item-1", isAvailable: true });
   });
 
   it("rejects queue requests for non-owners", async () => {
@@ -152,6 +193,16 @@ describe("updateLendingRequestForItemOwner", () => {
     expect(prismaMock.lendingRequest.update).toHaveBeenCalledWith({
       where: { id: "request-1" },
       data: { status: "REJECTED", responseNote: undefined },
+    });
+    expect(prismaMock.lendingRequest.count).toHaveBeenCalledWith({
+      where: {
+        itemId: "item-1",
+        status: { in: ["PENDING", "APPROVED", "BORROWED"] },
+      },
+    });
+    expect(prismaMock.item.update).toHaveBeenCalledWith({
+      where: { id: "item-1" },
+      data: { isAvailable: true },
     });
   });
 });

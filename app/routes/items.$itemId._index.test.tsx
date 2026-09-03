@@ -26,6 +26,9 @@ const mockItem = {
       status: "BORROWED",
       requestNote: "Need it for the weekend",
       responseNote: null,
+      dueDate: new Date("2024-01-20"),
+      borrowedAt: new Date("2024-01-04"),
+      returnedAt: null,
       createdAt: new Date("2024-01-02"),
       requester: {
         id: "borrower-1",
@@ -38,6 +41,9 @@ const mockItem = {
       status: "PENDING",
       requestNote: "Next in line",
       responseNote: null,
+      dueDate: null,
+      borrowedAt: null,
+      returnedAt: null,
       createdAt: new Date("2024-01-03"),
       requester: {
         id: "borrower-2",
@@ -56,6 +62,7 @@ vi.mock("@remix-run/react", async (importOriginal) => {
       <form {...props}>{children}</form>
     ),
     useLoaderData: () => ({ item: mockItem }),
+    useActionData: () => undefined,
   };
 });
 
@@ -70,8 +77,11 @@ describe("item detail route", () => {
     expect(
       screen.getByRole("button", { name: /mark as returned/i })
     ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^approve$/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /^reject$/i })).toBeInTheDocument();
     expect(screen.getByText(/queue \(1\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/#1 queue user/i)).toBeInTheDocument();
     expect(screen.getByText(/currently borrowed by borrower/i)).toBeInTheDocument();
+    expect(screen.getByText(/^borrowed$/i)).toBeInTheDocument();
   });
 });

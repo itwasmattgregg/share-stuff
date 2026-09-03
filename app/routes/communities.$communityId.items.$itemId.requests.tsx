@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 
 import {
   getItem,
@@ -10,6 +10,13 @@ import {
 import type { LendingStatus } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
 import { formatLendingRequestDateTime } from "~/utils";
+import {
+  formatDueDate,
+  formatDueDateInputValue,
+  getPendingRequestsOldestFirst,
+  HOLDER_LENDING_STATUSES,
+  parseOptionalDueDate,
+} from "~/utils/lending-request";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -50,12 +57,25 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     throw new Response("Invalid request", { status: 400 });
   }
 
+  let dueDate: Date | null | undefined;
+  if (status === "APPROVED") {
+    const parsedDueDate = parseOptionalDueDate(formData.get("dueDate"));
+    if (parsedDueDate === "invalid") {
+      return json(
+        { errors: { dueDate: "Enter a valid suggested return date." } },
+        { status: 400 }
+      );
+    }
+    dueDate = parsedDueDate;
+  }
+
   const lendingRequest = await updateLendingRequestForItemOwner({
     userId,
     itemId,
     requestId,
     status: status as LendingStatus,
     responseNote: typeof responseNote === "string" ? responseNote : undefined,
+    dueDate,
   }).catch((error: Error) => {
     if (error.message === "Unauthorized") {
       throw new Response("Unauthorized", { status: 403 });
@@ -81,11 +101,30 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   );
 };
 
+function DueDateText({
+  dueDate,
+}: {
+  dueDate: Date | string | null | undefined;
+}) {
+  if (!dueDate) {
+    return null;
+  }
+
+  return (
+    <p className="mt-1 text-sm text-gray-600">
+      Suggested return {formatDueDate(dueDate)}
+    </p>
+  );
+}
+
 export default function ItemRequestsPage() {
   const data = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const dueDateError =
+    actionData && "errors" in actionData ? actionData.errors.dueDate : undefined;
 
-  const pendingRequests = data.item.lendingRequests.filter(
-    (request) => request.status === "PENDING"
+  const pendingRequests = getPendingRequestsOldestFirst(
+    data.item.lendingRequests
   );
   const approvedRequests = data.item.lendingRequests.filter(
     (request) => request.status === "APPROVED"
@@ -94,7 +133,15 @@ export default function ItemRequestsPage() {
     (request) => request.status === "BORROWED"
   );
   const completedRequests = data.item.lendingRequests.filter(
-    (request) => request.status === "RETURNED" || request.status === "REJECTED"
+    (request) =>
+      request.status === "RETURNED" ||
+      request.status === "REJECTED" ||
+      request.status === "CANCELLED"
+  );
+  const hasHolder = data.item.lendingRequests.some((request) =>
+    HOLDER_LENDING_STATUSES.includes(
+      request.status as (typeof HOLDER_LENDING_STATUSES)[number]
+    )
   );
 
   return (
@@ -106,42 +153,68 @@ export default function ItemRequestsPage() {
         </p>
       </div>
 
+      {dueDateError ? (
+        <p className="mb-4 text-sm text-danger-700">{dueDateError}</p>
+      ) : null}
+
       {/* Pending Requests */}
       {pendingRequests.length > 0 && (
         <div className="mb-8">
           <h3 className="text-lg font-semibold mb-4">Pending Requests</h3>
+          {hasHolder ? (
+            <p className="mb-4 text-sm text-gray-600">
+              Approve is unavailable while another request is ready for pickup
+              or borrowed. Mark that one returned first.
+            </p>
+          ) : null}
           <div className="space-y-4">
-            {pendingRequests.map((request) => (
+            {pendingRequests.map((request, index) => (
               <div
                 key={request.id}
                 className="rounded-lg border border-warning-200 bg-warning-50 p-6"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <h4 className="font-semibold">
+                      #{index + 1}{" "}
                       {request.requester.name || request.requester.email}
                     </h4>
                     <p className="text-sm text-gray-600">
                       Requested on{" "}
                       {formatLendingRequestDateTime(request.createdAt)}
                     </p>
+                    <DueDateText dueDate={request.dueDate} />
                     {request.requestNote && (
                       <p className="mt-2 text-sm text-gray-700">
                         "{request.requestNote}"
                       </p>
                     )}
                   </div>
-                  <div className="ml-4 flex space-x-2">
-                    <Form method="post" className="inline">
+                  <div className="ml-4 flex flex-col items-end gap-3">
+                    <Form method="post" className="space-y-2">
                       <input
                         type="hidden"
                         name="requestId"
                         value={request.id}
                       />
                       <input type="hidden" name="status" value="APPROVED" />
+                      <label
+                        htmlFor={`dueDate-${request.id}`}
+                        className="block text-xs font-medium text-gray-700"
+                      >
+                        Suggested return date (optional)
+                      </label>
+                      <input
+                        id={`dueDate-${request.id}`}
+                        type="date"
+                        name="dueDate"
+                        defaultValue={formatDueDateInputValue(request.dueDate)}
+                        className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+                      />
                       <button
                         type="submit"
-                        className="rounded-md bg-success-500 px-4 py-2 text-sm text-white hover:bg-success-700"
+                        disabled={hasHolder}
+                        className="w-full rounded-md bg-success-500 px-4 py-2 text-sm text-white hover:bg-success-700 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Approve
                       </button>
@@ -192,10 +265,13 @@ export default function ItemRequestsPage() {
                     <h4 className="font-semibold">
                       {request.requester.name || request.requester.email}
                     </h4>
-                    <p className="text-sm text-gray-600">
-                      Borrowed on{" "}
-                      {formatLendingRequestDateTime(request.createdAt)}
-                    </p>
+                    {request.borrowedAt ? (
+                      <p className="text-sm text-gray-600">
+                        Borrowed on{" "}
+                        {formatLendingRequestDateTime(request.borrowedAt)}
+                      </p>
+                    ) : null}
+                    <DueDateText dueDate={request.dueDate} />
                     {request.requestNote && (
                       <p className="mt-2 text-sm text-gray-700">
                         "{request.requestNote}"
@@ -233,9 +309,7 @@ export default function ItemRequestsPage() {
       {/* Approved but not yet borrowed */}
       {approvedRequests.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-4">
-            Approved (Ready for Pickup)
-          </h3>
+          <h3 className="text-lg font-semibold mb-4">Ready for Pickup</h3>
           <div className="space-y-4">
             {approvedRequests.map((request) => (
               <div
@@ -247,10 +321,8 @@ export default function ItemRequestsPage() {
                     <h4 className="font-semibold">
                       {request.requester.name || request.requester.email}
                     </h4>
-                    <p className="text-sm text-gray-600">
-                      Approved on{" "}
-                      {formatLendingRequestDateTime(request.createdAt)}
-                    </p>
+                    <p className="text-sm text-gray-600">Ready for pickup</p>
+                    <DueDateText dueDate={request.dueDate} />
                     {request.requestNote && (
                       <p className="mt-2 text-sm text-gray-700">
                         "{request.requestNote}"
@@ -296,9 +368,17 @@ export default function ItemRequestsPage() {
                       {request.requester.name || request.requester.email}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      {request.status === "RETURNED" ? "Returned" : "Rejected"}{" "}
-                      on {formatLendingRequestDateTime(request.createdAt)}
+                      {request.status === "RETURNED"
+                        ? request.returnedAt
+                          ? `Returned on ${formatLendingRequestDateTime(
+                              request.returnedAt
+                            )}`
+                          : "Returned"
+                        : request.status === "CANCELLED"
+                        ? "Cancelled"
+                        : "Rejected"}
                     </p>
+                    <DueDateText dueDate={request.dueDate} />
                     {request.requestNote && (
                       <p className="mt-2 text-sm text-gray-700">
                         "{request.requestNote}"
@@ -314,6 +394,8 @@ export default function ItemRequestsPage() {
                     className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                       request.status === "RETURNED"
                         ? "bg-success-100 text-success-800"
+                        : request.status === "CANCELLED"
+                        ? "bg-gray-100 text-gray-800"
                         : "bg-danger-100 text-danger-800"
                     }`}
                   >
