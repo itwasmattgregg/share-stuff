@@ -1,6 +1,12 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from "@remix-run/react";
 
 import {
   getItem,
@@ -11,6 +17,10 @@ import type { LendingStatus } from "~/models/item.server";
 import { redirectWithFlash, requireUserId } from "~/session.server";
 import { formatLendingRequestDateTime } from "~/utils";
 import { successFlash } from "~/utils/flash";
+import {
+  isNavigationSubmittingFields,
+  submitButtonClassName,
+} from "~/utils/form-submission";
 import {
   formatDueDate,
   formatDueDateInputValue,
@@ -130,6 +140,7 @@ function DueDateText({
 
 export default function ItemRequestsPage() {
   const data = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
   const actionData = useActionData<typeof action>();
   const dueDateError =
     actionData && "errors" in actionData ? actionData.errors.dueDate : undefined;
@@ -224,10 +235,23 @@ export default function ItemRequestsPage() {
                       />
                       <button
                         type="submit"
-                        disabled={hasHolder}
-                        className="w-full rounded-md bg-success-500 px-4 py-2 text-sm text-white hover:bg-success-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={
+                          hasHolder ||
+                          isNavigationSubmittingFields(navigation, {
+                            requestId: request.id,
+                            status: "APPROVED",
+                          })
+                        }
+                        className={submitButtonClassName(
+                          "w-full rounded-md bg-success-500 px-4 py-2 text-sm text-white hover:bg-success-700"
+                        )}
                       >
-                        Approve
+                        {isNavigationSubmittingFields(navigation, {
+                          requestId: request.id,
+                          status: "APPROVED",
+                        })
+                          ? "Approving…"
+                          : "Approve"}
                       </button>
                     </Form>
                     <Form method="post" className="inline">
@@ -239,7 +263,13 @@ export default function ItemRequestsPage() {
                       <input type="hidden" name="status" value="REJECTED" />
                       <button
                         type="submit"
-                        className="rounded-md bg-danger-500 px-4 py-2 text-sm text-white hover:bg-danger-700"
+                        disabled={isNavigationSubmittingFields(navigation, {
+                          requestId: request.id,
+                          status: "REJECTED",
+                        })}
+                        className={submitButtonClassName(
+                          "rounded-md bg-danger-500 px-4 py-2 text-sm text-white hover:bg-danger-700"
+                        )}
                         onClick={(e) => {
                           if (
                             !confirm(
@@ -250,7 +280,12 @@ export default function ItemRequestsPage() {
                           }
                         }}
                       >
-                        Reject
+                        {isNavigationSubmittingFields(navigation, {
+                          requestId: request.id,
+                          status: "REJECTED",
+                        })
+                          ? "Declining…"
+                          : "Reject"}
                       </button>
                     </Form>
                   </div>
@@ -299,14 +334,25 @@ export default function ItemRequestsPage() {
                       <input type="hidden" name="status" value="RETURNED" />
                       <button
                         type="submit"
-                        className="rounded-md bg-success-500 px-4 py-2 text-sm text-white hover:bg-success-700"
+                        disabled={isNavigationSubmittingFields(navigation, {
+                          requestId: request.id,
+                          status: "RETURNED",
+                        })}
+                        className={submitButtonClassName(
+                          "rounded-md bg-success-500 px-4 py-2 text-sm text-white hover:bg-success-700"
+                        )}
                         onClick={(e) => {
                           if (!confirm("Mark this item as returned?")) {
                             e.preventDefault();
                           }
                         }}
                       >
-                        Mark as Returned
+                        {isNavigationSubmittingFields(navigation, {
+                          requestId: request.id,
+                          status: "RETURNED",
+                        })
+                          ? "Saving…"
+                          : "Mark as Returned"}
                       </button>
                     </Form>
                   </div>
@@ -350,9 +396,20 @@ export default function ItemRequestsPage() {
                       <input type="hidden" name="status" value="BORROWED" />
                       <button
                         type="submit"
-                        className="rounded-md bg-primary-600 px-4 py-2 text-sm text-white hover:bg-primary-700"
+                        disabled={isNavigationSubmittingFields(navigation, {
+                          requestId: request.id,
+                          status: "BORROWED",
+                        })}
+                        className={submitButtonClassName(
+                          "rounded-md bg-primary-600 px-4 py-2 text-sm text-white hover:bg-primary-700"
+                        )}
                       >
-                        Mark as Borrowed
+                        {isNavigationSubmittingFields(navigation, {
+                          requestId: request.id,
+                          status: "BORROWED",
+                        })
+                          ? "Saving…"
+                          : "Mark as Borrowed"}
                       </button>
                     </Form>
                   </div>

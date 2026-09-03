@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import ShareStuffLogo from "~/components/ShareStuffLogo";
 import { requestEmailVerification } from "~/models/email-verification.server";
 import { validateEmail } from "~/utils";
+import { submitButtonClassName, useIsSubmitting } from "~/utils/form-submission";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
@@ -29,6 +30,7 @@ export const meta: MetaFunction = () => [{ title: "Verify Email" }];
 export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const actionData = useActionData<typeof action>();
+  const isSubmitting = useIsSubmitting();
   const emailRef = useRef<HTMLInputElement>(null);
   const prefilledEmail = searchParams.get("email") ?? "";
 
@@ -91,9 +93,12 @@ export default function VerifyEmailPage() {
 
             <button
               type="submit"
-              className="w-full rounded bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 focus:bg-primary-500"
+              disabled={isSubmitting}
+              className={submitButtonClassName(
+                "w-full rounded bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 focus:bg-primary-500"
+              )}
             >
-              Send verification link
+              {isSubmitting ? "Sending…" : "Send verification link"}
             </button>
           </Form>
         )}

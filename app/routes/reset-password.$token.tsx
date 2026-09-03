@@ -9,6 +9,7 @@ import {
   resetPasswordWithToken,
 } from "~/models/password.server";
 import { createUserSession, getUserId } from "~/session.server";
+import { submitButtonClassName, useIsSubmitting } from "~/utils/form-submission";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const token = params.token;
@@ -85,6 +86,7 @@ export const meta: MetaFunction = () => [{ title: "Reset Password" }];
 export default function ResetPasswordPage() {
   const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const isSubmitting = useIsSubmitting();
 
   if (!data.valid) {
     return (
@@ -181,9 +183,12 @@ export default function ResetPasswordPage() {
 
           <button
             type="submit"
-            className="w-full rounded bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 focus:bg-primary-500"
+            disabled={isSubmitting}
+            className={submitButtonClassName(
+              "w-full rounded bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 focus:bg-primary-500"
+            )}
           >
-            Update password
+            {isSubmitting ? "Updating password…" : "Update password"}
           </button>
         </Form>
       </div>

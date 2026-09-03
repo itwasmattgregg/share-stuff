@@ -10,6 +10,7 @@ import { requireUserId, logout } from "~/session.server";
 import { getUserById, deleteUserByEmail } from "~/models/user.server";
 import { changeUserPassword } from "~/models/password.server";
 import { prisma } from "~/db.server";
+import { submitButtonClassName, useIsSubmittingFields } from "~/utils/form-submission";
 import {
   getItemLendingDisplay,
   itemLendingBadgeClassName,
@@ -137,6 +138,11 @@ export default function ProfilePage() {
   const actionData = useActionData<typeof action>();
   const [searchParams] = useSearchParams();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const isUpdatingProfile = useIsSubmittingFields({ action: "update-name" });
+  const isChangingPassword = useIsSubmittingFields({
+    action: "change-password",
+  });
+  const isDeletingAccount = useIsSubmittingFields({ action: "delete-account" });
   const passwordUpdated = searchParams.get("passwordUpdated") === "1";
 
   return (
@@ -197,9 +203,12 @@ export default function ProfilePage() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 shadow-md transition-colors"
+                disabled={isUpdatingProfile}
+                className={submitButtonClassName(
+                  "rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 shadow-md transition-colors"
+                )}
               >
-                Update Profile
+                {isUpdatingProfile ? "Saving…" : "Update Profile"}
               </button>
             </div>
           </Form>
@@ -273,9 +282,12 @@ export default function ProfilePage() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 shadow-md transition-colors"
+                disabled={isChangingPassword}
+                className={submitButtonClassName(
+                  "rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 shadow-md transition-colors"
+                )}
               >
-                Change Password
+                {isChangingPassword ? "Updating…" : "Change Password"}
               </button>
             </div>
           </Form>
@@ -466,9 +478,12 @@ export default function ProfilePage() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-danger-600 px-4 py-2 text-sm font-medium text-white hover:bg-danger-700"
+                  disabled={isDeletingAccount}
+                  className={submitButtonClassName(
+                    "rounded-md bg-danger-600 px-4 py-2 text-sm font-medium text-white hover:bg-danger-700"
+                  )}
                 >
-                  Permanently Delete Account
+                  {isDeletingAccount ? "Deleting…" : "Permanently Delete Account"}
                 </button>
               </div>
             </Form>

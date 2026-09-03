@@ -7,6 +7,7 @@ import { createCommunity } from "~/models/community.server";
 import ToggleSwitch from "~/components/ToggleSwitch";
 import { redirectWithFlash, requireUserId } from "~/session.server";
 import { successFlash } from "~/utils/flash";
+import { submitButtonClassName, useIsSubmitting } from "~/utils/form-submission";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
@@ -41,6 +42,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function NewCommunityPage() {
   const actionData = useActionData<typeof action>();
+  const isSubmitting = useIsSubmitting();
   const nameRef = useRef<HTMLInputElement>(null);
   const [isListed, setIsListed] = useState(true);
 
@@ -155,9 +157,12 @@ export default function NewCommunityPage() {
           </button>
           <button
             type="submit"
-            className="w-full sm:w-auto rounded-md bg-primary-600 px-6 py-3 text-base font-medium text-white hover:bg-primary-700 min-h-[44px]"
+            disabled={isSubmitting}
+            className={submitButtonClassName(
+              "w-full sm:w-auto rounded-md bg-primary-600 px-6 py-3 text-base font-medium text-white hover:bg-primary-700 min-h-[44px]"
+            )}
           >
-            Create Community
+            {isSubmitting ? "Creating…" : "Create Community"}
           </button>
         </div>
       </Form>

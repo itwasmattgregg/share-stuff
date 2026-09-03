@@ -14,6 +14,7 @@ vi.mock("@remix-run/react", async (importOriginal) => {
     ),
     useActionData: () => undefined,
     useSearchParams: () => [new URLSearchParams(), vi.fn()] as const,
+    useNavigation: () => ({ state: "idle", formData: undefined }),
   };
 });
 
