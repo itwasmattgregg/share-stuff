@@ -6,6 +6,7 @@ import {
   getItemLendingDisplay,
   getPendingRequestsOldestFirst,
   getQueuePositionForUser,
+  lendingRequestStatusConfirmation,
   parseOptionalDueDate,
 } from "./lending-request";
 
@@ -128,5 +129,41 @@ describe("parseOptionalDueDate", () => {
   it("rejects malformed dates", () => {
     expect(parseOptionalDueDate("15/09/2026")).toBe("invalid");
     expect(parseOptionalDueDate("not-a-date")).toBe("invalid");
+  });
+});
+
+describe("lendingRequestStatusConfirmation", () => {
+  it("describes each owner action in terms of the requester and item", () => {
+    expect(
+      lendingRequestStatusConfirmation({
+        status: "APPROVED",
+        requesterName: "Sam",
+        itemName: "Cordless Drill",
+      })
+    ).toMatch(/ready to collect/i);
+
+    expect(
+      lendingRequestStatusConfirmation({
+        status: "REJECTED",
+        requesterName: "Sam",
+        itemName: "Cordless Drill",
+      })
+    ).toMatch(/declined sam's request/i);
+
+    expect(
+      lendingRequestStatusConfirmation({
+        status: "BORROWED",
+        requesterName: "Sam",
+        itemName: "Cordless Drill",
+      })
+    ).toMatch(/borrowed by sam/i);
+
+    expect(
+      lendingRequestStatusConfirmation({
+        status: "RETURNED",
+        requesterName: "Sam",
+        itemName: "Cordless Drill",
+      })
+    ).toMatch(/marked as returned/i);
   });
 });

@@ -13,7 +13,7 @@ import {
 } from "@remix-run/react";
 
 import ErrorPage from "~/components/ErrorPage";
-import { getUser } from "~/session.server";
+import { getUser, takeFlashMessage } from "~/session.server";
 import { getUnreadNotificationCount } from "~/models/notification.server";
 import stylesheet from "~/tailwind.css";
 import { UNEXPECTED_ERROR_COPY, routeErrorCopy } from "~/utils/error-copy";
@@ -33,13 +33,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const notificationCount = user
     ? await getUnreadNotificationCount({ userId: user.id })
     : 0;
-  
-  return json({
-    user,
-    requestUrl: requestUrl.toString(),
-    socialImageUrl: new URL("/og-image.png", requestUrl).toString(),
-    notificationCount,
-  });
+  const { flashMessage, headers } = await takeFlashMessage(request);
+
+  return json(
+    {
+      user,
+      requestUrl: requestUrl.toString(),
+      socialImageUrl: new URL("/og-image.png", requestUrl).toString(),
+      notificationCount,
+      flashMessage,
+    },
+    headers ? { headers } : undefined
+  );
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {

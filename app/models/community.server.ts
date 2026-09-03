@@ -188,6 +188,9 @@ export async function requestToJoinCommunity({
       communityId,
       status: "PENDING",
     },
+    include: {
+      community: { select: { name: true } },
+    },
   });
 }
 

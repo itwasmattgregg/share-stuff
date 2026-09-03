@@ -11,8 +11,9 @@ import {
 import type { LendingStatus } from "~/models/item.server";
 import ItemPhoto from "~/components/ItemPhoto";
 import TagPills from "~/components/TagPills";
-import { requireUserId } from "~/session.server";
+import { redirectWithFlash, requireUserId } from "~/session.server";
 import { formatLendingRequestDateTime } from "~/utils";
+import { successFlash } from "~/utils/flash";
 import {
   formatDueDate,
   formatDueDateInputValue,
@@ -20,6 +21,7 @@ import {
   getPendingRequestsOldestFirst,
   HOLDER_LENDING_STATUSES,
   itemLendingBadgeClassName,
+  lendingRequestStatusConfirmation,
   parseOptionalDueDate,
 } from "~/utils/lending-request";
 
@@ -122,7 +124,18 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     },
   });
 
-  return redirect(`/items/${itemId}`);
+  return redirectWithFlash(
+    request,
+    `/items/${itemId}`,
+    successFlash(
+      lendingRequestStatusConfirmation({
+        status: status as LendingStatus,
+        requesterName:
+          lendingRequest.requester.name || lendingRequest.requester.email,
+        itemName: lendingRequest.item.name,
+      })
+    )
+  );
 };
 
 function DueDateText({

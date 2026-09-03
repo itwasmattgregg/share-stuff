@@ -10,7 +10,8 @@ import {
 } from "~/models/item.server";
 import { createNotification } from "~/models/notification.server";
 import ItemPhoto from "~/components/ItemPhoto";
-import { requireUserId } from "~/session.server";
+import { redirectWithFlash, requireUserId } from "~/session.server";
+import { errorFlash, successFlash } from "~/utils/flash";
 import {
   getItemLendingDisplay,
   parseOptionalDueDate,
@@ -87,7 +88,13 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
       error instanceof Error &&
       error.message === "You already have an active request for this item"
     ) {
-      return redirect(`/communities/${params.communityId}/items`);
+      return redirectWithFlash(
+        request,
+        `/communities/${params.communityId}/items`,
+        errorFlash(
+          `You already have an active request for ${item.name}. You can track it on your lending dashboard.`
+        )
+      );
     }
 
     throw error;
@@ -104,7 +111,15 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     });
   }
 
-  return redirect(`/communities/${params.communityId}/items`);
+  return redirectWithFlash(
+    request,
+    `/communities/${params.communityId}/items`,
+    successFlash(
+      `Request sent for ${item.name}. You'll be notified when ${
+        item.owner.name || item.owner.email
+      } responds.`
+    )
+  );
 };
 
 export default function RequestBorrowPage() {

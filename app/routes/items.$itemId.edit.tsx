@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
@@ -8,7 +8,8 @@ import TagInput from "~/components/TagInput";
 import { getItem, updateItem } from "~/models/item.server";
 import { syncItemTags } from "~/models/tag.server";
 import { isStorageConfigured } from "~/models/storage.server";
-import { requireUserId } from "~/session.server";
+import { redirectWithFlash, requireUserId } from "~/session.server";
+import { successFlash } from "~/utils/flash";
 import { ITEM_CATEGORIES, ITEM_CONDITIONS } from "~/utils/item-form";
 import { applyItemPhotoChanges } from "~/utils/item-photo.server";
 import { normalizeExternalPhotoUrl } from "~/utils/item-photo-url";
@@ -133,7 +134,11 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
   await syncItemTags(itemId, tagNames);
 
-  return redirect(`/items/${itemId}`);
+  return redirectWithFlash(
+    request,
+    `/items/${itemId}`,
+    successFlash("Changes saved.")
+  );
 };
 
 export default function EditItemPage() {
