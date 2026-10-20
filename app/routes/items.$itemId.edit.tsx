@@ -374,8 +374,9 @@ export default function EditItemPage() {
         <h3 className="text-lg font-semibold text-danger-800">Delete item</h3>
         {availabilityLocked ? (
           <p className="mt-2 text-sm text-gray-600">
-            This item has pending, ready-for-pickup, or borrowed requests.
-            Clear the lending queue before deleting it.
+            {item.checkedOutTo?.trim()
+              ? `This item is checked out to ${item.checkedOutTo}. Mark it returned from the item page before deleting it.`
+              : "This item has pending, ready-for-pickup, or borrowed requests. Clear the lending queue before deleting it."}
           </p>
         ) : (
           <p className="mt-2 text-sm text-gray-600">
