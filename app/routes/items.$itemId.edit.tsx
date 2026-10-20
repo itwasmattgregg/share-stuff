@@ -31,8 +31,13 @@ type ItemFormErrors = {
 };
 
 function itemHasActiveLendingQueue(
-  lendingRequests: Array<{ status: string }> | undefined
+  lendingRequests: Array<{ status: string }> | undefined,
+  checkedOutTo?: string | null
 ) {
+  if (checkedOutTo?.trim()) {
+    return true;
+  }
+
   return (lendingRequests ?? []).some((request) =>
     UNAVAILABLE_LENDING_STATUSES.includes(request.status as LendingStatus)
   );
@@ -114,7 +119,10 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   const category = formData.get("category");
   const condition = formData.get("condition");
   const isAvailableSubmitted = formData.get("isAvailable") === "true";
-  const availabilityLocked = itemHasActiveLendingQueue(item.lendingRequests);
+  const availabilityLocked = itemHasActiveLendingQueue(
+    item.lendingRequests,
+    item.checkedOutTo
+  );
   const isAvailable = availabilityLocked
     ? item.isAvailable
     : isAvailableSubmitted;
@@ -189,7 +197,10 @@ export default function EditItemPage() {
 
   const categories = ITEM_CATEGORIES;
   const conditions = ITEM_CONDITIONS;
-  const availabilityLocked = itemHasActiveLendingQueue(item.lendingRequests);
+  const availabilityLocked = itemHasActiveLendingQueue(
+    item.lendingRequests,
+    item.checkedOutTo
+  );
 
   return (
     <div className="max-w-2xl">
@@ -333,8 +344,9 @@ export default function EditItemPage() {
           </label>
           {availabilityLocked ? (
             <p className="mt-2 text-sm text-gray-500">
-              Availability is driven by the lending queue until pending,
-              ready-for-pickup, and borrowed requests are cleared.
+              {item.checkedOutTo?.trim()
+                ? `Availability is locked while this item is checked out to ${item.checkedOutTo}. Mark it returned from the item page first.`
+                : "Availability is driven by the lending queue until pending, ready-for-pickup, and borrowed requests are cleared."}
             </p>
           ) : null}
         </div>
@@ -362,8 +374,9 @@ export default function EditItemPage() {
         <h3 className="text-lg font-semibold text-danger-800">Delete item</h3>
         {availabilityLocked ? (
           <p className="mt-2 text-sm text-gray-600">
-            This item has pending, ready-for-pickup, or borrowed requests.
-            Clear the lending queue before deleting it.
+            {item.checkedOutTo?.trim()
+              ? `This item is checked out to ${item.checkedOutTo}. Mark it returned from the item page before deleting it.`
+              : "This item has pending, ready-for-pickup, or borrowed requests. Clear the lending queue before deleting it."}
           </p>
         ) : (
           <p className="mt-2 text-sm text-gray-600">

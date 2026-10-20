@@ -25,6 +25,7 @@ ShareStuff lets people create and join private communities where they share thei
 - Optional photo per item (client-side compression, stored in Cloudflare R2)
 - Items are visible to members of any community you belong to
 - Mark items as available or unavailable
+- Manually check an item out to a free-text name (for people who aren't users)
 - Edit or delete your items at any time
 
 ### Lending
@@ -33,6 +34,7 @@ ShareStuff lets people create and join private communities where they share thei
 - Queue system — multiple people can request the same item
 - Full status lifecycle: `PENDING → APPROVED → BORROWED → RETURNED`
 - Owners approve/reject requests and mark items as returned
+- Manual checkout for out-of-band lending to non-users
 - Lending dashboard tracks both your borrows and your incoming requests
 
 ### Notifications

@@ -130,6 +130,10 @@ model Item {
   // photoKey always takes display precedence when both are set.
   photoUrl    String?
   isAvailable Boolean @default(true)
+  // Free-text name for out-of-band checkouts (non-users). Null means not
+  // manually checked out; presence also forces isAvailable=false.
+  checkedOutTo String?
+  checkedOutAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

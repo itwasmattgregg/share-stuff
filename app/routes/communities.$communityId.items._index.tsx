@@ -139,7 +139,8 @@ export default function CommunityItemsPage() {
           {data.items.map((item) => {
             const display = getItemLendingDisplay(
               item.lendingRequests,
-              item.isAvailable
+              item.isAvailable,
+              item.checkedOutTo
             );
 
             return (

@@ -496,21 +496,140 @@ export async function requestToBorrowItem({
 }
 
 /**
- * An item is Available only when nobody is pending, approved, or borrowing it.
+ * An item is Available only when nobody is pending, approved, or borrowing it,
+ * and the owner has not manually checked it out to someone outside the system.
  * Pending requests keep it off the shelf so later borrowers join the queue.
  */
 export async function syncItemAvailability(itemId: string) {
-  const blockingCount = await prisma.lendingRequest.count({
-    where: {
-      itemId,
-      status: { in: UNAVAILABLE_LENDING_STATUSES },
-    },
-  });
+  const [blockingCount, item] = await Promise.all([
+    prisma.lendingRequest.count({
+      where: {
+        itemId,
+        status: { in: UNAVAILABLE_LENDING_STATUSES },
+      },
+    }),
+    prisma.item.findUnique({
+      where: { id: itemId },
+      select: { checkedOutTo: true },
+    }),
+  ]);
+
+  const isManuallyCheckedOut = Boolean(item?.checkedOutTo?.trim());
 
   return prisma.item.update({
     where: { id: itemId },
-    data: { isAvailable: blockingCount === 0 },
+    data: { isAvailable: blockingCount === 0 && !isManuallyCheckedOut },
   });
+}
+
+/**
+ * Owner marks an item checked out to a free-text name (e.g. a neighbour who
+ * is not a ShareStuff user). Blocked while a system request is already holding
+ * the item (approved or borrowed).
+ */
+export async function markItemManuallyCheckedOut({
+  userId,
+  itemId,
+  checkedOutTo,
+}: {
+  userId: string;
+  itemId: string;
+  checkedOutTo: string;
+}) {
+  const name = checkedOutTo.trim();
+  if (!name) {
+    throw new Error("Enter who has this item");
+  }
+
+  const item = await prisma.item.findUnique({
+    where: { id: itemId },
+    select: {
+      id: true,
+      ownerId: true,
+      name: true,
+      checkedOutTo: true,
+    },
+  });
+
+  if (!item) {
+    throw new Error("Item not found");
+  }
+
+  if (item.ownerId !== userId) {
+    throw new Error("Unauthorized");
+  }
+
+  if (item.checkedOutTo?.trim()) {
+    throw new Error("This item is already checked out");
+  }
+
+  const existingHolder = await prisma.lendingRequest.findFirst({
+    where: {
+      itemId,
+      status: { in: HOLDER_LENDING_STATUSES },
+    },
+  });
+
+  if (existingHolder) {
+    throw new Error(
+      "Another request is already approved or borrowed for this item"
+    );
+  }
+
+  return prisma.item.update({
+    where: { id: itemId },
+    data: {
+      checkedOutTo: name,
+      checkedOutAt: new Date(),
+      isAvailable: false,
+    },
+  });
+}
+
+/**
+ * Owner clears a manual out-of-band checkout and restores availability unless
+ * the lending queue still blocks the item.
+ */
+export async function clearItemManualCheckout({
+  userId,
+  itemId,
+}: {
+  userId: string;
+  itemId: string;
+}) {
+  const item = await prisma.item.findUnique({
+    where: { id: itemId },
+    select: {
+      id: true,
+      ownerId: true,
+      name: true,
+      checkedOutTo: true,
+    },
+  });
+
+  if (!item) {
+    throw new Error("Item not found");
+  }
+
+  if (item.ownerId !== userId) {
+    throw new Error("Unauthorized");
+  }
+
+  if (!item.checkedOutTo?.trim()) {
+    throw new Error("This item is not manually checked out");
+  }
+
+  await prisma.item.update({
+    where: { id: itemId },
+    data: {
+      checkedOutTo: null,
+      checkedOutAt: null,
+    },
+  });
+
+  await syncItemAvailability(itemId);
+
+  return item;
 }
 
 export async function getLendingRequestsForUser({
@@ -616,7 +735,7 @@ export async function updateLendingRequestForItemOwner({
 
   const item = await prisma.item.findUnique({
     where: { id: itemId },
-    select: { id: true, ownerId: true },
+    select: { id: true, ownerId: true, checkedOutTo: true },
   });
 
   if (!item) {
@@ -653,6 +772,12 @@ export async function updateLendingRequestForItemOwner({
   }
 
   if (status === "APPROVED") {
+    if (item.checkedOutTo?.trim()) {
+      throw new Error(
+        "This item is checked out outside the system. Mark it returned first."
+      );
+    }
+
     const existingHolder = await prisma.lendingRequest.findFirst({
       where: {
         itemId,

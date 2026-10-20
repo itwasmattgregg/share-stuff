@@ -48,7 +48,11 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 export default function CommunityItemDetailPage() {
   const data = useLoaderData<typeof loader>();
   const { item, communityId, userId, isOwner } = data;
-  const display = getItemLendingDisplay(item.lendingRequests, item.isAvailable);
+  const display = getItemLendingDisplay(
+    item.lendingRequests,
+    item.isAvailable,
+    item.checkedOutTo
+  );
 
   return (
     <div className="max-w-3xl">

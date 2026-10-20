@@ -160,11 +160,13 @@ export default function ItemRequestsPage() {
       request.status === "REJECTED" ||
       request.status === "CANCELLED"
   );
-  const hasHolder = data.item.lendingRequests.some((request) =>
-    HOLDER_LENDING_STATUSES.includes(
-      request.status as (typeof HOLDER_LENDING_STATUSES)[number]
-    )
-  );
+  const hasHolder =
+    Boolean(data.item.checkedOutTo?.trim()) ||
+    data.item.lendingRequests.some((request) =>
+      HOLDER_LENDING_STATUSES.includes(
+        request.status as (typeof HOLDER_LENDING_STATUSES)[number]
+      )
+    );
 
   return (
     <div className="max-w-4xl">
@@ -185,8 +187,8 @@ export default function ItemRequestsPage() {
           <h3 className="text-lg font-semibold mb-4">Pending Requests</h3>
           {hasHolder ? (
             <p className="mb-4 text-sm text-gray-600">
-              Approve is unavailable while another request is ready for pickup
-              or borrowed. Mark that one returned first.
+              Approve is unavailable while this item is checked out, ready for
+              pickup, or borrowed. Mark that one returned first.
             </p>
           ) : null}
           <div className="space-y-4">

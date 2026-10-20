@@ -112,6 +112,24 @@ describe("getItemLendingDisplay", () => {
       tone: "borrowed",
     });
   });
+
+  it("shows checked out when manually lent outside the system", () => {
+    expect(
+      getItemLendingDisplay([], true, "Alex next door")
+    ).toMatchObject({
+      label: "Checked out",
+      tone: "borrowed",
+    });
+  });
+
+  it("prefers system borrowed over manual checkout labels", () => {
+    expect(
+      getItemLendingDisplay([{ status: "BORROWED" }], false, "Alex")
+    ).toMatchObject({
+      label: "Borrowed",
+      tone: "borrowed",
+    });
+  });
 });
 
 describe("parseOptionalDueDate", () => {
