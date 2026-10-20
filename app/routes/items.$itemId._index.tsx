@@ -363,7 +363,7 @@ export default function ItemDetailPage() {
                       </p>
                     ) : null}
                   </div>
-                  <Form method="post" className="shrink-0">
+                  <Form method="post" action="?index" className="shrink-0">
                     <input
                       type="hidden"
                       name="intent"
@@ -402,7 +402,7 @@ export default function ItemDetailPage() {
                 ready for pickup or borrowed.
               </p>
             ) : (
-              <Form method="post" className="space-y-3">
+              <Form method="post" action="?index" className="space-y-3">
                 <input type="hidden" name="intent" value="manual-checkout" />
                 <div>
                   <label
@@ -487,7 +487,7 @@ export default function ItemDetailPage() {
                           </p>
                         )}
                       </div>
-                      <Form method="post" className="shrink-0">
+                      <Form method="post" action="?index" className="shrink-0">
                         <input
                           type="hidden"
                           name="requestId"
@@ -552,7 +552,7 @@ export default function ItemDetailPage() {
                                 </p>
                               )}
                             </div>
-                            <Form method="post" className="shrink-0">
+                            <Form method="post" action="?index" className="shrink-0">
                               <input
                                 type="hidden"
                                 name="requestId"
@@ -629,7 +629,7 @@ export default function ItemDetailPage() {
                               )}
                             </div>
                             <div className="flex shrink-0 flex-col items-stretch gap-2">
-                              <Form method="post" className="space-y-2">
+                              <Form method="post" action="?index" className="space-y-2">
                                 <input
                                   type="hidden"
                                   name="requestId"
@@ -676,7 +676,7 @@ export default function ItemDetailPage() {
                                     : "Approve"}
                                 </button>
                               </Form>
-                              <Form method="post">
+                              <Form method="post" action="?index">
                                 <input
                                   type="hidden"
                                   name="requestId"
