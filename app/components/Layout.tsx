@@ -39,7 +39,7 @@ export default function Layout({
     <div className="flex min-h-screen flex-col bg-neutral-50">
       {/* Navigation Header */}
       <nav className="relative bg-white mb-10">
-        <div className="relative z-10 px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo - Always on the left */}
             <div className="flex flex-shrink-0 items-center">
@@ -304,7 +304,7 @@ export default function Layout({
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto bg-neutral-50">
-          <div className="p-4 sm:p-6">
+          <div className="mx-auto w-full max-w-7xl p-4 sm:p-6">
             <FlashBanner flashMessage={flashMessage} />
             {children}
           </div>
@@ -312,7 +312,7 @@ export default function Layout({
 
         {/* Footer */}
         <footer className="border-t border-neutral-200 bg-white px-4 py-4 sm:px-6">
-          <div className="flex flex-col items-center gap-3 text-sm text-neutral-600">
+          <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-3 text-sm text-neutral-600">
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
               <Link
                 to="/guidelines"
