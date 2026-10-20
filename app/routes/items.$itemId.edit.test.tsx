@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import EditItemPage from "./items.$itemId.edit";
 
@@ -15,7 +15,7 @@ const mockItem = {
   ownerId: "user-1",
   createdAt: new Date("2024-01-01"),
   updatedAt: new Date("2024-01-01"),
-  lendingRequests: [],
+  lendingRequests: [] as Array<{ status: string }>,
   itemTags: [
     {
       itemId: "item-1",
@@ -44,6 +44,10 @@ vi.mock("@remix-run/react", async (importOriginal) => {
 });
 
 describe("item edit route", () => {
+  beforeEach(() => {
+    mockItem.lendingRequests = [];
+  });
+
   it("renders the edit form with existing item values", () => {
     render(
       <MemoryRouter>
@@ -68,5 +72,28 @@ describe("item edit route", () => {
       "href",
       "/items/item-1"
     );
+    expect(
+      screen.getByRole("button", { name: /delete item/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /delete item/i })
+    ).not.toBeDisabled();
+  });
+
+  it("disables delete when the item has an active lending queue", () => {
+    mockItem.lendingRequests = [{ status: "PENDING" }];
+
+    render(
+      <MemoryRouter>
+        <EditItemPage />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByRole("button", { name: /delete item/i })
+    ).toBeDisabled();
+    expect(
+      screen.getByText(/clear the lending queue before deleting/i)
+    ).toBeInTheDocument();
   });
 });

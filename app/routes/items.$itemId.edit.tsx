@@ -5,11 +5,11 @@ import { useEffect, useRef } from "react";
 
 import ItemPhotoField from "~/components/ItemPhotoField";
 import TagInput from "~/components/TagInput";
-import { getItem, updateItem } from "~/models/item.server";
+import { deleteItem, getItem, updateItem } from "~/models/item.server";
 import { syncItemTags } from "~/models/tag.server";
 import { isStorageConfigured } from "~/models/storage.server";
 import { redirectWithFlash, requireUserId } from "~/session.server";
-import { successFlash } from "~/utils/flash";
+import { errorFlash, successFlash } from "~/utils/flash";
 import { ITEM_CATEGORIES, ITEM_CONDITIONS } from "~/utils/item-form";
 import { applyItemPhotoChanges } from "~/utils/item-photo.server";
 import { normalizeExternalPhotoUrl } from "~/utils/item-photo-url";
@@ -18,7 +18,11 @@ import {
   type LendingStatus,
 } from "~/utils/lending-request";
 import { parseTagsFromForm, validateTagNames } from "~/utils/tag";
-import { submitButtonClassName, useIsSubmitting } from "~/utils/form-submission";
+import {
+  submitButtonClassName,
+  useIsSubmitting,
+  useIsSubmittingFields,
+} from "~/utils/form-submission";
 
 type ItemFormErrors = {
   name?: string;
@@ -77,6 +81,34 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   }
 
   const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "delete") {
+    try {
+      await deleteItem({ id: itemId, ownerId: userId });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to delete item";
+      if (message === "Unauthorized") {
+        throw new Response("Unauthorized", { status: 403 });
+      }
+      if (message === "Item not found") {
+        throw new Response("Item not found", { status: 404 });
+      }
+      return redirectWithFlash(
+        request,
+        `/items/${itemId}/edit`,
+        errorFlash(message)
+      );
+    }
+
+    return redirectWithFlash(
+      request,
+      "/items",
+      successFlash(`"${item.name}" was deleted.`)
+    );
+  }
+
   const name = formData.get("name");
   const description = formData.get("description");
   const category = formData.get("category");
@@ -145,7 +177,8 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 export default function EditItemPage() {
   const { item, photoUploadEnabled } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
-  const isSubmitting = useIsSubmitting();
+  const isDeleting = useIsSubmittingFields({ intent: "delete" });
+  const isSubmittingUpdate = useIsSubmitting() && !isDeleting;
   const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -315,15 +348,48 @@ export default function EditItemPage() {
           </Link>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmittingUpdate || isDeleting}
             className={submitButtonClassName(
               "w-full sm:w-auto rounded-md bg-success-500 px-6 py-3 text-base font-medium text-white hover:bg-success-700 min-h-[44px]"
             )}
           >
-            {isSubmitting ? "Saving…" : "Update Item"}
+            {isSubmittingUpdate ? "Saving…" : "Update Item"}
           </button>
         </div>
       </Form>
+
+      <div className="mt-10 rounded-lg border border-danger-200 bg-white p-6">
+        <h3 className="text-lg font-semibold text-danger-800">Delete item</h3>
+        {availabilityLocked ? (
+          <p className="mt-2 text-sm text-gray-600">
+            This item has pending, ready-for-pickup, or borrowed requests.
+            Clear the lending queue before deleting it.
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-gray-600">
+            Permanently remove this item from your shelf. This cannot be undone.
+          </p>
+        )}
+        <Form method="post" className="mt-4">
+          <input type="hidden" name="intent" value="delete" />
+          <button
+            type="submit"
+            disabled={availabilityLocked || isDeleting || isSubmittingUpdate}
+            className={submitButtonClassName(
+              "w-full sm:w-auto rounded-md bg-danger-600 px-6 py-3 text-base font-medium text-white hover:bg-danger-700 min-h-[44px] disabled:hover:bg-danger-600"
+            )}
+            onClick={(event) => {
+              if (
+                !confirm(`Delete "${item.name}"? This cannot be undone.`)
+              ) {
+                event.preventDefault();
+              }
+            }}
+          >
+            {isDeleting ? "Deleting…" : "Delete Item"}
+          </button>
+        </Form>
+      </div>
     </div>
   );
 }
