@@ -391,13 +391,45 @@ export async function updateItem({
   });
 }
 
-export async function deleteItem({ id }: { id: string }) {
+export async function deleteItem({
+  id,
+  ownerId,
+}: {
+  id: string;
+  ownerId: string;
+}) {
   const item = await prisma.item.findUnique({
     where: { id },
-    select: { photoKey: true },
+    select: {
+      photoKey: true,
+      ownerId: true,
+      lendingRequests: {
+        where: {
+          status: {
+            in: UNAVAILABLE_LENDING_STATUSES,
+          },
+        },
+        select: { id: true },
+        take: 1,
+      },
+    },
   });
 
-  if (item?.photoKey) {
+  if (!item) {
+    throw new Error("Item not found");
+  }
+
+  if (item.ownerId !== ownerId) {
+    throw new Error("Unauthorized");
+  }
+
+  if (item.lendingRequests.length > 0) {
+    throw new Error(
+      "Cannot delete an item with active lending requests. Clear the queue first."
+    );
+  }
+
+  if (item.photoKey) {
     await removeItemPhoto(item.photoKey);
   }
 
