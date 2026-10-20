@@ -135,7 +135,7 @@ export default function CommunityItemsPage() {
               </Link>
             </div>
           )}
-          <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,16rem),18rem))] gap-4 sm:gap-6">
           {data.items.map((item) => {
             const display = getItemLendingDisplay(
               item.lendingRequests,
@@ -146,7 +146,7 @@ export default function CommunityItemsPage() {
             return (
             <div
               key={item.id}
-              className="rounded-lg border border-neutral-200 bg-white p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="w-full max-w-xs rounded-lg border border-neutral-200 bg-white p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">

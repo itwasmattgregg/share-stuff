@@ -117,7 +117,7 @@ export default function CommunityIndexPage() {
               </Link>
             </div>
           ) : null}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,16rem),18rem))] gap-6">
           {data.items.map((item) => {
             const display = getItemLendingDisplay(
               item.lendingRequests,
@@ -128,7 +128,7 @@ export default function CommunityIndexPage() {
             return (
             <div
               key={item.id}
-              className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="w-full max-w-xs rounded-lg border border-neutral-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <ItemPhoto
                 itemId={item.id}

@@ -12,6 +12,7 @@ const prismaMock = vi.hoisted(() => ({
     findUnique: vi.fn(),
     findMany: vi.fn(),
     update: vi.fn(),
+    delete: vi.fn(),
     count: vi.fn(),
   },
 }));
@@ -28,9 +29,16 @@ vi.mock("~/models/notification.server", () => ({
   createNotification: vi.fn(),
 }));
 
+const removeItemPhotoMock = vi.hoisted(() => vi.fn());
+
+vi.mock("~/utils/item-photo.server", () => ({
+  removeItemPhoto: removeItemPhotoMock,
+}));
+
 import { getUserCommunities } from "~/models/community.server";
 import {
   clearItemManualCheckout,
+  deleteItem,
   getAllowedLendingRequestStatusesForUpdate,
   isItemVisibleInCommunity,
   markItemManuallyCheckedOut,
@@ -544,5 +552,57 @@ describe("searchItemsInUserCommunities", () => {
       { id: "community-1", name: "Zulu Community" },
     ]);
     expect(results[0].primaryCommunityId).toBe("community-2");
+  });
+});
+
+describe("deleteItem", () => {
+  beforeEach(() => {
+    prismaMock.item.findUnique.mockReset();
+    prismaMock.item.delete.mockReset();
+    removeItemPhotoMock.mockReset();
+  });
+
+  it("deletes an owned item with no active lending requests", async () => {
+    prismaMock.item.findUnique.mockResolvedValue({
+      photoKey: "photos/item-1.jpg",
+      ownerId: "owner-1",
+      lendingRequests: [],
+    });
+    prismaMock.item.delete.mockResolvedValue({ id: "item-1" });
+
+    await deleteItem({ id: "item-1", ownerId: "owner-1" });
+
+    expect(removeItemPhotoMock).toHaveBeenCalledWith("photos/item-1.jpg");
+    expect(prismaMock.item.delete).toHaveBeenCalledWith({
+      where: { id: "item-1" },
+    });
+  });
+
+  it("rejects delete for non-owners", async () => {
+    prismaMock.item.findUnique.mockResolvedValue({
+      photoKey: null,
+      ownerId: "owner-1",
+      lendingRequests: [],
+    });
+
+    await expect(
+      deleteItem({ id: "item-1", ownerId: "other-user" })
+    ).rejects.toThrow("Unauthorized");
+    expect(prismaMock.item.delete).not.toHaveBeenCalled();
+  });
+
+  it("rejects delete when the lending queue is active", async () => {
+    prismaMock.item.findUnique.mockResolvedValue({
+      photoKey: null,
+      ownerId: "owner-1",
+      lendingRequests: [{ id: "request-1" }],
+    });
+
+    await expect(
+      deleteItem({ id: "item-1", ownerId: "owner-1" })
+    ).rejects.toThrow(
+      "Cannot delete an item with active lending requests. Clear the queue first."
+    );
+    expect(prismaMock.item.delete).not.toHaveBeenCalled();
   });
 });
