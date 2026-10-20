@@ -11,6 +11,8 @@ const mockItem = {
   category: "Books",
   condition: "Good",
   isAvailable: false,
+  checkedOutTo: null,
+  checkedOutAt: null,
   ownerId: "owner-1",
   createdAt: new Date("2024-01-01"),
   updatedAt: new Date("2024-01-01"),
@@ -84,5 +86,8 @@ describe("item detail route", () => {
     expect(screen.getByText(/#1 queue user/i)).toBeInTheDocument();
     expect(screen.getByText(/currently borrowed by borrower/i)).toBeInTheDocument();
     expect(screen.getByText(/^borrowed$/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/manual checkout is unavailable while a sharestuff request/i)
+    ).toBeInTheDocument();
   });
 });

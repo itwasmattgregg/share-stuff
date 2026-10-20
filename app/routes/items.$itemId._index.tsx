@@ -9,7 +9,9 @@ import {
 } from "@remix-run/react";
 
 import {
+  clearItemManualCheckout,
   getItem,
+  markItemManuallyCheckedOut,
   markLendingRequestBorrowed,
   notifyLendingRequestStatusChange,
   updateLendingRequestForItemOwner,
@@ -69,10 +71,6 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   const intent = formData.get("intent");
   const status = formData.get("status");
 
-  if (typeof requestId !== "string") {
-    throw new Response("Invalid request", { status: 400 });
-  }
-
   const handleModelError = (error: Error) => {
     if (error.message === "Unauthorized") {
       throw new Response("Unauthorized", { status: 403 });
@@ -82,6 +80,61 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     }
     throw new Response(error.message, { status: 400 });
   };
+
+  if (intent === "manual-checkout") {
+    const checkedOutTo = formData.get("checkedOutTo");
+    if (typeof checkedOutTo !== "string") {
+      return json(
+        { errors: { checkedOutTo: "Enter who has this item." } },
+        { status: 400 }
+      );
+    }
+
+    const item = await markItemManuallyCheckedOut({
+      userId,
+      itemId,
+      checkedOutTo,
+    }).catch((error: Error) => {
+      if (error.message === "Enter who has this item") {
+        return null;
+      }
+      return handleModelError(error);
+    });
+
+    if (!item) {
+      return json(
+        { errors: { checkedOutTo: "Enter who has this item." } },
+        { status: 400 }
+      );
+    }
+
+    return redirectWithFlash(
+      request,
+      `/items/${itemId}`,
+      successFlash(
+        `${item.name} is now marked as checked out to ${item.checkedOutTo}.`
+      )
+    );
+  }
+
+  if (intent === "clear-manual-checkout") {
+    const item = await clearItemManualCheckout({
+      userId,
+      itemId,
+    }).catch(handleModelError);
+
+    return redirectWithFlash(
+      request,
+      `/items/${itemId}`,
+      successFlash(
+        `${item.name} is marked as returned from ${item.checkedOutTo}.`
+      )
+    );
+  }
+
+  if (typeof requestId !== "string") {
+    throw new Response("Invalid request", { status: 400 });
+  }
 
   if (intent === "mark-borrowed") {
     const lendingRequest = await markLendingRequestBorrowed({
@@ -168,12 +221,21 @@ export default function ItemDetailPage() {
   const data = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const actionData = useActionData<typeof action>();
+  const actionErrors =
+    actionData && "errors" in actionData ? actionData.errors : undefined;
   const dueDateError =
-    actionData && "errors" in actionData ? actionData.errors.dueDate : undefined;
+    actionErrors && "dueDate" in actionErrors
+      ? actionErrors.dueDate
+      : undefined;
+  const checkedOutToError =
+    actionErrors && "checkedOutTo" in actionErrors
+      ? actionErrors.checkedOutTo
+      : undefined;
 
   const lendingDisplay = getItemLendingDisplay(
     data.item.lendingRequests,
-    data.item.isAvailable
+    data.item.isAvailable,
+    data.item.checkedOutTo
   );
   const borrowedRequest = data.item.lendingRequests.find(
     (request) => request.status === "BORROWED"
@@ -190,11 +252,14 @@ export default function ItemDetailPage() {
       request.status === "REJECTED" ||
       request.status === "CANCELLED"
   );
-  const hasHolder = data.item.lendingRequests.some((request) =>
-    HOLDER_LENDING_STATUSES.includes(
-      request.status as (typeof HOLDER_LENDING_STATUSES)[number]
-    )
-  );
+  const hasManualCheckout = Boolean(data.item.checkedOutTo?.trim());
+  const hasHolder =
+    hasManualCheckout ||
+    data.item.lendingRequests.some((request) =>
+      HOLDER_LENDING_STATUSES.includes(
+        request.status as (typeof HOLDER_LENDING_STATUSES)[number]
+      )
+    );
 
   return (
     <div className="max-w-4xl">
@@ -277,6 +342,116 @@ export default function ItemDetailPage() {
         </div>
 
         <div className="space-y-6">
+          <div className="rounded-lg border border-gray-200 bg-white p-6">
+            <h3 className="text-lg font-semibold mb-4">Manual checkout</h3>
+            <p className="mb-4 text-sm text-gray-600">
+              Track this item with someone who isn&apos;t on ShareStuff — just
+              enter their name.
+            </p>
+
+            {hasManualCheckout ? (
+              <div className="rounded-md border border-primary-200 bg-primary-50 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-primary-900">
+                      Checked out to {data.item.checkedOutTo}
+                    </p>
+                    {data.item.checkedOutAt ? (
+                      <p className="text-xs text-primary-700">
+                        Since{" "}
+                        {formatLendingRequestDateTime(data.item.checkedOutAt)}
+                      </p>
+                    ) : null}
+                  </div>
+                  <Form method="post" className="shrink-0">
+                    <input
+                      type="hidden"
+                      name="intent"
+                      value="clear-manual-checkout"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isNavigationSubmittingFields(navigation, {
+                        intent: "clear-manual-checkout",
+                      })}
+                      className={submitButtonClassName(
+                        "rounded-md bg-success-500 px-3 py-2 text-sm text-white hover:bg-success-700"
+                      )}
+                      onClick={(event) => {
+                        if (
+                          !confirm(
+                            `Mark "${data.item.name}" as returned from ${data.item.checkedOutTo}?`
+                          )
+                        ) {
+                          event.preventDefault();
+                        }
+                      }}
+                    >
+                      {isNavigationSubmittingFields(navigation, {
+                        intent: "clear-manual-checkout",
+                      })
+                        ? "Saving…"
+                        : "Mark as Returned"}
+                    </button>
+                  </Form>
+                </div>
+              </div>
+            ) : borrowedRequest || approvedRequests.length > 0 ? (
+              <p className="text-sm text-gray-500">
+                Manual checkout is unavailable while a ShareStuff request is
+                ready for pickup or borrowed.
+              </p>
+            ) : (
+              <Form method="post" className="space-y-3">
+                <input type="hidden" name="intent" value="manual-checkout" />
+                <div>
+                  <label
+                    htmlFor="checkedOutTo"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Who has it?
+                  </label>
+                  <input
+                    id="checkedOutTo"
+                    name="checkedOutTo"
+                    type="text"
+                    required
+                    maxLength={100}
+                    placeholder="e.g. Alex next door"
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    aria-invalid={checkedOutToError ? true : undefined}
+                    aria-describedby={
+                      checkedOutToError ? "checkedOutTo-error" : undefined
+                    }
+                  />
+                  {checkedOutToError ? (
+                    <p
+                      className="mt-1 text-sm text-danger-700"
+                      id="checkedOutTo-error"
+                    >
+                      {checkedOutToError}
+                    </p>
+                  ) : null}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isNavigationSubmittingFields(navigation, {
+                    intent: "manual-checkout",
+                  })}
+                  className={submitButtonClassName(
+                    "rounded-md bg-primary-600 px-3 py-2 text-sm text-white hover:bg-primary-700"
+                  )}
+                >
+                  {isNavigationSubmittingFields(navigation, {
+                    intent: "manual-checkout",
+                  })
+                    ? "Saving…"
+                    : "Mark as checked out"}
+                </button>
+              </Form>
+            )}
+          </div>
+
           <div className="rounded-lg border border-gray-200 bg-white p-6">
             <h3 className="text-lg font-semibold mb-4">Lending Requests</h3>
 
@@ -423,8 +598,8 @@ export default function ItemDetailPage() {
                     </h4>
                     {hasHolder ? (
                       <p className="mb-2 text-xs text-gray-600">
-                        Approve is unavailable while another request is ready
-                        for pickup or borrowed.
+                        Approve is unavailable while this item is checked out,
+                        ready for pickup, or borrowed.
                       </p>
                     ) : null}
                     <div className="space-y-3">

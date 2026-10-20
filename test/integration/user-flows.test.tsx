@@ -692,6 +692,156 @@ describe("integration: lending lifecycle", () => {
   });
 });
 
+describe("integration: manual checkout", () => {
+  beforeEach(async () => {
+    await ensureTestDatabase();
+  });
+
+  it("lets an owner check an item out to a free-text name and return it", async () => {
+    const owner = await createVerifiedUser({
+      email: "manual-checkout-owner@example.com",
+      name: "Manual Owner",
+    });
+
+    const item = await prisma.item.create({
+      data: {
+        name: "Extension Cord",
+        ownerId: owner.id,
+      },
+    });
+
+    const checkoutAction = await invokeRouteHandler(ownerItemAction, {
+      request: await createAuthenticatedFormPost(
+        owner.id,
+        `http://localhost/items/${item.id}`,
+        {
+          intent: "manual-checkout",
+          checkedOutTo: "  Neighbour Sam  ",
+        }
+      ),
+      params: { itemId: item.id },
+      context: {},
+    });
+
+    expect(checkoutAction.response.status).toBe(302);
+
+    let itemRecord = await prisma.item.findUniqueOrThrow({
+      where: { id: item.id },
+    });
+    expect(itemRecord.checkedOutTo).toBe("Neighbour Sam");
+    expect(itemRecord.checkedOutAt).toBeTruthy();
+    expect(itemRecord.isAvailable).toBe(false);
+
+    const checkedOutPage = await invokeRouteHandler(ownerItemLoader, {
+      request: await createAuthenticatedRequest(
+        owner.id,
+        `http://localhost/items/${item.id}`
+      ),
+      params: { itemId: item.id },
+      context: {},
+    });
+    const checkedOutData = await readJsonResponse<{
+      item: {
+        checkedOutTo: string | null;
+        isAvailable: boolean;
+        lendingRequests: Array<{ status: string }>;
+      };
+    }>(checkedOutPage.response);
+
+    renderWithLoaderData(<ItemDetailPage />, checkedOutData);
+    expect(screen.getByText(/checked out to neighbour sam/i)).toBeInTheDocument();
+    expect(screen.getByText(/^checked out$/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /mark as returned/i })
+    ).toBeInTheDocument();
+
+    const returnAction = await invokeRouteHandler(ownerItemAction, {
+      request: await createAuthenticatedFormPost(
+        owner.id,
+        `http://localhost/items/${item.id}`,
+        {
+          intent: "clear-manual-checkout",
+        }
+      ),
+      params: { itemId: item.id },
+      context: {},
+    });
+
+    expect(returnAction.response.status).toBe(302);
+
+    itemRecord = await prisma.item.findUniqueOrThrow({
+      where: { id: item.id },
+    });
+    expect(itemRecord.checkedOutTo).toBeNull();
+    expect(itemRecord.checkedOutAt).toBeNull();
+    expect(itemRecord.isAvailable).toBe(true);
+  });
+
+  it("blocks approving a queued request while manually checked out", async () => {
+    const owner = await createVerifiedUser({
+      email: "manual-block-owner@example.com",
+      name: "Block Owner",
+    });
+    const borrower = await createVerifiedUser({
+      email: "manual-block-borrower@example.com",
+      name: "Block Borrower",
+    });
+    const community = await createCommunityWithOwner({
+      ownerId: owner.id,
+      name: "Manual Block Community",
+    });
+    await addApprovedCommunityMember({
+      communityId: community.id,
+      userId: borrower.id,
+    });
+
+    const item = await prisma.item.create({
+      data: {
+        name: "Wheelbarrow",
+        ownerId: owner.id,
+        checkedOutTo: "Cousin Pat",
+        checkedOutAt: new Date(),
+        isAvailable: false,
+      },
+    });
+
+    await invokeRouteHandler(borrowRequestAction, {
+      request: await createAuthenticatedFormPost(
+        borrower.id,
+        `http://localhost/communities/${community.id}/items/${item.id}/request`,
+        { requestNote: "When it's free" }
+      ),
+      params: { communityId: community.id, itemId: item.id },
+      context: {},
+    });
+
+    const lendingRequest = await prisma.lendingRequest.findFirstOrThrow({
+      where: { itemId: item.id, requesterId: borrower.id },
+    });
+
+    const approveAction = await invokeRouteHandler(ownerItemAction, {
+      request: await createAuthenticatedFormPost(
+        owner.id,
+        `http://localhost/items/${item.id}`,
+        {
+          requestId: lendingRequest.id,
+          status: "APPROVED",
+        }
+      ),
+      params: { itemId: item.id },
+      context: {},
+    });
+
+    expect(approveAction.response.status).toBe(400);
+    expect(await approveAction.response.text()).toMatch(/checked out outside/i);
+
+    const stillPending = await prisma.lendingRequest.findUniqueOrThrow({
+      where: { id: lendingRequest.id },
+    });
+    expect(stillPending.status).toBe("PENDING");
+  });
+});
+
 describe("integration: login", () => {
   beforeEach(async () => {
     await ensureTestDatabase();

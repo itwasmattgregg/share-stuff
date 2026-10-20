@@ -130,7 +130,8 @@ export default function RequestBorrowPage() {
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const lendingDisplay = getItemLendingDisplay(
     data.item.lendingRequests,
-    data.item.isAvailable
+    data.item.isAvailable,
+    data.item.checkedOutTo
   );
   const dueDateError =
     actionData && "errors" in actionData ? actionData.errors.dueDate : undefined;

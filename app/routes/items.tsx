@@ -83,7 +83,8 @@ export default function ItemsPage() {
             {data.items.map((item) => {
               const display = getItemLendingDisplay(
                 item.lendingRequests,
-                item.isAvailable
+                item.isAvailable,
+                item.checkedOutTo
               );
 
               return (
@@ -170,7 +171,8 @@ export default function ItemsPage() {
                         !isNewPage && location.pathname.includes(`/items/${item.id}`);
                       const display = getItemLendingDisplay(
                         item.lendingRequests,
-                        item.isAvailable
+                        item.isAvailable,
+                        item.checkedOutTo
                       );
                       return (
                         <Link

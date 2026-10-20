@@ -30,8 +30,10 @@ vi.mock("~/models/notification.server", () => ({
 
 import { getUserCommunities } from "~/models/community.server";
 import {
+  clearItemManualCheckout,
   getAllowedLendingRequestStatusesForUpdate,
   isItemVisibleInCommunity,
+  markItemManuallyCheckedOut,
   requestToBorrowItem,
   searchItemsInUserCommunities,
   updateLendingRequestForItemOwner,
@@ -201,6 +203,138 @@ describe("updateLendingRequestForItemOwner", () => {
       },
     });
     expect(prismaMock.item.update).toHaveBeenCalledWith({
+      where: { id: "item-1" },
+      data: { isAvailable: true },
+    });
+  });
+});
+
+describe("markItemManuallyCheckedOut", () => {
+  beforeEach(() => {
+    prismaMock.item.findUnique.mockReset();
+    prismaMock.item.update.mockReset();
+    prismaMock.lendingRequest.findFirst.mockReset();
+  });
+
+  it("rejects non-owners", async () => {
+    prismaMock.item.findUnique.mockResolvedValue({
+      id: "item-1",
+      ownerId: "owner-1",
+      name: "Ladder",
+      checkedOutTo: null,
+    });
+
+    await expect(
+      markItemManuallyCheckedOut({
+        userId: "other-user",
+        itemId: "item-1",
+        checkedOutTo: "Alex",
+      })
+    ).rejects.toThrow("Unauthorized");
+  });
+
+  it("rejects an empty borrower name", async () => {
+    await expect(
+      markItemManuallyCheckedOut({
+        userId: "owner-1",
+        itemId: "item-1",
+        checkedOutTo: "   ",
+      })
+    ).rejects.toThrow("Enter who has this item");
+  });
+
+  it("marks the item checked out to a free-text name", async () => {
+    prismaMock.item.findUnique.mockResolvedValue({
+      id: "item-1",
+      ownerId: "owner-1",
+      name: "Ladder",
+      checkedOutTo: null,
+    });
+    prismaMock.lendingRequest.findFirst.mockResolvedValue(null);
+    prismaMock.item.update.mockResolvedValue({
+      id: "item-1",
+      name: "Ladder",
+      checkedOutTo: "Alex next door",
+      isAvailable: false,
+    });
+
+    const result = await markItemManuallyCheckedOut({
+      userId: "owner-1",
+      itemId: "item-1",
+      checkedOutTo: "  Alex next door  ",
+    });
+
+    expect(result.checkedOutTo).toBe("Alex next door");
+    expect(prismaMock.item.update).toHaveBeenCalledWith({
+      where: { id: "item-1" },
+      data: {
+        checkedOutTo: "Alex next door",
+        checkedOutAt: expect.any(Date),
+        isAvailable: false,
+      },
+    });
+  });
+
+  it("blocks manual checkout when a system holder exists", async () => {
+    prismaMock.item.findUnique.mockResolvedValue({
+      id: "item-1",
+      ownerId: "owner-1",
+      name: "Ladder",
+      checkedOutTo: null,
+    });
+    prismaMock.lendingRequest.findFirst.mockResolvedValue({ id: "request-1" });
+
+    await expect(
+      markItemManuallyCheckedOut({
+        userId: "owner-1",
+        itemId: "item-1",
+        checkedOutTo: "Alex",
+      })
+    ).rejects.toThrow(
+      "Another request is already approved or borrowed for this item"
+    );
+  });
+});
+
+describe("clearItemManualCheckout", () => {
+  beforeEach(() => {
+    prismaMock.item.findUnique.mockReset();
+    prismaMock.item.update.mockReset();
+    prismaMock.lendingRequest.count.mockReset();
+  });
+
+  it("clears the name and restores availability when the queue is empty", async () => {
+    prismaMock.item.findUnique
+      .mockResolvedValueOnce({
+        id: "item-1",
+        ownerId: "owner-1",
+        name: "Ladder",
+        checkedOutTo: "Alex",
+      })
+      .mockResolvedValueOnce({
+        checkedOutTo: null,
+      });
+    prismaMock.item.update.mockResolvedValue({ id: "item-1" });
+    prismaMock.lendingRequest.count.mockResolvedValue(0);
+
+    const result = await clearItemManualCheckout({
+      userId: "owner-1",
+      itemId: "item-1",
+    });
+
+    expect(result).toMatchObject({
+      id: "item-1",
+      name: "Ladder",
+      checkedOutTo: "Alex",
+    });
+    expect(prismaMock.item.update).toHaveBeenNthCalledWith(1, {
+      where: { id: "item-1" },
+      data: {
+        checkedOutTo: null,
+        checkedOutAt: null,
+      },
+    });
+    expect(prismaMock.item.update).toHaveBeenNthCalledWith(2, {
       where: { id: "item-1" },
       data: { isAvailable: true },
     });

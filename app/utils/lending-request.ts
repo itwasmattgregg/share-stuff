@@ -95,7 +95,8 @@ export function getQueuePositionForUser<
 
 export function getItemLendingDisplay(
   lendingRequests: Array<{ status: string }>,
-  isAvailable = true
+  isAvailable = true,
+  checkedOutTo?: string | null
 ): ItemLendingDisplay {
   const pendingCount = lendingRequests.filter(
     (request) => request.status === "PENDING"
@@ -106,9 +107,14 @@ export function getItemLendingDisplay(
   const hasApproved = lendingRequests.some(
     (request) => request.status === "APPROVED"
   );
+  const hasManualCheckout = Boolean(checkedOutTo?.trim());
 
   if (hasBorrowed) {
     return { label: "Borrowed", tone: "borrowed", pendingCount };
+  }
+
+  if (hasManualCheckout) {
+    return { label: "Checked out", tone: "borrowed", pendingCount };
   }
 
   if (hasApproved) {
