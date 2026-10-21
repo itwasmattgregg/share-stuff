@@ -12,7 +12,7 @@
       <stop offset="1" stop-color="#4f46e5"/>
     </linearGradient>
 
-    <linearGradient id="headline" x1="140" y1="300" x2="760" y2="360" gradientUnits="userSpaceOnUse">
+    <linearGradient id="headline" x1="140" y1="300" x2="900" y2="360" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#2563eb"/>
       <stop offset="1" stop-color="#4f46e5"/>
     </linearGradient>
@@ -49,13 +49,13 @@
   </text>
 
   <text x="140" y="300" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="52" font-weight="800" fill="#0f172a" letter-spacing="-0.02em">
-    Build Stronger Communities
+    Private library communities
   </text>
   <text x="140" y="360" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="52" font-weight="800" fill="url(#headline)" letter-spacing="-0.02em">
-    Through Sharing
+    for the people you trust
   </text>
 
   <text x="140" y="430" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="28" font-weight="500" fill="#475569" letter-spacing="0.01em">
-    Tools · Books · Resources — shared with neighbors you trust
+    Invite-only libraries — books, tools &amp; more with your community
   </text>
 </svg>
