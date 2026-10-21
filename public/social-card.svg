@@ -1,97 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Gradient background matching brand colors -->
     <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#fff7ed"/>
-      <stop offset="0.4" stop-color="#fef3c7"/>
-      <stop offset="1" stop-color="#faf5ff"/>
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="0.45" stop-color="#eff6ff"/>
+      <stop offset="1" stop-color="#eef2ff"/>
     </linearGradient>
 
-    <!-- Primary brand gradient (orange) -->
-    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f97316"/>
-      <stop offset="1" stop-color="#ea580c"/>
+    <linearGradient id="brand" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#4f46e5"/>
     </linearGradient>
 
-    <!-- Secondary accent gradient -->
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#84cc16"/>
-      <stop offset="1" stop-color="#65a30d"/>
+    <linearGradient id="headline" x1="140" y1="300" x2="900" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#4f46e5"/>
     </linearGradient>
 
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#1c1917" flood-opacity="0.15"/>
-    </filter>
-
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#0f172a" flood-opacity="0.12"/>
     </filter>
   </defs>
 
-  <!-- Background -->
   <rect width="1200" height="630" fill="url(#bg)"/>
 
-  <!-- Decorative circles -->
-  <circle cx="1080" cy="120" r="200" fill="#f97316" opacity="0.08"/>
-  <circle cx="120" cy="510" r="240" fill="#84cc16" opacity="0.08"/>
-  <circle cx="900" cy="580" r="160" fill="#a78bfa" opacity="0.06"/>
+  <circle cx="1080" cy="120" r="200" fill="#2563eb" opacity="0.07"/>
+  <circle cx="120" cy="510" r="240" fill="#4f46e5" opacity="0.07"/>
+  <circle cx="920" cy="560" r="160" fill="#0ea5e9" opacity="0.05"/>
 
-  <!-- Main content card -->
   <g filter="url(#shadow)">
     <rect x="80" y="90" width="1040" height="450" rx="32" fill="white" opacity="0.98"/>
   </g>
 
-  <!-- Logo icon with brand gradient -->
-  <g transform="translate(140 140)">
-    <rect x="0" y="0" width="100" height="100" rx="24" fill="url(#brand)"/>
-    <!-- Menu icon matching site logo -->
-    <g transform="translate(25 30)">
-      <path d="M5 10H45" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M5 25H45" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M5 40H45" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- ShareStuff mark (same geometry as favicon.svg / ShareStuffMark) -->
+  <g transform="translate(140 145) scale(2.083333)">
+    <rect width="48" height="48" rx="13" fill="url(#brand)"/>
+    <path d="M24 30.4 18.2 24.6A3.95 3.95 0 0 1 24 19.15a3.95 3.95 0 0 1 5.8 5.45Z" fill="#ffffff"/>
+    <g stroke="#ffffff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M10.6 19.7A12.6 12.6 0 0 1 37.4 19.7"/>
+      <path d="M38.55 14.7 37.4 19.7 33.3 16.55"/>
+      <path d="M37.4 28.3A12.6 12.6 0 0 1 10.6 28.3"/>
+      <path d="M9.45 33.3 10.6 28.3 14.7 31.45"/>
     </g>
   </g>
 
-  <!-- Brand name -->
-  <text x="260" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="800" fill="#1c1917" letter-spacing="-0.02em">
+  <text x="270" y="210" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="64" font-weight="800" fill="#0f172a" letter-spacing="-0.02em">
     ShareStuff
   </text>
 
-  <!-- Main tagline -->
-  <text x="140" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="800" fill="#1c1917" letter-spacing="-0.02em">
-    Build Stronger Communities
+  <text x="140" y="300" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="52" font-weight="800" fill="#0f172a" letter-spacing="-0.02em">
+    Private library communities
   </text>
-  <text x="140" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="800" fill="url(#brand)" letter-spacing="-0.02em">
-    Through Sharing
-  </text>
-
-  <!-- Subtitle -->
-  <text x="140" y="420" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="500" fill="#57534e" letter-spacing="0.01em">
-    Tools • Books • Resources — shared with neighbors you trust
+  <text x="140" y="360" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="52" font-weight="800" fill="url(#headline)" letter-spacing="-0.02em">
+    for the people you trust
   </text>
 
-  <!-- Decorative sharing icons (subtle) -->
-  <g opacity="0.06" fill="#1c1917">
-    <!-- Sharing/network icon -->
-    <circle cx="950" cy="200" r="3"/>
-    <circle cx="970" cy="200" r="3"/>
-    <circle cx="990" cy="200" r="3"/>
-    <line x1="950" y1="200" x2="990" y2="200" stroke="#1c1917" stroke-width="1"/>
-    
-    <!-- Community icon -->
-    <circle cx="1020" cy="280" r="4"/>
-    <circle cx="1040" cy="280" r="4"/>
-    <circle cx="1060" cy="280" r="4"/>
-    <line x1="1020" y1="280" x2="1060" y2="280" stroke="#1c1917" stroke-width="1"/>
-  </g>
-
-  <!-- Brand tag at bottom -->
-  <text x="140" y="500" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#78716c" letter-spacing="0.05em">
-    ShareStuff
+  <text x="140" y="430" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="28" font-weight="500" fill="#475569" letter-spacing="0.01em">
+    Invite-only libraries — books, tools &amp; more with your community
   </text>
 </svg>

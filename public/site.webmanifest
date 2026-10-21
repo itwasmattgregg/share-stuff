@@ -1,7 +1,7 @@
 {
   "name": "ShareStuff",
   "short_name": "ShareStuff",
-  "description": "Share tools, books, and resources with the neighbours around you.",
+  "description": "Private library communities for the people you trust.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fafaf9",

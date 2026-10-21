@@ -19,22 +19,22 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const socialImageUrl = data?.socialImageUrl ?? `${requestUrl}/og-image.png`;
 
   return [
-    { title: "ShareStuff - Build Stronger Communities Through Sharing" },
-    { name: "description", content: "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community." },
+    { title: "ShareStuff - Private Library Communities" },
+    { name: "description", content: "Create private library communities for the people you trust. Invite-only sharing of books, tools, and resources." },
     
     // Open Graph tags
     { property: "og:type", content: "website" },
     { property: "og:url", content: requestUrl },
-    { property: "og:title", content: "ShareStuff - Build Stronger Communities Through Sharing" },
-    { property: "og:description", content: "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community." },
+    { property: "og:title", content: "ShareStuff - Private Library Communities" },
+    { property: "og:description", content: "Create private library communities for the people you trust. Invite-only sharing of books, tools, and resources." },
     { property: "og:image", content: socialImageUrl },
     { property: "og:image:width", content: "1200" },
     { property: "og:image:height", content: "630" },
     
     // Twitter Card tags
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "ShareStuff - Build Stronger Communities Through Sharing" },
-    { name: "twitter:description", content: "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community." },
+    { name: "twitter:title", content: "ShareStuff - Private Library Communities" },
+    { name: "twitter:description", content: "Create private library communities for the people you trust. Invite-only sharing of books, tools, and resources." },
     { name: "twitter:image", content: socialImageUrl },
   ];
 };
@@ -72,16 +72,16 @@ export default function Index() {
       <section className="relative px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 mb-6">
-            Build Stronger
+            Private library
             <span className="block bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              Communities
+              communities
             </span>
-            Through Sharing
+            for the people you trust
           </h1>
           
           <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed px-4">
-            Join a network where neighbors share tools, books, and resources. 
-            Reduce waste, save money, and build meaningful connections in your community.
+            Invite-only libraries where your group shares books, tools, and resources—
+            privately, with people you already know.
           </p>
 
           {!user ? (

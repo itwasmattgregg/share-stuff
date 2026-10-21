@@ -56,12 +56,12 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { property: "og:url", content: requestUrl },
     {
       property: "og:title",
-      content: "ShareStuff - Build Stronger Communities Through Sharing",
+      content: "ShareStuff - Private Library Communities",
     },
     {
       property: "og:description",
       content:
-        "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community.",
+        "Create private library communities for the people you trust. Invite-only sharing of books, tools, and resources.",
     },
     { property: "og:image", content: socialImageUrl },
     { property: "og:image:width", content: "1200" },
@@ -70,12 +70,12 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { name: "twitter:card", content: "summary_large_image" },
     {
       name: "twitter:title",
-      content: "ShareStuff - Build Stronger Communities Through Sharing",
+      content: "ShareStuff - Private Library Communities",
     },
     {
       name: "twitter:description",
       content:
-        "Join a community where neighbors share tools, books, and resources. Build connections, reduce waste, and strengthen your local community.",
+        "Create private library communities for the people you trust. Invite-only sharing of books, tools, and resources.",
     },
     { name: "twitter:image", content: socialImageUrl },
   ];

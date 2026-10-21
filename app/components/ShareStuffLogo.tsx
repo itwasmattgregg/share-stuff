@@ -2,7 +2,9 @@ import { useId } from "react";
 
 /**
  * Brand mark: an item circulating between neighbours (the loop) around the
- * community it serves (the heart). Kept in sync with /public/favicon.svg.
+ * community it serves (the heart). Drawn in a native 48×48 grid with thin
+ * strokes so it stays crisp at favicon and nav sizes. Kept in sync with
+ * /public/favicon.svg.
  */
 export function ShareStuffMark({
   className = "h-10 w-10",
@@ -37,23 +39,24 @@ export function ShareStuffMark({
 
       <rect width="48" height="48" rx="13" fill={`url(#${gradientId})`} />
 
-      <g transform="translate(3.36 3.36) scale(1.72)">
-        <path
-          d="M12 16.4 8.05 12.45A2.8 2.8 0 0 1 12 8.5A2.8 2.8 0 0 1 15.95 12.45Z"
-          fill="#ffffff"
-        />
-        <g
-          stroke="#ffffff"
-          strokeWidth="2.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        >
-          <path d="M4.48 9.26A8 8 0 0 1 19.52 9.26" />
-          <path d="M20.17 6.23 19.52 9.26 17.08 7.35" />
-          <path d="M19.52 14.74A8 8 0 0 1 4.48 14.74" />
-          <path d="M3.83 17.77 4.48 14.74 6.92 16.65" />
-        </g>
+      {/* Heart — sized to leave air around the loop at favicon/nav sizes */}
+      <path
+        d="M24 30.4 18.2 24.6A3.95 3.95 0 0 1 24 19.15a3.95 3.95 0 0 1 5.8 5.45Z"
+        fill="#ffffff"
+      />
+
+      {/* Sharing loop — thin stroke so joins stay crisp when scaled down */}
+      <g
+        stroke="#ffffff"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      >
+        <path d="M10.6 19.7A12.6 12.6 0 0 1 37.4 19.7" />
+        <path d="M38.55 14.7 37.4 19.7 33.3 16.55" />
+        <path d="M37.4 28.3A12.6 12.6 0 0 1 10.6 28.3" />
+        <path d="M9.45 33.3 10.6 28.3 14.7 31.45" />
       </g>
     </svg>
   );
