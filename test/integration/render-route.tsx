@@ -20,11 +20,19 @@ afterEach(() => {
 export function renderWithActionData(
   ui: ReactElement,
   actionData: unknown,
-  searchParams = new URLSearchParams()
+  searchParams = new URLSearchParams(),
+  loaderData?: unknown
 ) {
   cleanup();
 
-  vi.spyOn(remixReact, "useActionData").mockReturnValue(actionData);
+  useActionDataSpy = vi
+    .spyOn(remixReact, "useActionData")
+    .mockReturnValue(actionData);
+  if (loaderData !== undefined) {
+    useLoaderDataSpy = vi
+      .spyOn(remixReact, "useLoaderData")
+      .mockReturnValue(loaderData);
+  }
   vi.spyOn(remixReact, "useSearchParams").mockReturnValue([
     searchParams,
     vi.fn(),

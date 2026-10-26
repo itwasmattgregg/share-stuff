@@ -36,6 +36,8 @@ export async function verifyTurnstileToken({
   }
 
   let result: SiteverifyResult;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10_000);
   try {
     const body = new URLSearchParams({
       secret,
@@ -50,7 +52,7 @@ export async function verifyTurnstileToken({
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        signal: AbortSignal.timeout(10_000),
+        signal: controller.signal,
         body,
       }
     );
@@ -60,6 +62,8 @@ export async function verifyTurnstileToken({
     result = (await response.json()) as SiteverifyResult;
   } catch {
     return false;
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   return (

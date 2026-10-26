@@ -993,7 +993,9 @@ describe("integration: signup with invite", () => {
 
     expect(membership?.status).toBe("APPROVED");
 
-    renderWithActionData(<JoinPage />, actionData);
+    renderWithActionData(<JoinPage />, actionData, new URLSearchParams(), {
+      turnstileSitekey: "0xTestSitekey",
+    });
     expect(screen.getByText(/verification link/i)).toBeInTheDocument();
     expect(
       screen.getByText(/community you were invited to will appear/i)
