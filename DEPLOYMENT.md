@@ -48,6 +48,20 @@ Create an R2 bucket in the Cloudflare dashboard, then create an API token with r
 
 Get a free TMDB API key from [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api). Book ISBN lookup uses Open Library and does not need a key.
 
+### Cloudflare Turnstile (signup spam protection)
+
+`/join` requires a successful Turnstile siteverify before creating an account.
+
+1. Widget sitekey is already set in `fly.toml` as `TURNSTILE_SITEKEY` (public).
+2. Set the widget secret (never commit it):
+
+```bash
+fly secrets set TURNSTILE_SECRET="your-turnstile-secret"
+```
+
+3. Production hostnames are in `fly.toml` as `TURNSTILE_HOSTNAMES=share-stuff.com,share-stuff.fly.dev` (do not add `localhost` here).
+4. Locally, copy values into `.env` from `.env.example` (`TURNSTILE_HOSTNAMES=localhost,127.0.0.1`).
+
 ### Email (Resend)
 
 ShareStuff sends transactional email for **signup verification** and **password reset**. The app uses [Resend](https://resend.com) via SMTP (no extra npm packages).

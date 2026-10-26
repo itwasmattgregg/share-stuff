@@ -26,7 +26,7 @@ vi.mock("~/models/email-verification.server", () => ({
 
 import type { FormHTMLAttributes, ReactNode } from "react";
 import { screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createCommunityInvite } from "~/models/community-invite.server";
 import { isUserMemberOfCommunity } from "~/models/community.server";
@@ -914,8 +914,30 @@ describe("integration: login", () => {
 });
 
 describe("integration: signup with invite", () => {
+  const originalFetch = globalThis.fetch;
+
   beforeEach(async () => {
     await ensureTestDatabase();
+    process.env.TURNSTILE_SECRET = "test-turnstile-secret";
+    process.env.TURNSTILE_HOSTNAMES = "localhost";
+    process.env.TURNSTILE_SITEKEY = "0xTestSitekey";
+    globalThis.fetch = vi.fn(async (input, init) => {
+      if (String(input).includes("challenges.cloudflare.com/turnstile/v0/siteverify")) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            action: "signup",
+            hostname: "localhost",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      return originalFetch(input, init);
+    }) as unknown as typeof fetch;
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
   });
 
   it("joins the invited community before email verification", async () => {
@@ -938,6 +960,7 @@ describe("integration: signup with invite", () => {
         email: "invited-user@example.com",
         password: "password123",
         redirectTo: `/invite/${invite.token}`,
+        "cf-turnstile-response": "test-turnstile-token",
       }),
       params: {},
       context: {},
