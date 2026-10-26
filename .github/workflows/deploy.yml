@@ -105,11 +105,21 @@ jobs:
       - name: ⚙️ Build
         run: npm run build
 
+      # Avoid cypress-io/github-action's extra npm ci + binary cache (recently
+      # failing with Actions cache 400 / "services aren't available"), and retry
+      # wait-on / server-start flakes like "Socket closed before the connection
+      # was established".
       - name: 🌳 Cypress run
-        uses: cypress-io/github-action@v5
+        uses: nick-fields/retry@v3
         with:
-          start: npm run start:mocks
-          wait-on: http://localhost:8811
+          timeout_minutes: 20
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: >
+            npx start-server-and-test
+            start:mocks
+            http-get://127.0.0.1:8811
+            "npx cypress run"
         env:
           PORT: 8811
 
