@@ -84,6 +84,27 @@ describe("verifyTurnstileToken", () => {
     ).toBe(true);
   });
 
+  it("accepts Cloudflare testing-key siteverify without an action", async () => {
+    process.env.TURNSTILE_HOSTNAMES = "localhost,example.com";
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: true,
+          hostname: "example.com",
+          metadata: { result_with_testing_key: true },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    ) as unknown as typeof fetch;
+
+    expect(
+      await verifyTurnstileToken({
+        token: "XXXX.DUMMY.TOKEN.XXXX",
+        expectedAction: "signup",
+      })
+    ).toBe(true);
+  });
+
   it("rejects wrong action, hostname, or siteverify failure", async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response(

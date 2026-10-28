@@ -20,6 +20,12 @@ describe("auth", () => {
     cy.findByRole("textbox", { name: /display name/i }).type(loginForm.name);
     cy.findByRole("textbox", { name: /email/i }).type(loginForm.email);
     cy.findByLabelText(/^password$/i).type(loginForm.password);
+    // Cloudflare always-pass test sitekey fills this hidden field automatically.
+    cy.get("[name=cf-turnstile-response]", { timeout: 15000 })
+      .should("exist")
+      .and(($el) => {
+        expect(String($el.val() ?? "")).to.have.length.greaterThan(0);
+      });
     cy.findByRole("button", { name: /create account/i }).click();
 
     cy.findByText(/verification link/i);

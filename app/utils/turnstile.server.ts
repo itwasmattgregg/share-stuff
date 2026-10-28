@@ -2,10 +2,15 @@ type SiteverifyResult = {
   success?: boolean;
   action?: string;
   hostname?: string;
+  metadata?: {
+    result_with_testing_key?: boolean;
+  };
 };
 
 /**
  * Canonical Cloudflare Turnstile siteverify. Fail closed on any error.
+ * Cloudflare dummy testing keys omit `action` and report hostname
+ * `example.com` with `metadata.result_with_testing_key`.
  */
 export async function verifyTurnstileToken({
   token,
@@ -66,12 +71,22 @@ export async function verifyTurnstileToken({
     clearTimeout(timeoutId);
   }
 
-  return (
-    result.success === true &&
-    result.action === expectedAction &&
-    typeof result.hostname === "string" &&
-    expectedHostnames.has(result.hostname)
-  );
+  if (result.success !== true) {
+    return false;
+  }
+  if (
+    typeof result.hostname !== "string" ||
+    !expectedHostnames.has(result.hostname)
+  ) {
+    return false;
+  }
+
+  const isTestingKey = result.metadata?.result_with_testing_key === true;
+  if (!isTestingKey && result.action !== expectedAction) {
+    return false;
+  }
+
+  return true;
 }
 
 export function getClientIp(request: Request): string | undefined {

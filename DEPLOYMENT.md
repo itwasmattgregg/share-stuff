@@ -59,8 +59,8 @@ Get a free TMDB API key from [themoviedb.org/settings/api](https://www.themovied
 fly secrets set TURNSTILE_SECRET="your-turnstile-secret"
 ```
 
-3. Production hostnames are in `fly.toml` as `TURNSTILE_HOSTNAMES=share-stuff.com,share-stuff.fly.dev` (do not add `localhost` here).
-4. Locally, copy values into `.env` from `.env.example` (`TURNSTILE_HOSTNAMES=localhost,127.0.0.1`).
+3. Production hostnames are in `fly.toml` as `TURNSTILE_HOSTNAMES=share-stuff.com,share-stuff.fly.dev` (do not add `localhost` or `example.com` here).
+4. Locally / in CI, `.env.example` uses Cloudflare's [always-pass testing keys](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) so Cypress and local signup work without a real challenge. Replace those with your real keys only when intentionally testing production widgets.
 
 ### Email (Resend)
 
