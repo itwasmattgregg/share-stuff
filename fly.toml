@@ -10,6 +10,9 @@ primary_region = "sjc"  # San Jose, California
   NODE_ENV = "production"
   HOST = "0.0.0.0"
   PORT = "8080"
+  # Public Turnstile sitekey + production frontend hostnames (no localhost).
+  TURNSTILE_SITEKEY = "0x4AAAAAAFnI9rGJ5idY4yjl"
+  TURNSTILE_HOSTNAMES = "share-stuff.com,share-stuff.fly.dev"
 
 [http_service]
   internal_port = 8080
